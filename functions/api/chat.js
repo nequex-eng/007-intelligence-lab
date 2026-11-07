@@ -37,6 +37,11 @@ export async function onRequestPost(context) {
     }
     const book = getNovel(novelId);
     if (!book) return json({ error: "未知小说时间点", code: "UNKNOWN_NOVEL" }, 400);
+    const chapterValue = body.chapterNo;
+    const chapterNo = chapterValue === null || chapterValue === undefined || chapterValue === "" ? null : Number(chapterValue);
+    if (chapterNo !== null && (!Number.isInteger(chapterNo) || !book.chapters?.some(c => Number(c.no) === chapterNo))) {
+      return json({ error: "所选章节不属于这部小说", code: "UNKNOWN_CHAPTER" }, 400);
+    }
 
     const incoming = Array.isArray(body.messages) ? body.messages : [];
     const history = incoming
@@ -53,11 +58,11 @@ export async function onRequestPost(context) {
       return json({ error: "知识库中没有该人物", code: "UNKNOWN_CHARACTER" }, 404);
     }
 
-    const states = canonicalCharacters.map(c => characterForScene(c.id, book.novel_id));
+    const states = canonicalCharacters.map(c => characterForScene(c.id, book.novel_id, chapterNo));
     const unavailable = states.find(s => !s.ok);
     if (unavailable) {
       return json({
-        error: "该人物在所选小说时间点不可出场",
+        error: unavailable.error === "CHARACTER_NOT_YET_APPEARED" ? "该人物在所选章节尚未登场" : "该人物在所选小说时间点不可出场",
         code: unavailable.error,
         status: unavailable.status
       }, 409);
@@ -65,7 +70,7 @@ export async function onRequestPost(context) {
 
     const latestQuestion = history[history.length - 1].content;
     const prompts = canonicalCharacters.map((character, i) =>
-      canonSystemPrompt(character, book, states[i].status, latestQuestion)
+      canonSystemPrompt(character, book, states[i].status, latestQuestion, chapterNo)
     );
     const system = [
       "你正在运行007原著正典角色模拟。只扮演本请求指定的人物，不得扮演用户。",
@@ -84,6 +89,7 @@ export async function onRequestPost(context) {
         reply: out.text,
         characterIds: canonicalCharacters.map(c => c.id),
         novelId: book.novel_id,
+        chapterNo,
         canonMode: true,
         model: out.model
       });
