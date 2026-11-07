@@ -59,6 +59,8 @@ assert.equal(leChiffreAfterExit.status, 409, "Le Chiffre cannot appear after his
 const invalidSceneChapter = await json(await canon(ctx("/api/canon?action=scene&character=bond&novel=casino-royale&chapter=999")));
 assert.equal(invalidSceneChapter.status, 400);
 assert.equal(invalidSceneChapter.body.code, "UNKNOWN_CHAPTER");
+const romanChapterScene = await json(await canon(ctx("/api/canon?action=scene&character=mr-big&novel=live-and-let-die&chapter=XXIII")));
+assert.equal(romanChapterScene.status, 409, "Roman numeral chapter boundary must block characters after exit");
 
 const chatWithoutTimeline = await json(await chat(postCtx("/api/chat", {
   characterIds: ["bond"],
@@ -99,6 +101,14 @@ const chatInvalidChapter = await json(await chat(postCtx("/api/chat", {
 })));
 assert.equal(chatInvalidChapter.status, 400);
 assert.equal(chatInvalidChapter.body.code, "UNKNOWN_CHAPTER");
+const romanChapterChat = await json(await chat(postCtx("/api/chat", {
+  characterIds: ["bond"],
+  novelId: "live-and-let-die",
+  chapterNo: "I",
+  messages: [{ role: "user", content: "Mr Big是谁？" }]
+})));
+assert.equal(romanChapterChat.status, 503, "Roman numeral chapter IDs must pass validation before offline model check");
+assert.equal(romanChapterChat.body.code, "MODEL_NOT_CONNECTED");
 
 const chatFutureKnowledgeBlocked = await json(await chat(postCtx("/api/chat", {
   characterIds: ["vesper-lynd"],
