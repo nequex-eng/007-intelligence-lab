@@ -314,7 +314,7 @@ function initDossier() {
 
 // ---- 任务模拟器：真实状态机 ----
 const MISSIONS = [
-{ id: "casino", title: "皇家赌场", kind: "原著改编互动", kindTag: "改编", desc: "以1953年《皇家赌场》为正典背景的互动改编。任务选择与分支为玩家体验设计，不等同于弗莱明原著实际发生的事件。", start: { funds: 10000, risk: 20, cred: 70, day: 1},
+{ id: "casino", novelId: "casino-royale", title: "皇家赌场", kind: "原著改编互动", kindTag: "改编", desc: "以1953年《皇家赌场》为正典背景的互动改编。任务选择与分支为玩家体验设计，不等同于弗莱明原著实际发生的事件。", start: { funds: 10000, risk: 20, cred: 70, day: 1},
 stages: [
 { id: "brief", title: "第1阶段·M的简报", text: "M在伦敦办公室交给你任务简报：勒·希弗挪用苏联情报机构公款炒作失败，今晚将在皇家赌场牌桌上翻本。你的资金由财政部提供，薇丝朋·琳德担任联络人。记住：输光他，就等于切断他的退路。", choices: [
 { text: "仔细研读简报与勒·希弗的牌风记录", hint: "情报可信度+15，时间+半天", fx: { cred: 15, day: 0.5}, next: "arrive"},
@@ -337,6 +337,90 @@ ending(state) {
 if (state.risk >= 80) return { grade: "任务失败", text: "风险失控：你在撤离途中暴露，任务被迫中止。M的评语只有一句：下次先读简报。资金剩余" + state.funds + "，情报可信度" + state.cred + "。按原著，勒·希弗最终被苏联方面处决，但这一次与你无关。"};
 if (state.funds <= 0) return { grade: "惨胜", text: "你赢了牌桌，输光了资金。勒·希弗翻不了身，但你回伦敦要写一份很长的资金说明。情报可信度" + state.cred + "，发现线索" + state.clues.length + "条。"};
 return { grade: "任务成功", text: "勒·希弗在牌桌上输光翻本的本钱，退路断绝。按原著走向，他随后被苏联方面处决。你的资金剩余" + state.funds + "，情报可信度" + state.cred + "，发现线索" + state.clues.length + "条，M在报告上只写了两个字：很好。"};
+}},
+{ id: "dr-no", novelId: "dr-no", title: "蟹礁岛行动", kind: "原著改编互动", kindTag: "原著", desc: "依据《诺博士》核验章节设计：调查斯特兰威斯与特鲁布拉德失踪案，追查蟹礁岛。玩家选择与分支为互动改编，不等同于原著实际过程。", start: { funds: 9000, risk: 25, cred: 65, day: 1 },
+stages: [
+{ id: "brief", title: "第1阶段·M的简报", text: "加勒比地区负责人斯特兰威斯与助手玛丽·特鲁布拉德失踪三周。官方称两人私奔，但每日18时30分与伦敦的无线电联络突然中断，档案也被取空。M派你前往牙买加调查，唯一线索指向蟹礁岛与岛主诺博士。", choices: [
+{ text: "先核对无线电记录与最后一次联络", hint: "可信度+15，线索+1", fx: { cred: 15, clue: "斯特兰威斯最后一次定时联络中断，与私奔说法矛盾" }, next: "kingston" },
+{ text: "直接追查蟹礁岛档案", hint: "节省时间，风险+10", fx: { risk: 10, clue: "蟹礁岛档案封皮仍在，内文已被取空" }, next: "kingston" },
+{ text: "请求夸雷尔协助并核实当地传闻", hint: "获得当地协助，可信度+10", fx: { cred: 10, rel: ["夸雷尔", 1] }, next: "kingston" }
+]},
+{ id: "kingston", title: "第2阶段·金斯顿调查", text: "金斯顿的线索逐渐指向诺博士：斯特兰威斯的太阳光汽车被人使用，总督府档案可能遭到渗透，一名自称报社摄影记者的安娜贝尔·钟反复拍摄你的行踪。", choices: [
+{ text: "核查斯特兰威斯的汽车与行踪", hint: "线索+1，风险-5", fx: { risk: -5, clue: "斯特兰威斯的太阳光汽车被用来确认邦德的行踪" }, next: "crab-key" },
+{ text: "查问殖民地秘书处的档案经手人", hint: "可信度+10，风险+5", fx: { cred: 10, risk: 5, clue: "诺博士在总督府内有眼线，档案最后经手人为斯特兰威斯" }, next: "crab-key" },
+{ text: "反跟踪安娜贝尔·钟", hint: "线索+1，风险+10", fx: { risk: 10, clue: "安娜贝尔·钟是诺博士的眼线，负责确认邦德身份与住处" }, next: "crab-key" }
+]},
+{ id: "crab-key", title: "第3阶段·夜渡蟹礁岛", text: "你与夸雷尔准备乘独木舟夜渡蟹礁岛。岛上传闻有一条会喷火的巨龙，奥杜邦协会的调查人员也曾在岛上失踪。雷达与海岸巡逻让登陆风险极高。", choices: [
+{ text: "沿黑沙滩登陆，避开灯火与雷达", hint: "风险-10，线索+1", fx: { risk: -10, clue: "蟹礁岛雷达会搜索海面目标，夜间隐蔽登陆更安全" }, next: "facility" },
+{ text: "先在海岸外观察巨龙巡逻路线", hint: "可信度+10，时间+1天", fx: { cred: 10, day: 1, clue: "所谓巨龙是装甲沼泽车，配有火焰喷射器" }, next: "facility" },
+{ text: "快速登陆，抢在守卫换班前进入岛内", hint: "风险+15，节省时间", fx: { risk: 15 }, next: "facility" }
+]},
+{ id: "facility", title: "第4阶段·诺博士的设施", text: "你已进入岛内设施。诺博士承认斯特兰威斯夫妇遭到谋杀，并透露自己干扰美国导弹试验的计划。哈妮被囚禁，岛上守卫正在收紧搜索。", choices: [
+{ text: "优先救出哈妮并寻找撤离路线", hint: "线索+1，风险-5", fx: { risk: -5, clue: "哈妮知道岛上地形，是重要的逃生向导" }, next: "end" },
+{ text: "破坏导弹干扰设备，切断诺博士计划", hint: "风险+10，可信度+15", fx: { risk: 10, cred: 15, clue: "诺博士的目标是干扰美军导弹制导并捕获导弹样机" }, next: "end" },
+{ text: "寻找传送带与鸟粪装卸区，伺机反击", hint: "线索+1，风险+5", fx: { risk: 5, clue: "诺博士最终在码头装船时被鸟粪传送带活埋" }, next: "end" }
+]}
+],
+ending(state) {
+if (state.risk >= 80) return { grade: "行动失败", text: "你在蟹礁岛暴露行踪，撤离路线被封锁。此次模拟行动失败；原著中邦德最终逃出蟹礁岛，诺博士被鸟粪传送带活埋。" };
+if (state.clues.length >= 3) return { grade: "行动成功", text: "你查明失踪案与诺博士的关系，并找到救出哈妮与逃离岛屿的关键路线。原著正典结局：诺博士被鸟粪活埋，邦德与哈妮乘独木舟返回牙买加。" };
+return { grade: "部分成功", text: "你确认蟹礁岛与失踪案有关，但证据或撤离准备不足。模拟行动需要后续补充；原著结局仍以知识库记录为准。" };
+}},
+{ id: "goldfinger", novelId: "goldfinger", title: "大满贯行动", kind: "原著改编互动", kindTag: "原著", desc: "依据《金手指》核验章节设计：追查黄金外流、揭穿金手指的走私网络，并识别诺克斯堡大满贯计划。玩家分支属于互动改编。", start: { funds: 12000, risk: 25, cred: 70, day: 1 },
+stages: [
+{ id: "brief", title: "第1阶段·英格兰银行简报", text: "英格兰银行发现大量黄金异常外流。M要求你调查奥里克·金手指：他以旧金回收生意为掩护，拥有分布在多个国家的金条储备。", choices: [
+{ text: "先研究金条刻痕与黄金流向", hint: "可信度+15，线索+1", fx: { cred: 15, clue: "部分金条带有微小Z刻痕，与SMERSH资金链有关" }, next: "miami" },
+{ text: "从金手指的赌场与牌局关系入手", hint: "线索+1，风险+5", fx: { risk: 5, clue: "金手指在迈阿密与杜邦进行双人卡纳斯塔牌局" }, next: "miami" },
+{ text: "直接接近金手指，建立信任", hint: "风险+15，时间节省", fx: { risk: 15 }, next: "miami" }
+]},
+{ id: "miami", title: "第2阶段·迈阿密牌局", text: "杜邦称自己一周内输给金手指25,000美元，怀疑对方作弊。邦德在弗洛里迪亚纳酒店调查，发现吉尔·马斯特顿在套房内用望远镜与麦克风向金手指报牌。", choices: [
+{ text: "查清套房内的望远镜与无线电装置", hint: "线索+1，可信度+10", fx: { cred: 10, clue: "吉尔·马斯特顿通过望远镜观察牌面并向金手指报牌" }, next: "smuggling" },
+{ text: "迫使金手指退还杜邦损失", hint: "资金-500，风险-5", fx: { funds: -500, risk: -5, clue: "金手指被迫开出50,000美元支票" }, next: "smuggling" },
+{ text: "跟踪金手指，查他的黄金运输方式", hint: "风险+10，线索+1", fx: { risk: 10, clue: "金手指随身携带黄金，并利用行李箱夹层与金币腰带转移" }, next: "smuggling" }
+]},
+{ id: "smuggling", title: "第3阶段·黄金走私链", text: "调查发现，金手指的劳斯莱斯银色幽灵并非普通车身：车身含有约两吨18K白金，拆解后将被改制成航空座椅运往印度。线索还指向一项代号“大满贯”的大规模行动。", choices: [
+{ text: "沿运输链追查白金车身去向", hint: "线索+1，可信度+10", fx: { cred: 10, clue: "白金车身在科佩工厂拆解，计划改制为Mecca航空座椅" }, next: "grand-slam" },
+{ text: "查阅黑帮会议与资金记录", hint: "风险+10，线索+1", fx: { risk: 10, clue: "金手指召集黑帮首脑，承诺以黄金分成换取人手" }, next: "grand-slam" },
+{ text: "向M提交阶段报告，请求增援", hint: "可信度+15，时间+1天", fx: { cred: 15, day: 1 }, next: "grand-slam" }
+]},
+{ id: "grand-slam", title: "第4阶段·诺克斯堡计划", text: "金手指的目标是诺克斯堡黄金储备。他计划使用原子弹头炸开金库，并在供水系统投放GB神经毒剂；黄金将由苏联巡洋舰运走。你必须设法破坏计划并保护平民。", choices: [
+{ text: "优先向美方提交神经毒剂情报", hint: "可信度+15，风险-5", fx: { cred: 15, risk: -5, clue: "GB毒剂计划可能造成约6万人死亡或致残" }, next: "end" },
+{ text: "追踪金手指的运输车队，寻找拦截机会", hint: "风险+15，线索+1", fx: { risk: 15, clue: "黄金运输计划与苏联巡洋舰接应有关" }, next: "end" },
+{ text: "设法向外界发送求救密信", hint: "资金-1000，风险-10", fx: { funds: -1000, risk: -10, clue: "邦德曾把求救密信藏在飞机厕所座椅下，最终送达莱特" }, next: "end" }
+]}
+],
+ending(state) {
+if (state.risk >= 80) return { grade: "行动失败", text: "你未能及时破坏大满贯计划，风险失控。此结局为互动模拟分支；原著中诺克斯堡伏击挫败计划，金手指劫机逃亡，最终被邦德杀死。" };
+if (state.clues.length >= 3 && state.cred >= 70) return { grade: "行动成功", text: "你识别了黄金走私链、诺克斯堡目标与GB毒剂威胁，及时向盟友发出警报。原著正典中，大满贯行动最终失败，金手指在劫持航班后被邦德杀死。" };
+return { grade: "部分成功", text: "你掌握了部分黄金走私线索，但大满贯计划仍有风险。模拟行动需要补充情报；原著事件以核验知识库为准。" };
+}},
+{ id: "thunderball", novelId: "thunderball", title: "欧米茄行动", kind: "原著改编互动", kindTag: "原著", desc: "依据《霹雳弹》核验章节设计：追踪被劫持的Vindicator轰炸机与两枚核弹，调查SPECTRE勒索，并在巴哈马阻止核袭击。玩家分支属于互动改编。", start: { funds: 15000, risk: 30, cred: 65, day: 1 },
+stages: [
+{ id: "brief", title: "第1阶段·核勒索简报", text: "SPECTRE劫持一架Vindicator轰炸机，机上有两枚核弹，并向英国政府勒索价值一亿英镑的黄金。期限迫近，M派你前往巴哈马参与搜寻行动。", choices: [
+{ text: "核对失踪飞机编号与核弹清单", hint: "可信度+15，线索+1", fx: { cred: 15, clue: "失踪飞机为Vindicator，载有两枚核弹" }, next: "shrubl..." },
+{ text: "先查SPECTRE勒索信与期限", hint: "线索+1，风险-5", fx: { risk: -5, clue: "勒索期限与金条交付条件均有明确时限" }, next: "shrubl..." },
+{ text: "调查疗养院中的可疑人物利普", hint: "风险+5，线索+1", fx: { risk: 5, clue: "利普腕下的红闪电纹身与澳门犯罪组织有关" }, next: "shrubl..." }
+]},
+{ id: "shrubl...", title: "第2阶段·灌木林线索", text: "邦德在灌木林疗养院发现利普腕下的红闪电帮会纹身。利普企图在治疗过程中杀死邦德，随后被SPECTRE灭口。M要求你不要被这条支线拖住，尽快前往巴哈马。", choices: [
+{ text: "追查红闪电帮会与SPECTRE的关系", hint: "可信度+10，风险+5", fx: { cred: 10, risk: 5, clue: "利普与SPECTRE有关，曾企图杀死邦德" }, next: "nassau" },
+{ text: "优先前往巴哈马，集中寻找飞机残骸", hint: "时间-1天，风险-5", fx: { day: -1, risk: -5 }, next: "nassau" },
+{ text: "请求莱特协助检查海域与航线", hint: "关系+1，线索+1", fx: { rel: ["费利克斯·莱特", 1], clue: "失事飞机可能在比米尼附近海域" }, next: "nassau" }
+]},
+{ id: "nassau", title: "第3阶段·拿骚与飞碟号", text: "拿骚。你接触到拉戈的飞碟号与多米诺·佩塔基。拉戈声称自己是寻宝团负责人，但船上燃油、人员与航行安排存在疑点。多米诺与拉戈的关系也并不简单。", choices: [
+{ text: "秘密接近多米诺，核实她与拉戈的关系", hint: "关系+1，线索+1", fx: { rel: ["多米诺", 1], clue: "多米诺本名多米内塔·佩塔基，兄长是被劫机的飞行员" }, next: "wreck" },
+{ text: "监视飞碟号的燃油与出航时间", hint: "线索+1，风险-5", fx: { risk: -5, clue: "飞碟号实际燃油量与拉戈所称不符" }, next: "wreck" },
+{ text: "与莱特协调海上监视和水下搜索", hint: "可信度+10，风险+5", fx: { cred: 10, risk: 5, clue: "飞碟号与比米尼附近失事飞机残骸存在关联" }, next: "wreck" }
+]},
+{ id: "wreck", title: "第4阶段·核弹回收", text: "你与莱特找到失事飞机残骸，确认两枚核弹与引信已被取走。拉戈准备将核弹运往大巴哈马岛导弹基地。必须在布放前拦截潜水队。", choices: [
+{ text: "带队水下拦截核弹运输雪橇", hint: "风险+10，线索+1", fx: { risk: 10, clue: "拉戈的潜水队正把核弹运往大巴哈马岛导弹基地" }, next: "end" },
+{ text: "让多米诺继续潜伏，寻找飞碟号内部机会", hint: "关系+1，风险-5", fx: { risk: -5, rel: ["多米诺", 1], clue: "多米诺同意携带盖革计数器作为内应信号" }, next: "end" },
+{ text: "优先通知盟军拦截第二枚核弹的目标", hint: "可信度+15，资金-500", fx: { cred: 15, funds: -500, clue: "第二枚核弹原定目标为迈阿密" }, next: "end" }
+]}
+],
+ending(state) {
+if (state.risk >= 80) return { grade: "行动失败", text: "你未能在核弹布放前完成拦截。此结局为互动模拟分支；原著中多米诺杀死拉戈，两枚核弹最终被回收，布洛菲尔德逃脱。" };
+if (state.clues.length >= 3) return { grade: "行动成功", text: "你识别了飞机残骸、飞碟号与核弹运输路线，成功组织拦截。原著正典中，两枚核弹被回收，多米诺杀死拉戈，布洛菲尔德逃脱。" };
+return { grade: "部分成功", text: "你已定位部分线索，但仍需确认核弹位置与布放时间。模拟行动未完全成功；原著事件以核验知识库为准。" };
 }},
 { id: "venice", title: "威尼斯密码", kind: "原创任务", kindTag: "非原著·原创", desc: "原创任务，明确标注非原著：使用弗莱明世界观与人物设定生成的独立任务，人物与组织关系为原创设计，不是原著剧情。", start: { funds: 8000, risk: 25, cred: 60, day: 1},
 stages: [
@@ -479,13 +563,19 @@ saveMissionState();
 renderMissionStage();
 }
 
-async function loadCasinoCanonBrief() {
+async function loadMissionCanonBrief(novelId = "casino-royale") {
   const box = $("#missionCanonBrief");
+  if (!novelId) {
+    box.innerHTML = '<p class="meta">原创任务：没有原著正典依据。所有人物关系、地点和分支均为原创模拟内容。</p>';
+    return;
+  }
   try {
-    const r = await fetch("/api/mission?id=casino-royale"); if (!r.ok) throw new Error("任务正典接口返回 "+r.status);
+    const r = await fetch("/api/mission?id=" + encodeURIComponent(novelId));
+    if (!r.ok) throw new Error("任务正典接口返回 " + r.status);
     const d = await r.json();
-    const facts = d.facts.filter(f => [1,2,3,9,10,11,12,13,18,19,20,21,27].includes(Number(String(f.chapter).replace(/[^0-9]/g,"")))).slice(0,8);
-    box.innerHTML = '<h3>'+esc(d.novel.titleZh)+' · '+d.novel.year+'</h3><p class="meta">'+esc(d.missionMode)+'：玩家选择会产生互动分支，不能冒充原著剧情。</p><p>'+esc(d.novel.timeline)+'</p><p><b>章节目录：</b>'+esc(d.chapters.map(c=>c.no+" "+c.title).join(" · "))+'</p><p><b>核验事实摘录：</b></p><ul>'+facts.map(f=>'<li>'+esc("第"+f.chapter+"章："+f.fact)+'</li>').join("")+'</ul>';
+    const facts = (d.facts || []).slice(0, 8);
+    const events = (d.events || []).slice(0, 4);
+    box.innerHTML = '<h3>'+esc(d.novel.titleZh)+' · '+d.novel.year+'</h3><p class="meta">'+esc(d.missionMode)+'：玩家选择会产生互动分支，不能冒充原著剧情。</p><p>'+esc(d.novel.timeline)+'</p><p><b>章节目录：</b>'+esc(d.chapters.map(c=>c.no+" "+c.title).join(" · "))+'</p><p><b>核验事实摘录：</b></p><ul>'+facts.map(f=>'<li>'+esc("第"+f.chapter+"章："+f.fact)+'</li>').join("")+'</ul><p><b>关键事件：</b></p><ul>'+events.map(e=>'<li>'+esc("第"+e.chapter+"章："+e.title+" — "+e.effect)+'</li>').join("")+'</ul>';
   } catch(e) { box.innerHTML = '<p class="meta">原著任务资料加载失败：'+esc(e.message)+'。任务剧情暂不标为已完成正典核验。</p>'; }
 }
 function saveMissionState() {
@@ -513,7 +603,7 @@ function restoreMissionState(preferredId = null) {
     return true;
   } catch(e) { return false; }
 }
-function initMissions() { renderMissionList(); loadCasinoCanonBrief(); restoreMissionState(); }
+function initMissions() { renderMissionList(); loadMissionCanonBrief("casino-royale"); restoreMissionState(); }
 
 // ---- 成为邦德：场景体验 + 百家乐 ----
 const EXP_SCENES = [
@@ -525,7 +615,7 @@ const EXP_SCENES = [
 { id: "casino", title: "赌场·牌桌", text: "赌场大厅。百家乐牌桌旁，勒·希弗已经就座，面前堆着筹码。空气里有雪茄味和紧张。你走过去，拉开椅子坐下——今晚的主角到齐了。", choices: ["坐下，直接开局", "先在旁边观战一轮", "去百家乐桌实战一把"], replies: ["你坐下，推上筹码。勒·希弗抬眼看你：“邦德先生，欢迎。”", "你站在人群后看了一轮：勒·希弗拿到好牌时会摸手帕。你记住了。", "直接去下方百家乐小游戏实战，筹码与输赢都是真的。"] },
 { id: "club", title: "私人俱乐部·社交", text: "布莱兹俱乐部。皮椅、雪茄、报纸。在这里，没人高声说话，所有的交易都在低声中完成。你要找的人坐在角落那张桌子旁。", choices: ["和角落那位打个招呼", "先读一会儿报纸", "点一支雪茄"], replies: ["那人抬头：“邦德先生。坐。有些话，只能在这里说。”", "报纸上的消息一半是真的，一半是放出来的。你分得清。", "雪茄点燃，烟雾升起来。你想起M说过的话：俱乐部里没有偶遇。"] },
 { id: "car", title: "豪华汽车·出行", text: "门口停着一辆深灰色轿车，线条利落。你坐进驾驶座，发动引擎。去机场的路上有三条，你选了最绕的那条——先确认有没有人跟踪。", choices: ["选最绕的路去机场", "直接走高速", "绕到码头换船"], replies: ["你绕了三条街，后视镜里那辆车还在。很好，鱼上钩了。", "高速上车流稀少，跟你的车无处可藏。你踩下油门。", "码头边，你弃车登船。跟踪者站在岸边，看着你远去。"] },
-{ id: "travel", title: "旅行与城市探索", text: "从伦敦到皇家莱索，从伊斯坦布尔到牙买加，邦德的世界是一张不断展开的地图。每一座城市都有它的赌场、它的线人与它的危险。去世界地图看看14本书走过的地方。", choices: ["打开世界地图", "回顾皇家赌场之行", "计划下一站"], replies: ["地图在下方世界地图模块，15处地点，点任意地点进入相关档案。", "皇家莱索：牌桌、薇丝朋、勒·希弗。一切从那里开始。", "下一站由你决定——任务模拟器里还有一场威尼斯原创任务等着你。"] }
+{ id: "travel", title: "旅行与城市探索", text: "从伦敦到皇家莱索，从伊斯坦布尔到牙买加，邦德的世界是一张不断展开的地图。每一座城市都有它的赌场、它的线人与它的危险。去世界地图看看14本书走过的地方。", choices: ["打开世界地图", "回顾皇家赌场之行", "计划下一站"], replies: ["地图在下方世界地图模块，170处核验地点，点任意地点进入相关档案。", "皇家莱索：牌桌、薇丝朋、勒·希弗。一切从那里开始。", "下一站由你决定——任务模拟器里还有一场威尼斯原创任务等着你。"] }
 ];
 
 let expLog = [];
