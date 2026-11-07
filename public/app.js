@@ -321,7 +321,7 @@ async function runDossier(q) {
     }
     box.innerHTML = `<p class="meta">共${results.length}条 · 来源：核验知识库 · 原著事实与推测分别标记。</p>` +
       results.map(h => {
-        const title = h.title_zh || h.name_zh || h.name || h.name_en || h.entity || h.id || "未命名记录";
+        const title = h.kind === "facts" ? (h.entity || h.title_zh || "原著事实") : (h.title_zh || h.name_zh || h.name || h.name_en || h.title || h.entity || h.id || "未命名记录");
         const kind = h.kind || "档案";
         const source = [h.title_zh && h.novel_id ? h.title_zh : null, h.chapter ? "第"+h.chapter+"章" : null, h.source_novel || h.novel_id || null].filter(Boolean).join(" · ") || (h.sources || []).join("；") || "索引记录";
         const detail = h.fact || h.summary || h.description || h.story_timeline || h.role || h.note || h.change || h.quote || "该条目没有提供摘要字段。";
