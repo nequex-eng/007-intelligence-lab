@@ -38,7 +38,7 @@ npm install
 npm run dev
 ```
 
-`npm run dev`会先执行`npm run sync:knowledge`，再使用`wrangler.local.toml`启动纯本地Pages开发环境，不需要Cloudflare API Token。该本地配置不启用Workers AI远程绑定；如需真实模型回复，可在`.dev.vars`中配置MiniMax密钥。默认打开：
+`npm run dev`会先执行`npm run sync:knowledge`，再以Wrangler `--local`模式启动Pages开发环境，不需要Cloudflare API Token。Workers AI远程调用不在本地模拟；如需真实模型回复，可在`.dev.vars`中配置MiniMax密钥。默认打开：
 
 http://localhost:8788
 
@@ -83,6 +83,5 @@ npm run deploy
 ## Cloudflare绑定
 
 - `wrangler.toml`：部署配置，Pages静态目录`public`，Workers AI绑定`AI`。
-- `wrangler.local.toml`：本地无凭据配置，不启用远程Workers AI绑定。
 - `MINIMAX_API_KEY`：Cloudflare Pages Secret / 本地`.dev.vars`，只配置值，不提交密钥。
 - 不使用D1、KV或R2；聊天历史仅保存在用户当前浏览器localStorage，消息仍会发送至模型服务生成回复。
