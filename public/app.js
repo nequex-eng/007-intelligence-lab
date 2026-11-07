@@ -363,14 +363,26 @@ let missionDef = null;
 
 function missionById(id) { return MISSIONS.find((m) => m.id === id);}
 
+function hasSavedMission(id) {
+  try {
+    const saved = JSON.parse(localStorage.getItem("007-mission:" + id) || "null");
+    return Boolean(saved?.state && saved.missionId === id && !saved.state.completed);
+  } catch(e) { return false; }
+}
+
 function renderMissionList() {
-$("#missionList").innerHTML = MISSIONS.map((m) =>
-`<div class="card clickable" data-mission="${m.id}">
+$("#missionList").innerHTML = MISSIONS.map((m) => {
+const saved = hasSavedMission(m.id);
+return `<div class="card clickable" data-mission="${m.id}" data-resume="${saved}">
 <h3>${esc(m.title)} <span class="tag ${m.kindTag === "原著"? "gold": "red"}">${esc(m.kind)}</span></h3>
 <p>${esc(m.desc)}</p>
 <p class="meta">起始资金${m.start.funds} · 风险${m.start.risk} · 情报可信度${m.start.cred}</p>
-<button class="btn small">开始任务</button></div>`).join("");
-$$("#missionList [data-mission]").forEach((el) => el.addEventListener("click", () => startMission(el.dataset.mission)));
+<button class="btn small">${saved ? "继续上次任务" : "开始任务"}</button></div>`;
+}).join("");
+$("#missionList [data-mission]").forEach((el) => el.addEventListener("click", () => {
+if (el.dataset.resume === "true") restoreMissionState(el.dataset.mission);
+else startMission(el.dataset.mission);
+}));
 }
 
 function startMission(id) {
@@ -414,7 +426,15 @@ ${stage.choices.map((ch, i) => `<button class="choice" data-choice="${i}">${esc(
 ${missionState.clues.length? `<p class="meta"><b>已发现线索：</b></p>` + missionState.clues.map((c) => `<div class="log">${esc(c)}</div>`).join(""): ""}
 <div class="row" style="margin-top:10px"><button class="btn ghost small" id="missionQuit">放弃任务</button></div>`;
 $$("#missionPanel [data-choice]").forEach((el) => el.addEventListener("click", () => chooseMission(+el.dataset.choice)));
-$("#missionQuit").addEventListener("click", () => { if (missionDef) localStorage.removeItem("007-mission:" + missionDef.id); missionState = null; missionDef = null; $("#missionPanel").innerHTML = `<h3>任务控制台</h3><p class="meta">任务已放弃。选一个任务重新开始。</p><div class="empty">尚未开始任务</div>`;});
+$("#missionQuit").addEventListener("click", () => {
+if (missionDef) {
+localStorage.removeItem("007-mission:" + missionDef.id);
+if (localStorage.getItem("007-mission:last") === missionDef.id) localStorage.removeItem("007-mission:last");
+}
+missionState = null; missionDef = null;
+$("#missionPanel").innerHTML = `<h3>任务控制台</h3><p class="meta">任务已放弃。选一个任务重新开始。</p><div class="empty">尚未开始任务</div>`;
+renderMissionList();
+});
 }
 
 function renderMissionResult(end) {
@@ -457,23 +477,29 @@ async function loadCasinoCanonBrief() {
   } catch(e) { box.innerHTML = '<p class="meta">原著任务资料加载失败：'+esc(e.message)+'。任务剧情暂不标为已完成正典核验。</p>'; }
 }
 function saveMissionState() {
-  try { if (missionDef && missionState) localStorage.setItem("007-mission:" + missionDef.id, JSON.stringify({ missionId: missionDef.id, state: missionState })); } catch(e) {}
-}
-function restoreMissionState() {
   try {
-    const saved = JSON.parse(localStorage.getItem("007-mission:casino") || "null");
-    if (!saved || !saved.state) return;
-    const def = missionById(saved.missionId);
-    if (!def) return;
-    missionDef = def;
-    missionState = saved.state;
-    if (missionState.completed && missionState.result) {
-      renderMissionResult(missionState.result);
-      return;
+    if (missionDef && missionState) {
+      localStorage.setItem("007-mission:" + missionDef.id, JSON.stringify({ missionId: missionDef.id, state: missionState }));
+      localStorage.setItem("007-mission:last", missionDef.id);
     }
-    if (!def.stages.some(x => x.id === missionState.stage)) return;
-    renderMissionStage();
   } catch(e) {}
+}
+function restoreMissionState(preferredId = null) {
+  try {
+    const id = preferredId || localStorage.getItem("007-mission:last") || "casino";
+    const saved = JSON.parse(localStorage.getItem("007-mission:" + id) || "null");
+    if (!saved || saved.missionId !== id || !saved.state) return false;
+    const def = missionById(id);
+    const state = saved.state;
+    if (!def || !def.stages.some(x => x.id === state.stage) && !(state.completed && state.result)) return false;
+    if (!Number.isFinite(state.funds) || !Number.isFinite(state.risk) || !Number.isFinite(state.cred) || !Array.isArray(state.clues) || !Array.isArray(state.log)) return false;
+    missionDef = def;
+    missionState = state;
+    localStorage.setItem("007-mission:last", id);
+    if (state.completed && state.result) renderMissionResult(state.result);
+    else renderMissionStage();
+    return true;
+  } catch(e) { return false; }
 }
 function initMissions() { renderMissionList(); loadCasinoCanonBrief(); restoreMissionState(); }
 
