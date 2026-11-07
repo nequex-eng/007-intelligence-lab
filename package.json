@@ -13,7 +13,8 @@
     "sync:knowledge": "node scripts/sync-knowledge.mjs",
     "dev": "npm run sync:knowledge && wrangler pages dev public",
     "deploy": "bash deploy.sh",
-    "test:canon": "node scripts/test-canon.mjs"
+    "test:canon": "node scripts/test-canon.mjs",
+    "test:api": "node scripts/test-api.mjs"
   },
   "type": "module"
 }
