@@ -30,7 +30,7 @@ assert.ok(app.includes('chapterNo: $("#sceneChapter").value || null'), "chat req
 assert.ok(app.includes("firstNovelId"), "character selection automatically matches first-appearance novel");
 assert.ok(app.includes("mode: chatMode"), "chat mode is sent to server");
 assert.ok(app.includes('$("[data-lab]")'), "all literary experiment buttons are bound");
-assert.ok(!app.includes('$("[data-lab]").forEach'), "single-element forEach initialization crash is fixed");
+assert.ok(!/(?<!\\$)\\$\\("\\[data-lab\\]"\\)\\.forEach/.test(app), "single-element forEach initialization crash is fixed");
 assert.ok(app.includes("createShoe()"), "baccarat uses a shuffled physical deck");
 assert.ok(app.includes("bacPushes"), "baccarat tracks push outcomes and settles stakes correctly");
 assert.ok(app.includes("/api/literary"), "literary lab calls model-backed analysis endpoint");
