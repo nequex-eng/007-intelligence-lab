@@ -564,7 +564,9 @@ saveMissionState();
 renderMissionStage();
 }
 
+let missionBriefRequest = 0;
 async function loadMissionCanonBrief(novelId = "casino-royale") {
+  const requestId = ++missionBriefRequest;
   const box = $("#missionCanonBrief");
   if (!novelId) {
     box.innerHTML = '<p class="meta">原创任务：没有原著正典依据。所有人物关系、地点和分支均为原创模拟内容。</p>';
@@ -574,6 +576,7 @@ async function loadMissionCanonBrief(novelId = "casino-royale") {
     const r = await fetch("/api/mission?id=" + encodeURIComponent(novelId));
     if (!r.ok) throw new Error("任务正典接口返回 " + r.status);
     const d = await r.json();
+    if (requestId !== missionBriefRequest) return;
     const facts = (d.facts || []).slice(0, 8);
     const events = (d.events || []).slice(0, 4);
     box.innerHTML = '<h3>'+esc(d.novel.titleZh)+' · '+d.novel.year+'</h3><p class="meta">'+esc(d.missionMode)+'：玩家选择会产生互动分支，不能冒充原著剧情。</p><p>'+esc(d.novel.timeline)+'</p><p><b>章节目录：</b>'+esc(d.chapters.map(c=>c.no+" "+c.title).join(" · "))+'</p><p><b>核验事实摘录：</b></p><ul>'+facts.map(f=>'<li>'+esc("第"+f.chapter+"章："+f.fact)+'</li>').join("")+'</ul><p><b>关键事件：</b></p><ul>'+events.map(e=>'<li>'+esc("第"+e.chapter+"章："+e.title+" — "+e.effect)+'</li>').join("")+'</ul>';
