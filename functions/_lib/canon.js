@@ -93,8 +93,9 @@ export function characterForScene(id, novelId) {
   if (!character) return { ok: false, error: "UNKNOWN_CHARACTER" };
   const book = getNovel(novelId);
   if (!book) return { ok: false, error: "UNKNOWN_NOVEL" };
-  const scope = character.knowledge_scope || {};
-  const status = scope[book.novel_id] || scope[String(book.novel_no)] || "unknown";
+  const scope = character.knowledge_scope || [];
+  const entry = Array.isArray(scope) ? scope.find(x => x.novel === book.novel_id || Number(x.novel_no) === Number(book.novel_no)) : null;
+  const status = entry?.status || "unknown";
   if (status === "dead" || status === "not_yet_introduced" || status === "absent") {
     return { ok: false, error: "CHARACTER_UNAVAILABLE_AT_SCENE", status, character, book };
   }
