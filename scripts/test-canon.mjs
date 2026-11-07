@@ -19,6 +19,9 @@ assert.equal(characterForScene("vesper-lynd", "live-and-let-die").ok, false, "Ve
 assert.equal(characterForScene("m", "spy-who-loved-me").ok, false, "M absent from The Spy Who Loved Me");
 assert.equal(characterForScene("m", "casino-royale", 1).ok, false, "M must not appear before first chapter appearance");
 assert.equal(characterForScene("m", "casino-royale", 2).ok, true, "M may appear from first chapter appearance");
+assert.equal(characterForScene("le-chiffre", "casino-royale", 18).ok, true, "Le Chiffre remains present through his last chapter");
+assert.equal(characterForScene("le-chiffre", "casino-royale", 19).error, "CHARACTER_NO_LONGER_PRESENT", "Le Chiffre cannot appear after his last chapter");
+assert.equal(characterForScene("vesper-lynd", "live-and-let-die", 1).ok, false, "Vesper remains unavailable after death");
 const chapterOnePrompt = canonSystemPrompt(getCharacter("bond"), getNovel("casino-royale"), "present", "勒·希弗", 1);
 assert.ok(chapterOnePrompt.includes("当前时间点：第1章结束"), "prompt states the selected chapter cutoff");
 assert.ok(!chapterOnePrompt.includes("[皇家赌场 / 第2章]"), "chapter one prompt excludes chapter two facts");
