@@ -10,7 +10,7 @@
 
 1. **INTELLIGENCE ARCHIVE / 情报档案馆**：14部原著、章节目录、人物、组织、地点、装备、事件、事实与推测，检索结果保留作品和章节出处。
 2. **CHARACTER THEATRE / 人物剧场**：32位核心人物约束档案；选择小说与章节时间点，按人物knowledge_scope和首次登场章节校验能否出场，并过滤所选章节之后的事实。章级模式不向模型提供全书背景/关系摘要；对话历史按人物、小说、章节保存在当前浏览器。
-3. **MISSION CONTROL / 任务控制中心**：保留状态机与任务分支；《皇家赌场》任务简报从核验知识库读取事实、章节与故事时间线。玩家选择形成的分支明确标记为互动改编，不冒充原著事件。
+3. **MISSION CONTROL / 任务控制中心**：保留状态机、风险/资金/线索与本地进度；现有四个原著改编任务为《皇家赌场》《诺博士》《金手指》《霹雳弹》，各自的事实、章节与故事时间线从核验知识库读取。另保留一个明确标记的威尼斯原创任务。玩家选择形成的分支属于互动改编，不冒充原著事件。
 4. **WORLD EXPLORER / 世界探索**：完整地点目录、国家/小说/年代筛选来自核验知识库170处地点；Leaflet + OpenStreetMap展示有独立核对城市坐标的地点，虚构地点和区域级地点不伪造点位。文学研究归入情报档案馆，百家乐与实战体验归入任务控制中心。
 
 ## 数据源与同步
@@ -68,7 +68,7 @@ npm run test:ui
 - `POST /api/chat`：人物对话。请求体支持`characterIds`、`novelId`、可选`chapterNo`、`messages`；章节编号沿用知识库原始编号，兼容阿拉伯数字与罗马数字；同时校验人物首次登场和最后登场章节，并过滤所选章节之后的当前小说事实。
 - `GET /api/dossier?q=关键词`：核验知识检索；支持kind与limit。
 - `GET /api/canon?action=manifest|books|chapters|character|scene|resolve`：知识库元数据、作品目录、章节索引、人物、小说/章节场景校验和别名解析。
-- `GET /api/mission?id=casino-royale`：返回正典任务资料、章节、事件与事实。
+- `GET /api/mission?id=casino-royale|dr-no|goldfinger|thunderball`：返回对应原著任务资料、章节、事件与事实。
 - `GET /api/world`：返回170处核验地点，不包含虚构或未核验坐标。
 - `GET /api/canon?action=relationships&id=bond`：按规范人物ID查询关系。
 - `GET /api/canon?action=timeline`：返回14部故事时间线。
