@@ -104,7 +104,7 @@ export async function onRequestPost(context) {
     if (out.code === "MODEL_NOT_CONNECTED") {
       return json({ error: "模型尚未接入", code: out.code, status: llmStatus(context.env || {}) }, 503);
     }
-    return json({ error: "对方一时接不上话，请再说一次", code: "MODEL_ERROR" }, 502);
+    return json({ error: "对方一时接不上话，请再说一次", code: "MODEL_ERROR", modelError: out.reason || "Unknown MiniMax error" }, 502);
   } catch (e) {
     console.error("chat request failed", e?.message);
     return json({ error: "请求有误，请再试一次" }, 400);
