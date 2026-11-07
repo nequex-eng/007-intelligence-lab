@@ -1484,7 +1484,7 @@ if (fx.rel) s.rels[fx.rel[0]] = (s.rels[fx.rel[0]] || 0) + fx.rel[1];
 
 function missionChoiceChance(choice) {
  const fx = choice.fx || {}, st = missionState;
- return Math.max(18, Math.min(88, Math.round(62 + st.cred * 0.22 - st.risk * 0.25 + (fx.cred || 0) * 0.25 - Math.max(0, fx.risk || 0) * 0.2 - (st.funds < 1500 ? 10 : 0) - (st.day > 4 ? 5 : 0)));
+ return Math.max(18, Math.min(88, Math.round(62 + st.cred * 0.22 - st.risk * 0.25 + (fx.cred || 0) * 0.25 - Math.max(0, fx.risk || 0) * 0.2 - (st.funds < 1500 ? 10 : 0) - (st.day > 4 ? 5 : 0))));
 }
 function resolveMissionChoice(choice) {
  const chance = missionChoiceChance(choice), roll = Math.floor(Math.random() * 100) + 1;
