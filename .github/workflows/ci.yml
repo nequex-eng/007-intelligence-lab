@@ -1,0 +1,30 @@
+name: Verify 007 canon integration
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main, feature/canon-four-labs]
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+      - name: Sync verified knowledge base
+        run: npm run sync:knowledge
+      - name: Validate canon data and timeline constraints
+        run: npm run test:canon
+      - name: Validate Pages API handlers
+        run: npm run test:api
