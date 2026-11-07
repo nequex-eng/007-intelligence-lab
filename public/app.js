@@ -60,6 +60,51 @@ const $$ = (s) => Array.from(document.querySelectorAll(s));
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 
 let CHARACTERS = [];
+let LANGUAGE = (() => { try { return localStorage.getItem("007-language")==="en" ? "en" : "zh"; } catch (_) { return "zh"; } })();
+const EN_TEXT = new Map([
+["情报档案馆","Intelligence Archive"],["人物剧场","Character Theatre"],["任务控制中心","Mission Control"],["世界探索","World Explorer"],
+["接受第一个任务","Accept Your First Mission"],["见一见邦德","Meet Bond"],["打开情报馆","Open the Archive"],["状态检测中…","Checking system…"],
+["搜索人物","Search characters"],["按首次登场筛选","Filter by first appearance"],["原著时间线","Canon timeline"],["同场第二人","Second character"],
+["说点什么…","Write a message…"],["发送","Send"],["自由对话","Free conversation"],["向M汇报","Report to M"],["找Q领装备","Request equipment from Q"],["多角色同场","Group scene"],
+["首次登场：","First appearance: "],["知识截止：","Knowledge cutoff: "],["身份背景：","Background: "],["外貌与行为：","Appearance: "],["性格与价值观：","Personality: "],["语言习惯：","Voice and speech: "],["人际关系：","Relationships: "],["参与事件：","Appearances: "],["知识边界：","Knowledge boundaries: "],["知识库出处索引：","Knowledge sources: "],
+["人物档案","Character dossier"],["点上方任意人物卡片查看完整档案。","Select a character above to view the full dossier."],["尚未选择人物","No character selected"],
+["全部作品","All novels"],["全部国家","All countries"],["全部小说","All novels"],["按国家筛选","Filter by country"],["按小说筛选","Filter by novel"],["按年代筛选","Filter by decade"],
+["真实地点","Real location"],["小说虚构地点","Fictional location"],["返回地点探索","Back to World Explorer"],["去情报馆检索此地点","Search this location in the archive"],
+["正在检索14部核验原著……","Searching the 14 verified original novels…"],["检索","Search"],["分析","Analyse"],["正典知识库 · 数据源与核验状态","Canon Knowledge Base · Sources and Verification"],
+["这不是电子书站，也不是一个聊天框。进入伊恩·弗莱明笔下的007世界：查人物档案、翻情报档案、接M的任务、在赌场牌桌上读懂对手、研究弗莱明的写作方法，再沿着世界地图走完14本书的轨迹。","This is more than an ebook site or a chat window. Explore Ian Fleming’s 007 universe: investigate character files, search intelligence dossiers, take assignments from M, read your opponents at the baccarat table, study Fleming’s craft, and trace the world of all 14 books."],
+["本站已接入14部原著的核验知识库；正典事实、推断与互动改编分别标注，资料缺口以状态卡为准。","The verified knowledge base covers all 14 novels. Canon facts, inferences and interactive adaptations are clearly distinguished; known gaps are listed in the status panel."],
+["32位核心人物正典档案：身份、外貌、性格、习惯、语言风格、人际关系、时间线与知识边界。对话按小说时间点执行三层约束；电影设定与原著隔离。","32 core character dossiers covering identity, appearance, personality, habits, speech, relationships, timelines and knowledge boundaries. Role-play follows a three-layer canon constraint system; film continuity is kept separate."],
+["跨全系列检索：小说、人物、地点、组织、武器装备、事件、反派计划、线索、关系、时间线。结果尽量给出书名与出处，原著事实与模型推断明确区分，推断必标。","Search across all novels, characters, locations, organisations, equipment, events, plots, clues, relationships and timelines. Results distinguish sourced canon from inference and identify their sources."],
+["你扮演英国秘密情报机构行动人员。每个选择都会改变资金、风险、情报可信度、线索与人物关系，并决定后续分支。状态机是互动改编；原著事实另附章节出处，不把玩家选择伪装成弗莱明原著。","You are an operative of the British Secret Service. Your choices affect funds, risk, intelligence confidence, clues and relationships. Mission branches are interactive adaptations, never presented as Fleming canon; source facts retain chapter references."],
+["世界探索以核验知识库中的170处地点为目录。地图只绘制有可靠真实坐标的城市；虚构地点与未核实坐标的地点只进入档案，不伪造坐标。","Explore 170 locations from the verified knowledge base. The map plots only real cities with reliable coordinates; fictional or unverified locations remain in the archive without fabricated pins."]
+]);
+const originalText = new WeakMap();
+function translateTextNode(n) {
+  if (!n || n.nodeType!==3) return;
+  if (!originalText.has(n)) originalText.set(n,n.nodeValue);
+  const src=originalText.get(n);
+  let out=src;
+  if (LANGUAGE==="en") for (const [zh,en] of EN_TEXT) out=out.split(zh).join(en);
+  if (n.nodeValue!==out) n.nodeValue=out;
+}
+function applyLanguage() {
+  document.documentElement.lang=LANGUAGE==="en"?"en":"zh-CN";
+  document.documentElement.dataset.language=LANGUAGE;
+  document.body.dataset.language=LANGUAGE;
+  const b=document.getElementById("languageToggle");
+  if(b){b.textContent=LANGUAGE==="en"?"中文":"EN";b.setAttribute("aria-label",LANGUAGE==="en"?"Switch to Chinese":"Switch to English");}
+  const w=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);let n;while((n=w.nextNode()))translateTextNode(n);
+  const placeholders={charSearch:["输入名字，如邦德、M、Q、布洛菲尔德…","Search by name, e.g. Bond, M, Q or Blofeld…"],chatInput:["说点什么…","Write a message…"],dossierQ:["输入关键词，如日本、苏联、莱特、武器、赌场、布洛菲尔德…","Search the archive…"],canonWorldSearch:["搜索地点、国家或小说…","Search locations, countries or novels…"]};
+  for(const [id,v] of Object.entries(placeholders)){const e=document.getElementById(id);if(e)e.placeholder=v[LANGUAGE==="en"?1:0];}
+}
+function initLanguage(){
+  const b=document.getElementById("languageToggle");
+  if(b)b.addEventListener("click",()=>{LANGUAGE=LANGUAGE==="en"?"zh":"en";try{localStorage.setItem("007-language",LANGUAGE);}catch(_){}applyLanguage();if(CHARACTERS.length){renderCharGrid();if(selectedChar)selectChar(selectedChar);}});
+  const observer=new MutationObserver(records=>records.forEach(r=>{if(r.type==="characterData")translateTextNode(r.target);else r.addedNodes.forEach(n=>{if(n.nodeType===3)translateTextNode(n);else if(n.nodeType===1){const w=document.createTreeWalker(n,NodeFilter.SHOW_TEXT);let t;while((t=w.nextNode()))translateTextNode(t);}});}));
+  observer.observe(document.body,{subtree:true,childList:true,characterData:true});
+  applyLanguage();
+}
+
 
 let BOOKS = [];
 let canonBooksLoaded = false;
@@ -134,15 +179,14 @@ function renderCharGrid() {
 const q = ($("#charSearch").value || "").trim().toLocaleLowerCase();
 const bf = $("#charBookFilter").value;
 const list = CHARACTERS.filter((c) => {
-  const searchable = [c.zh, c.name, c.role, ...(c.aliases || [])].filter(Boolean).join(" ").toLocaleLowerCase();
+  const searchable = [c.zh, c.name, c.role, c.roleEn, ...(c.aliases || [])].filter(Boolean).join(" ").toLocaleLowerCase();
   return (!q || searchable.includes(q)) && (!bf || c.firstNovelId === bf || c.firstBook === bf);
 });
 $("#charGrid").innerHTML = list.length? list.map((c) =>
 `<div class="card clickable ${selectedChar === c.id? "active": ""}" data-char="${c.id}">
-<h3>${esc(c.name)}</h3><p style="font-size:15px;margin:2px 0">${esc(c.zh)}</p>
-<p class="meta">${esc(c.role)}</p>
-<p class="meta">首次登场：${esc(c.firstBook)}（${c.firstYear}年）</p>
-<span class="tag gold">知识截止：${esc(c.cutoff)}</span></div>`).join("")
+<h3>${esc(LANGUAGE==="en"?c.name:c.zh)}</h3><p style="font-size:15px;margin:2px 0">${esc(LANGUAGE==="en"?c.roleEn:c.name)}</p>
+<p class="meta">${LANGUAGE==="en"?"First appearance: ":"首次登场："}${esc(LANGUAGE==="en"?c.firstBookEn:c.firstBook)} (${c.firstYear})</p>
+<span class="tag gold">${LANGUAGE==="en"?"Knowledge cutoff: ":"知识截止："}${esc(LANGUAGE==="en"?c.cutoffEn:c.cutoff)}</span></div>`).join("")
 : `<div class="empty">没有匹配人物，换个关键词试试。</div>`;
 $$("#charGrid [data-char]").forEach((el) => el.addEventListener("click", () => selectChar(el.dataset.char)));
 }
@@ -153,7 +197,7 @@ if (!c) { addChatMsg("sys", "知识库中没有找到该人物，无法启动角
 const previousChar = selectedChar;
 selectedChar = id;
 if (previousChar !== id && $("#sceneChapter")) $("#sceneChapter").value = "";
-const matchedNovel = c.firstNovelId || BOOKS.find(b => b.zh === c.firstBook)?.id || "casino-royale";
+const matchedNovel = c.firstNovelId || BOOKS.find(b => b.zh === c.firstBook || b.en === c.firstBookEn)?.id || "casino-royale";
 const scene = $("#sceneNovel");
 if (scene && matchedNovel && scene.value !== matchedNovel) {
   scene.value = matchedNovel;
@@ -162,7 +206,7 @@ if (scene && matchedNovel && scene.value !== matchedNovel) {
 }
 const matchedBook = BOOKS.find(b => b.id === matchedNovel);
 const sceneLabel = $("#sceneNovelLabel");
-if (sceneLabel) sceneLabel.textContent = matchedBook ? matchedBook.zh + " · " + matchedBook.year + "（按人物首次登场自动匹配）" : (c.firstBook || "自动匹配原著");
+if (sceneLabel) sceneLabel.textContent = matchedBook ? (LANGUAGE==="en"?matchedBook.en:matchedBook.zh) + " · " + matchedBook.year + (LANGUAGE==="en"?" (matched to first appearance)":"（按人物首次登场自动匹配）") : (LANGUAGE==="en"?c.firstBookEn:c.firstBook);
 restoreChatHistory();
 renderCharGrid();
 $("#charDetail").innerHTML = `<h3>${esc(c.name)} · ${esc(c.zh)}</h3>
@@ -228,7 +272,7 @@ const sysNote = chatMode === "report"? "你正在向M汇报，M只听事实。":
 if (sysNote) addChatMsg("sys", sysNote);
 try {
 const r = await fetch("/api/chat", { method: "POST", headers: { "content-type": "application/json"},
-body: JSON.stringify({ characterIds: ids, novelId: $("#sceneNovel").value, chapterNo: $("#sceneChapter").value || null, mode: chatMode, messages: chatHistory.slice(-12)})});
+body: JSON.stringify({ characterIds: ids, novelId: $("#sceneNovel").value, chapterNo: $("#sceneChapter").value || null, mode: chatMode, language: LANGUAGE, messages: chatHistory.slice(-12)})});
 if (r.ok) {
 const d = await r.json();
 clearThinking();
@@ -303,24 +347,24 @@ $("#chatInput").addEventListener("keydown", (event) => {
 });
 
 try {
-const [cr, br] = await Promise.all([fetch("/api/characters"), fetch("/api/canon?action=books")]);
+const [cr, br] = await Promise.all([fetch("/api/characters?language=" + LANGUAGE), fetch("/api/canon?action=books")]);
 if (!cr.ok || !br.ok) throw new Error("canonical data unavailable");
 const cd = await cr.json(), bd = await br.json();
 BOOKS = (bd.books || []).map(b => ({ id:b.id, zh:b.titleZh, en:b.titleEn, year:b.year, kind:b.kind }));
 canonBooksLoaded = true;
 scene.innerHTML = "";
 CHARACTERS = cd.characters.map(c => ({
-id:c.id, name:c.name, zh:c.nameZh, role:c.role, firstBook:c.firstBook || "未标注", firstNovelId:c.firstNovelId || null,
-firstYear:c.firstYear || "", cutoff:c.timelineCutoff || "按知识库边界",
-intro:c.intro || "原文未提供完整背景资料。", appearance:c.appearance || "原文未提供。",
-personality:c.personality || "原文未提供。", speech:c.speech?.tone || "按原著对话与行为边界生成。",
+id:c.id, name:c.name, zh:c.nameZh, role:c.role, roleEn:c.roleEn, firstBook:c.firstBook || "未标注", firstBookEn:c.firstBookEn || c.firstBook, firstNovelId:c.firstNovelId || null,
+firstYear:c.firstYear || "", cutoff:c.timelineCutoff || "按知识库边界", cutoffEn:c.timelineCutoffEn || c.timelineCutoff,
+intro:c.intro || "原文未提供完整背景资料。", introEn:c.introEn || "", appearance:c.appearance || "原文未提供。", appearanceEn:c.appearanceEn || "",
+personality:c.personality || "原文未提供。", personalityEn:c.personalityEn || "", speech:c.speech?.tone || "按原著对话与行为边界生成。", speechEn:c.speechEn || "", relationships:c.relationships || [], knowledgeBoundariesEn:(c.knowledgeBoundariesEn||[]).join("; "),
 rel:Array.isArray(c.relationships)?c.relationships.map(r=>r.type+"："+r.with+"（"+r.change+"）").join("；"):"关系资料待核验。",
-events:Array.isArray(c.knowledgeScope)?c.knowledgeScope.filter(x=>x.status==="present").map(x=>x.title_zh).join("、"):"按知识库出场记录。",
+events:Array.isArray(c.knowledgeScope)?c.knowledgeScope.filter(x=>x.status==="present").map(x=>x.title_zh).join("、"):"按知识库出场记录。", eventsEn:Array.isArray(c.knowledgeScope)?c.knowledgeScope.filter(x=>x.status==="present").map(x=>BOOKS.find(b=>b.id===x.novel)?.en || x.novel).join(", "):"",
 bounds:[...(c.knowledgeBoundaries||[]),...(c.behavioralBoundaries||[])].join("；"),
 facts:[...(c.sources||[])].map(x=>"出处索引："+x), opener:"请按当前小说时间点与原著事实提问。", scripted:["原著没有明确写到的部分，我不会替作者补写。"]
 }));
  [...new Map(CHARACTERS.map(c => [c.firstNovelId || c.firstBook, { value: c.firstNovelId || c.firstBook, label: c.firstBook || c.firstNovelId || "首次登场未标注" }])).values()].forEach(item=>{const o=document.createElement("option");o.value=item.value;o.textContent=item.label;bf.appendChild(o);});
- bd.books.forEach(b => { const so=document.createElement("option");so.value=b.id;so.textContent=b.titleZh+" · "+b.year;scene.appendChild(so); });
+ bd.books.forEach(b => { const so=document.createElement("option");so.value=b.id;so.textContent=(LANGUAGE==="en"?b.titleEn:b.titleZh)+" · "+b.year;scene.appendChild(so); });
 scene.value="casino-royale";
 const initialBook = BOOKS.find(b => b.id === scene.value);
 if ($("#sceneNovelLabel")) $("#sceneNovelLabel").textContent = initialBook ? initialBook.zh + " · " + initialBook.year + "（选择人物后自动匹配）" : "选择人物后自动匹配";
@@ -1092,6 +1136,7 @@ $("#modelLine").textContent = "状态接口不可用，无法确认模型状态�
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+  initLanguage();
   const tasks = [
     ["人物剧场", initCharacters], ["情报档案馆", initDossier],
     ["任务控制中心", initMissions], ["场景体验", initExperience],
