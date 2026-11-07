@@ -151,6 +151,7 @@ async function sendChat() {
 const input = $("#chatInput").value.trim();
 if (!input) return;
 if (!selectedChar) { addChatMsg("sys", "请先在上方选一个人，再开始对话。"); return;}
+if (chatMode === "group" && !$("#groupSecond").value) { addChatMsg("sys", "多角色同场需要再选择一位人物。"); return; }
 const c = charById(selectedChar);
 $("#chatInput").value = "";
 addChatMsg("me", input, "你");
