@@ -157,7 +157,7 @@ const sysNote = chatMode === "report"? "你正在向M汇报，M只听事实。":
 if (sysNote) addChatMsg("sys", sysNote);
 try {
 const r = await fetch("/api/chat", { method: "POST", headers: { "content-type": "application/json"},
-body: JSON.stringify({ characterIds: ids, novelId: $("#sceneNovel").value, chapterNo: $("#sceneChapter").value || null, messages: chatHistory.slice(-12)})});
+body: JSON.stringify({ characterIds: ids, novelId: $("#sceneNovel").value, chapterNo: $("#sceneChapter").value || null, mode: chatMode, messages: chatHistory.slice(-12)})});
 if (r.ok) {
 const d = await r.json();
 clearThinking();
@@ -210,7 +210,7 @@ if (!cr.ok || !br.ok) throw new Error("canonical data unavailable");
 const cd = await cr.json(), bd = await br.json();
 scene.innerHTML = "";
 CHARACTERS = cd.characters.map(c => ({
-id:c.id, name:c.name, zh:c.nameZh, role:c.role, firstBook:c.firstBook || "未标注",
+id:c.id, name:c.name, zh:c.nameZh, role:c.role, firstBook:c.firstBook || "未标注", firstNovelId:c.firstNovelId || null,
 firstYear:c.firstYear || "", cutoff:c.timelineCutoff || "按知识库边界",
 intro:c.intro || "原文未提供完整背景资料。", appearance:c.appearance || "原文未提供。",
 personality:c.personality || "原文未提供。", speech:c.speech?.tone || "按原著对话与行为边界生成。",
