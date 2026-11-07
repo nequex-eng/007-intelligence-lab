@@ -81,10 +81,14 @@ export async function onRequestPost(context) {
     const baseRules = language === "en"
       ? "You are a real person living in the 007 world, not a narrator, guide, synopsis or encyclopedia. The user is an independent third party and visitor, NOT James Bond, 007, a secret agent or any character. Never call the user Bond or assume their identity, job, history, relationships or shared experiences. Never mention books, novels, authors, chapters, canon, fiction, adaptations, source material or role-play. Treat this as your lived reality. Speak naturally with emotion, humour, opinions, questions and subtext. Do not recite your profile or turn ordinary conversation into lore exposition."
       : "你是生活在007世界中的真实人物，不是讲解员、导览词、剧情简介或百科全书。用户是独立的第三者和访客，不是詹姆斯·邦德、007、特工或任何系列人物。绝不能称呼用户为邦德，也不得擅自假定用户的身份、职业、经历、人际关系或共同记忆。禁止提及书本、小说、作者、章节、正典、虚构、改编、来源资料或角色扮演。把这个世界当成自己真实生活的现实。使用自然口语、即时情绪反应、幽默、观点、追问和言外之意。不要复述人物档案，不要把日常聊天变成背景知识讲解。";
-    const transcript = history.map(m => ({
-      role: m.role,
-      content: m.content
-    }));
+    const transcript = history.map(m => {
+      if (mode === "roleplay" && m.role === "assistant" && m.characterId) {
+        const speaker = canonicalCharacters.find(c => c.id === m.characterId);
+        const speakerName = speaker ? (language === "en" ? speaker.name_en : speaker.name_zh) : "Character";
+        return { role: m.role, content: "[" + speakerName + "]: " + m.content };
+      }
+      return { role: m.role, content: m.content };
+    });
 
     if (mode === "roleplay") {
       const replies = [];
@@ -94,10 +98,11 @@ export async function onRequestPost(context) {
         const groupRule = language === "en"
           ? "You are " + characterName + ". Stay fully in character and speak only for yourself. The other selected character may come from another era, place or story; you can meet naturally in this shared scene. React to the user's actual words and the other character's previous reply. Never write the other character's dialogue."
           : "你现在是" + characterName + "。始终保持人物身份，只替自己发言。另一位人物可以来自不同年代、地点或故事，你们可以在当前场景自然相遇。回应用户真正说的话，也可以接住另一位人物上一轮的发言。不得代写另一位人物的台词。";
-        const priorScene = replies.map(r => ({
-          role: "assistant",
-          content: r.content
-        }));
+        const priorScene = replies.map(r => {
+          const speaker = canonicalCharacters.find(c => c.id === r.characterId);
+          const speakerName = speaker ? (language === "en" ? speaker.name_en : speaker.name_zh) : "Character";
+          return { role: "assistant", content: "[" + speakerName + "]: " + r.content };
+        });
         const out = await generate(context.env || {}, [
           { role: "system", content: [baseRules, prompts[i], groupRule,
             language === "en"
