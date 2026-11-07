@@ -819,7 +819,7 @@ const EN_TEXT = new Map([
 ["描述你想采取的行动…","Describe your own action…"],
 ["行动","Act"],
 ["局势正在发展……","The situation is developing…"],
-["现场反馈","Field report"]
+["现场反馈","Field report"],
 ["文学研究与创作实验","Literary Intelligence"],
 ["007世界探索","007 World Explorer"],
 ["数据状态：","Data status:"],
