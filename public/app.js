@@ -540,7 +540,7 @@ $("#missionPanel").innerHTML = `<h3>${esc(missionDef.title)} · 任务结果</h3
 <div class="card" style="margin-top:6px"><h3>行动报告·${esc(end.grade)}</h3><p>${esc(end.text)}</p>
 <p><b>行动记录：</b></p><ul style="font-size:14px">${current.log.map((l) => `<li>${esc(l)}</li>`).join("")}</ul>
 <p><b>线索汇总（${current.clues.length}条）：</b></p>${current.clues.length? current.clues.map((c) => `<div class="log">${esc(c)}</div>`).join(""): "<p class='meta'>无线索发现。</p>"}
-<p class="meta">${missionDef.kind === "原著任务"? "原著任务：结局按原著走向评定，超出原著的部分已标注。": "【非原著·原创】本任务为原创设计，结局为模拟结果，不是原著剧情。"}</p>
+<p class="meta">${missionDef.novelId ? "原著改编互动：玩家分支不等同于原著事件；原著结局与本次模拟结果分开呈现。" : "【非原著·原创】本任务为原创设计，结局为模拟结果，不是原著剧情。"}</p>
 <button class="btn small" id="missionAgain">再玩一次</button></div>`;
 $("#missionAgain").addEventListener("click", () => startMission(missionDef.id));
 }
