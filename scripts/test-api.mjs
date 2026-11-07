@@ -54,6 +54,9 @@ const mBeforeAppearance = await json(await canon(ctx("/api/canon?action=scene&ch
 assert.equal(mBeforeAppearance.status, 409, "M cannot appear before chapter 2");
 const mAtAppearance = await json(await canon(ctx("/api/canon?action=scene&character=m&novel=casino-royale&chapter=2")));
 assert.equal(mAtAppearance.status, 200);
+const invalidSceneChapter = await json(await canon(ctx("/api/canon?action=scene&character=bond&novel=casino-royale&chapter=999")));
+assert.equal(invalidSceneChapter.status, 400);
+assert.equal(invalidSceneChapter.body.code, "UNKNOWN_CHAPTER");
 
 const chatWithoutTimeline = await json(await chat(postCtx("/api/chat", {
   characterIds: ["bond"],
