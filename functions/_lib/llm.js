@@ -35,35 +35,42 @@ async function callMiniMax(env, messages) {
   });
   const raw = await response.text().catch(() => "");
   if (!response.ok) {
-    console.error("MiniMax HTTP error", response.status, raw.slice(0, 500));
-    return null;
+    const reason = `HTTP ${response.status}: ${raw.slice(0, 240)}`;
+    console.error("MiniMax HTTP error", reason);
+    return { ok: false, reason };
   }
   let data;
   try {
     data = JSON.parse(raw);
   } catch {
-    console.error("MiniMax returned non-JSON response", raw.slice(0, 300));
-    return null;
+    const reason = `Non-JSON response: ${raw.slice(0, 200)}`;
+    console.error("MiniMax returned non-JSON response", reason);
+    return { ok: false, reason };
   }
   if (data?.base_resp && Number(data.base_resp.status_code) !== 0) {
-    console.error("MiniMax API error", data.base_resp.status_msg || data.base_resp.status_code);
-    return null;
+    const reason = `MiniMax ${data.base_resp.status_code}: ${data.base_resp.status_msg || "API error"}`;
+    console.error("MiniMax API error", reason);
+    return { ok: false, reason };
   }
   const message = data?.choices?.[0]?.message;
   const content = message?.content;
   const text = Array.isArray(content)
     ? content.map(x => typeof x === "string" ? x : x.text || "").join("")
     : content;
-  return typeof text === "string" && text.trim() ? text.trim() : null;
+  return typeof text === "string" && text.trim()
+    ? { ok: true, text: text.trim() }
+    : { ok: false, reason: "Empty content in model response" };
 }
 
 export async function generate(env, messages) {
   if (!llmAvailable(env)) return { ok: false, code: "MODEL_NOT_CONNECTED" };
   try {
-    const text = await callMiniMax(env, messages);
-    return text ? { ok: true, text, model: MINIMAX_MODEL } : { ok: false, code: "MODEL_ERROR" };
+    const result = await callMiniMax(env, messages);
+    return result.ok
+      ? { ok: true, text: result.text, model: MINIMAX_MODEL }
+      : { ok: false, code: "MODEL_ERROR", reason: result.reason };
   } catch (error) {
     console.error("MiniMax request failed", error?.message);
-    return { ok: false, code: "MODEL_ERROR" };
+    return { ok: false, code: "MODEL_ERROR", reason: error?.message || "Unknown MiniMax error" };
   }
 }
