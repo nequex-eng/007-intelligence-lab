@@ -101,8 +101,12 @@ export function characterForScene(id, novelId, chapterNo = null) {
   }
   if (chapterNo !== null && chapterNo !== undefined && character.first_appearance?.novel === book.novel_id) {
     const firstChapter = Number(character.first_appearance.first_chapter);
+    const lastChapter = Number(character.first_appearance.last_chapter);
     if (Number.isFinite(firstChapter) && Number(chapterNo) < firstChapter) {
       return { ok: false, error: "CHARACTER_NOT_YET_APPEARED", status: "not-yet-appeared", character, book };
+    }
+    if (Number.isFinite(lastChapter) && Number(chapterNo) > lastChapter) {
+      return { ok: false, error: "CHARACTER_NO_LONGER_PRESENT", status: "no-longer-present", character, book };
     }
   }
   return { ok: true, character, book, status };
