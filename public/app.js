@@ -1356,7 +1356,9 @@ async function loadMissionCanonBrief(novelId = "casino-royale") {
   const requestId = ++missionBriefRequest;
   const box = $("#missionCanonBrief");
   if (!novelId) {
-    box.innerHTML = '<p class="meta">原创任务：没有原著正典依据。所有人物关系、地点和分支均为原创模拟内容。</p>';
+    box.innerHTML = LANGUAGE === "en"
+      ? '<p class="meta">Original mission: no novel-canon basis. All character relationships, locations and branches are original simulation content.</p>'
+      : '<p class="meta">原创任务：没有原著正典依据。所有人物关系、地点和分支均为原创模拟内容。</p>';
     return;
   }
   try {
@@ -1366,8 +1368,17 @@ async function loadMissionCanonBrief(novelId = "casino-royale") {
     if (requestId !== missionBriefRequest) return;
     const facts = (d.facts || []).slice(0, 8);
     const events = (d.events || []).slice(0, 4);
-    box.innerHTML = '<h3>'+esc(d.novel.titleZh)+' · '+d.novel.year+'</h3><p class="meta">'+esc(d.missionMode)+'：玩家选择会产生互动分支，不能冒充原著剧情。</p><p>'+esc(d.novel.timeline)+'</p><p><b>章节目录：</b>'+esc(d.chapters.map(c=>c.no+" "+c.title).join(" · "))+'</p><p><b>核验事实摘录：</b></p><ul>'+facts.map(f=>'<li>'+esc("第"+f.chapter+"章："+f.fact)+'</li>').join("")+'</ul><p><b>关键事件：</b></p><ul>'+events.map(e=>'<li>'+esc("第"+e.chapter+"章："+e.title+" — "+e.effect)+'</li>').join("")+'</ul>';
-  } catch(e) { box.innerHTML = '<p class="meta">原著任务资料加载失败：'+esc(e.message)+'。任务剧情暂不标为已完成正典核验。</p>'; }
+    if (LANGUAGE === "en") {
+      const title = englishText(d.novel.titleEn, d.novel.id) || "Original novel";
+      const timeline = englishText(d.novel.timelineEn) || "No verified English timeline summary is available for this novel.";
+      const chapters = (d.chapters || []).map(c => "Chapter " + c.no + (englishText(c.titleEn) ? " · " + englishText(c.titleEn) : "")).join(" · ");
+      const factRows = facts.map(f => "<li>" + esc("Chapter " + f.chapter + ": " + (englishText(f.factEn) || "Verified fact record; English wording not available.")) + "</li>").join("");
+      const eventRows = events.map(e => "<li>" + esc((englishText(e.title_en, e.titleEn, e.title, e.id) || "Canon event") + (englishText(e.effect_en, e.description_en, e.summary_en) ? " — " + englishText(e.effect_en, e.description_en, e.summary_en) : "")) + "</li>").join("");
+      box.innerHTML = "<h3>" + esc(title) + " · " + d.novel.year + "</h3><p class='meta'>Interactive adaptation: player choices create branches and must not be mistaken for novel events.</p><p>" + esc(timeline) + "</p><p><b>Chapter index:</b> " + esc(chapters) + "</p><p><b>Verified canon extracts:</b></p><ul>" + factRows + "</ul><p><b>Key events:</b></p><ul>" + eventRows + "</ul>";
+    } else {
+      box.innerHTML = '<h3>'+esc(d.novel.titleZh)+' · '+d.novel.year+'</h3><p class="meta">'+esc(d.missionMode)+'：玩家选择会产生互动分支，不能冒充原著剧情。</p><p>'+esc(d.novel.timeline)+'</p><p><b>章节目录：</b>'+esc(d.chapters.map(c=>c.no+" "+c.title).join(" · "))+'</p><p><b>核验事实摘录：</b></p><ul>'+facts.map(f=>'<li>'+esc("第"+f.chapter+"章："+f.fact)+'</li>').join("")+'</ul><p><b>关键事件：</b></p><ul>'+events.map(e=>'<li>'+esc("第"+e.chapter+"章："+e.title+" — "+e.effect)+'</li>').join("")+'</ul>';
+    }
+  } catch(e) { box.innerHTML = LANGUAGE === "en" ? '<p class="meta">Failed to load canon mission records: '+esc(e.message)+'. The mission narrative is not marked as fully canon-verified.</p>' : '<p class="meta">原著任务资料加载失败：'+esc(e.message)+'。任务剧情暂不标为已完成正典核验。</p>'; }
 }
 function saveMissionState() {
   try {
