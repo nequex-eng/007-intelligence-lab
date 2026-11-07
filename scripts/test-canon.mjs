@@ -1,0 +1,19 @@
+import { canonData } from "../functions/_data/canon-data.js";
+import { novels, characterCore, indexes, searchCanon, characterForScene } from "../functions/_lib/canon.js";
+import assert from "node:assert/strict";
+
+const facts = novels.reduce((n, b) => n + (b.facts || []).length, 0);
+assert.equal(novels.length, 14, "all 14 novels must be loaded");
+assert.equal(facts, 773, "expected 773 structured facts");
+assert.equal(indexes.characters.characters.length, 279, "character index count");
+assert.equal(indexes.organizations.organizations.length, 89, "organization index count");
+assert.equal(indexes.locations.locations.length, 170, "location index count");
+assert.equal(indexes.equipment.equipment.length, 128, "equipment index count");
+assert.equal(characterCore.length, 32, "32 core character constraints");
+assert.ok(searchCanon("Vesper", "all", 20).length > 0, "search must return canonical matches");
+assert.equal(characterForScene("bond", "casino-royale").ok, true, "Bond present in Casino Royale");
+assert.equal(characterForScene("le-chiffre", "live-and-let-die").ok, false, "Le Chiffre dead after Casino Royale");
+assert.equal(characterForScene("vesper-lynd", "live-and-let-die").ok, false, "Vesper dead after Casino Royale");
+assert.equal(characterForScene("m", "spy-who-loved-me").ok, false, "M absent from The Spy Who Loved Me");
+assert.ok(canonData["knowledge/resolution/aliases.json"].aliases.length >= 250, "alias resolution index");
+console.log("PASS: verified canon integration", { novels: novels.length, facts, characters: indexes.characters.characters.length, coreCharacters: characterCore.length });
