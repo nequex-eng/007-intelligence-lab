@@ -26,6 +26,8 @@ assert.equal(characterForScene("mr-big", "live-and-let-die", "XXIII").error, "CH
 const romanChapterPrompt = canonSystemPrompt(getCharacter("bond"), getNovel("live-and-let-die"), "present", "Mr Big", "I");
 assert.ok(romanChapterPrompt.includes("[生死关头 / 第I章]"), "Roman numeral chapter facts are included");
 assert.ok(!romanChapterPrompt.includes("[生死关头 / 第II章]"), "Roman numeral future chapter facts are excluded");
+assert.ok(!romanChapterPrompt.includes("[皇家赌场 / 第27章]"), "prior novels' raw facts are not injected into current roleplay retrieval");
+assert.ok(romanChapterPrompt.includes("赌桌击败勒·希弗"), "prior novel knowledge is limited to the character's explicit known-scope summary");
 assert.equal(characterForScene("vesper-lynd", "live-and-let-die", 1).ok, false, "Vesper remains unavailable after death");
 const chapterOnePrompt = canonSystemPrompt(getCharacter("bond"), getNovel("casino-royale"), "present", "勒·希弗", 1);
 assert.ok(chapterOnePrompt.includes("当前时间点：第1章结束"), "prompt states the selected chapter cutoff");
