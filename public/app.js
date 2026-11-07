@@ -347,7 +347,7 @@ $("#chatInput").addEventListener("keydown", (event) => {
 });
 
 try {
-const [cr, br] = await Promise.all([fetch("/api/characters?language=" + LANGUAGE), fetch("/api/canon?action=books")]);
+const [cr, br] = await Promise.all([fetch("/api/characters"), fetch("/api/canon?action=books")]);
 if (!cr.ok || !br.ok) throw new Error("canonical data unavailable");
 const cd = await cr.json(), bd = await br.json();
 BOOKS = (bd.books || []).map(b => ({ id:b.id, zh:b.titleZh, en:b.titleEn, year:b.year, kind:b.kind }));
