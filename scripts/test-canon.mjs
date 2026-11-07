@@ -21,6 +21,7 @@ assert.equal(characterForScene("m", "casino-royale", 1).ok, false, "M must not a
 assert.equal(characterForScene("m", "casino-royale", 2).ok, true, "M may appear from first chapter appearance");
 const chapterOnePrompt = canonSystemPrompt(getCharacter("bond"), getNovel("casino-royale"), "present", "勒·希弗", 1);
 assert.ok(chapterOnePrompt.includes("当前时间点：第1章结束"), "prompt states the selected chapter cutoff");
+assert.ok(!chapterOnePrompt.includes("[皇家赌场 / 第2章]"), "chapter one prompt excludes chapter two facts");
 assert.ok(!chapterOnePrompt.includes("[皇家赌场 / 第27章]"), "chapter one prompt excludes later chapter facts");
 assert.ok(canonData["knowledge/resolution/aliases.json"].aliases.length >= 250, "alias resolution index");
 console.log("PASS: verified canon integration", { novels: novels.length, facts, characters: indexes.characters.characters.length, coreCharacters: characterCore.length });
