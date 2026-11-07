@@ -54,6 +54,8 @@ const mBeforeAppearance = await json(await canon(ctx("/api/canon?action=scene&ch
 assert.equal(mBeforeAppearance.status, 409, "M cannot appear before chapter 2");
 const mAtAppearance = await json(await canon(ctx("/api/canon?action=scene&character=m&novel=casino-royale&chapter=2")));
 assert.equal(mAtAppearance.status, 200);
+const leChiffreAfterExit = await json(await canon(ctx("/api/canon?action=scene&character=le-chiffre&novel=casino-royale&chapter=19")));
+assert.equal(leChiffreAfterExit.status, 409, "Le Chiffre cannot appear after his last chapter");
 const invalidSceneChapter = await json(await canon(ctx("/api/canon?action=scene&character=bond&novel=casino-royale&chapter=999")));
 assert.equal(invalidSceneChapter.status, 400);
 assert.equal(invalidSceneChapter.body.code, "UNKNOWN_CHAPTER");
@@ -81,6 +83,13 @@ const chatMBeforeAppearance = await json(await chat(postCtx("/api/chat", {
   messages: [{ role: "user", content: "你是谁？" }]
 })));
 assert.equal(chatMBeforeAppearance.status, 409, "M must be blocked before first appearance");
+const chatLeChiffreAfterExit = await json(await chat(postCtx("/api/chat", {
+  characterIds: ["le-chiffre"],
+  novelId: "casino-royale",
+  chapterNo: 19,
+  messages: [{ role: "user", content: "你是谁？" }]
+})));
+assert.equal(chatLeChiffreAfterExit.status, 409, "Le Chiffre must be blocked after his last chapter");
 
 const chatInvalidChapter = await json(await chat(postCtx("/api/chat", {
   characterIds: ["bond"],
