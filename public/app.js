@@ -409,7 +409,7 @@ function saveChatHistory() { try { if (selectedChar) localStorage.setItem(chatSt
 function restoreChatHistory() {
   try { const saved = JSON.parse(localStorage.getItem(chatStorageKey()) || "[]"); chatHistory = Array.isArray(saved) ? saved.filter(m => m && ["user","assistant"].includes(m.role) && typeof m.content === "string").slice(-80) : []; } catch(e) { chatHistory = []; }
   const box = document.getElementById("chatLog");
-  if (box) { box.innerHTML = ""; chatHistory.forEach(m => addChatMsg(m.role === "user" ? "me" : "them", m.content, m.role === "user" ? null : ((LANGUAGE==="en" ? charById(selectedChar)?.name : charById(selectedChar)?.zh) || (LANGUAGE==="en" ? "Character" : "角色")))); if (!chatHistory.length) addChatMsg("sys", "新建本地对话。消息会发送至模型服务；当前浏览器保存最近80条对话消息。"); }
+  if (box) { box.innerHTML = ""; chatHistory.forEach(m => addChatMsg(m.role === "user" ? "me" : "them", m.content, null, m.characterId && m.characterId !== selectedChar)); if (!chatHistory.length) addChatMsg("sys", "新建本地对话。消息会发送至模型服务；当前浏览器保存最近80条对话消息。"); }
 }
 
 function charById(id) { return CHARACTERS.find((c) => c.id === id);}
@@ -471,11 +471,11 @@ const gs = $("#groupSecond");
 gs.innerHTML = CHARACTERS.filter((x) => x.id!== id).map((x) => `<option value="${x.id}">${esc(LANGUAGE==="en"?x.name:x.zh)}</option>`).join("");
 }
 
-function addChatMsg(kind, text, who) {
+function addChatMsg(kind, text, who, alternateSpeaker = false) {
 const box = $("#chatLog");
 const div = document.createElement("div");
-div.className = "msg " + kind;
-div.innerHTML = (who? `<span class="who">${esc(who)}</span>`: "") + esc(text);
+div.className = "msg " + kind + (kind === "them" && alternateSpeaker ? " speaker-2" : "");
+div.textContent = text;
 box.appendChild(div);
 box.scrollTop = box.scrollHeight;
 }
@@ -500,13 +500,13 @@ $("#chatInput").disabled = true;
 const thinking = document.createElement("div");
 thinking.className = "msg them";
 thinking.id = "chatThinking";
-thinking.innerHTML = `<span class="who">${esc(LANGUAGE==="en"?c.name:c.zh)}</span>${LANGUAGE==="en"?"Thinking…":"对方正在想……"}`;
+thinking.textContent = LANGUAGE==="en" ? "Thinking…" : "对方正在想……";
 const chatBox = $("#chatLog");
 chatBox.appendChild(thinking);
 chatBox.scrollTop = chatBox.scrollHeight;
 chatHistory.push({ role: "user", content: input});
 saveChatHistory();
-const ids = chatMode === "group"? [selectedChar, $("#groupSecond").value]: [selectedChar];
+const ids = chatMode === "group" ? [selectedChar, $("#groupSecond").value] : [selectedChar];
 const sysNote = chatMode === "report"? "你正在向M汇报，M只听事实。": chatMode === "quartermaster"? "对方是Q，只谈装备。": "";
 if (sysNote) addChatMsg("sys", sysNote);
 try {
@@ -515,8 +515,15 @@ body: JSON.stringify({ characterIds: ids, novelId: $("#sceneNovel").value, chapt
 if (r.ok) {
 const d = await r.json();
 clearThinking();
-addChatMsg("them", d.reply, LANGUAGE==="en"?c.name:c.zh);
-chatHistory.push({ role: "assistant", content: d.reply});
+if (chatMode === "group" && Array.isArray(d.replies)) {
+  d.replies.forEach((item, index) => {
+    addChatMsg("them", item.content, null, index === 1);
+    chatHistory.push({ role: "assistant", content: item.content, characterId: item.characterId });
+  });
+} else {
+  addChatMsg("them", d.reply);
+  chatHistory.push({ role: "assistant", content: d.reply, characterId: selectedChar });
+}
 saveChatHistory();
 $("#modelLine").textContent = "模型已接入：" + (d.model || "") + (d.canonMode ? " · " + (d.chapterNo ? "第" + d.chapterNo + "章" : "全书结束") + "章级正典约束已启用" : "");
 return;
@@ -566,7 +573,7 @@ modes.forEach((b) => b.addEventListener("click", async () => {
   b.classList.add("active");
   chatMode = b.dataset.mode || "talk";
   $("#groupPick").style.display = chatMode === "group" ? "block" : "none";
-  const hints = { talk: "选择人物后自动匹配其首次登场原著。", report: "向M汇报：系统自动切换为M接收汇报，输入行动经过与证据。", quartermaster: "Q部门：系统自动切换为Q，直接说明任务目的并领取装备。", group: "多角色同场：先选择主谈人物，再选择第二位人物，发送后两人共同回应。" };
+  const hints = { talk: "选择人物后自动匹配其首次登场原著。", report: "向M汇报：系统自动切换为M接收汇报，输入行动经过与证据。", quartermaster: "Q部门：系统自动切换为Q，直接说明任务目的并领取装备。", group: "多角色同场：你与两位人物共同对话；每次发送后，两位人物分别回应。" };
   $("#chatHint").textContent = hints[chatMode] || hints.talk;
   if (chatMode === "report" || chatMode === "quartermaster") {
     $("#sceneChapter").value = "";
