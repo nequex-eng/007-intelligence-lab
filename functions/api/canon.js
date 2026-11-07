@@ -4,7 +4,7 @@ export async function onRequest(context) {
   const url = new URL(context.request.url);
   const action = url.searchParams.get("action") || "search";
   const q = url.searchParams.get("q") || "";
-  if (action === "manifest") return json({ source: "007-intelligence-lab-knowledge", generated: manifest.generated, novels: manifest.novel_count, entities: { characters: indexes.characters.total_unique, organizations: indexes.organizations.total_unique, locations: indexes.locations.total_unique, equipment: indexes.equipment.total_unique }, facts: novels.reduce((n, b) => n + (b.facts?.length || 0), 0), charactersCore: characterCore.length, knownGaps: manifest.known_gaps || [] });
+  if (action === "manifest") return json({ source: "007-intelligence-lab-knowledge", generated: manifest.generated, novels: manifest.novel_count, entities: { characters: indexes.characters.characters.length, organizations: indexes.organizations.organizations.length, locations: indexes.locations.locations.length, equipment: indexes.equipment.equipment.length }, facts: novels.reduce((n, b) => n + (b.facts?.length || 0), 0), charactersCore: characterCore.length, knownGaps: manifest.known_gaps || [] });
   if (action === "books") return json({ books: novels.map(n => ({ id: n.novel_id, no: n.novel_no, titleZh: n.title_zh, titleEn: n.title_en, year: n.publication_year, chapters: n.chapters?.length || 0, kind: n.kind })) });
   if (action === "character") {
     const character = getCharacter(url.searchParams.get("id"));
