@@ -482,6 +482,7 @@ else startMission(el.dataset.mission);
 function startMission(id) {
 missionDef = missionById(id);
 if (!missionDef) return;
+loadMissionCanonBrief(missionDef.novelId || null);
 missionState = { funds: missionDef.start.funds, risk: missionDef.start.risk, cred: missionDef.start.cred, day: missionDef.start.day, clues: [], rels: {}, equip: [], stage: missionDef.stages[0].id, log: []};
 saveMissionState();
 renderMissionList();
@@ -597,6 +598,7 @@ function restoreMissionState(preferredId = null) {
     if (!Number.isFinite(state.funds) || !Number.isFinite(state.risk) || !Number.isFinite(state.cred) || !Array.isArray(state.clues) || !Array.isArray(state.log)) return false;
     missionDef = def;
     missionState = state;
+    loadMissionCanonBrief(missionDef.novelId || null);
     localStorage.setItem("007-mission:last", id);
     if (state.completed && state.result) renderMissionResult(state.result);
     else renderMissionStage();
