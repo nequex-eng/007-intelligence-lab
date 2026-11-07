@@ -1424,7 +1424,7 @@ function startMission(id) {
 missionDef = missionById(id);
 if (!missionDef) return;
 loadMissionCanonBrief(missionDef.novelId || null);
-missionState = { funds: missionDef.start.funds, risk: missionDef.start.risk, cred: missionDef.start.cred, day: missionDef.start.day, clues: [], rels: {}, equip: [], stage: missionDef.stages[0].id, log: []};
+missionState = { funds: missionDef.start.funds, risk: missionDef.start.risk, cred: missionDef.start.cred, day: missionDef.start.day, clues: [], rels: {}, equip: [], stage: missionDef.stages[0].id, log: [], attempts: 0, failures: 0};
 saveMissionState();
 renderMissionList();
 renderMissionStage();
@@ -1441,6 +1441,21 @@ if (fx.equip) s.equip.push(fx.equip);
 if (fx.rel) s.rels[fx.rel[0]] = (s.rels[fx.rel[0]] || 0) + fx.rel[1];
 }
 
+function missionChoiceChance(choice) {
+ const fx = choice.fx || {}, st = missionState;
+ return Math.max(18, Math.min(88, Math.round(62 + st.cred * 0.22 - st.risk * 0.25 + (fx.cred || 0) * 0.25 - Math.max(0, fx.risk || 0) * 0.2 - (st.funds < 1500 ? 10 : 0) - (st.day > 4 ? 5 : 0)));
+}
+function resolveMissionChoice(choice) {
+ const chance = missionChoiceChance(choice), roll = Math.floor(Math.random() * 100) + 1;
+ missionState.attempts = (missionState.attempts || 0) + 1;
+ if (roll <= chance) { applyFx(choice.fx || {}); return { success: true, chance, roll }; }
+ const fx = choice.fx || {};
+ if (fx.funds < 0) missionState.funds = Math.max(0, missionState.funds + fx.funds);
+ missionState.risk = Math.min(100, missionState.risk + 12 + Math.max(0, fx.risk || 0) * 0.25);
+ missionState.cred = Math.max(0, missionState.cred - 7);
+ missionState.failures = (missionState.failures || 0) + 1;
+ return { success: false, chance, roll };
+}
 function stateBarHTML() {
 const s = missionState;
 return `<div class="statebar">
@@ -1487,22 +1502,17 @@ $("#missionAgain").addEventListener("click", () => startMission(missionDef.id));
 }
 
 function chooseMission(i) {
-const stage = missionDef.stages.find((s) => s.id === missionState.stage);
-const ch = stage.choices[i];
-missionState.log.push(stage.title + "：" + ch.text);
-applyFx(ch.fx || {});
-if (ch.next === "end") {
-const end = missionDef.ending(missionState);
-missionState.stage = "end";
-missionState.completed = true;
-missionState.result = end;
-saveMissionState();
-renderMissionResult(end);
-return;
-}
-missionState.stage = ch.next;
-saveMissionState();
-renderMissionStage();
+ const stage = missionDef.stages.find((s) => s.id === missionState.stage);
+ const ch = stage.choices[i], result = resolveMissionChoice(ch);
+ const detail = LANGUAGE === "en" ? (result.success ? "Check passed" : "Check failed") + " · roll " + result.roll + " / target " + result.chance + "%" : (result.success ? "检定成功" : "检定失败") + " · 掷骰 " + result.roll + " / 成功率 " + result.chance + "%";
+ missionState.log.push(stage.title + "：" + ch.text + "（" + detail + "）");
+ if (!result.success) missionState.log.push(LANGUAGE === "en" ? "Setback: exposure increased, intelligence confidence fell, and no clue was secured." : "行动受挫：暴露风险上升、情报可信度下降，本次未能取得线索。");
+ if (ch.next === "end" || missionState.risk >= 95) {
+ const end = missionDef.ending(missionState);
+ missionState.stage = "end"; missionState.completed = true; missionState.result = end;
+ saveMissionState(); renderMissionResult(end); return;
+ }
+ missionState.stage = ch.next; saveMissionState(); renderMissionStage();
 }
 
 let missionBriefRequest = 0;
@@ -1551,6 +1561,8 @@ function restoreMissionState(preferredId = null) {
     const state = saved.state;
     if (!def || !def.stages.some(x => x.id === state.stage) && !(state.completed && state.result)) return false;
     if (!Number.isFinite(state.funds) || !Number.isFinite(state.risk) || !Number.isFinite(state.cred) || !Array.isArray(state.clues) || !Array.isArray(state.log)) return false;
+    state.attempts = Number.isFinite(state.attempts) ? state.attempts : 0;
+    state.failures = Number.isFinite(state.failures) ? state.failures : 0;
     missionDef = def;
     missionState = state;
     loadMissionCanonBrief(missionDef.novelId || null);
