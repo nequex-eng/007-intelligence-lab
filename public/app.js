@@ -1475,7 +1475,7 @@ const panel = $("#missionPanel");
 const stage = missionDef.stages.find((s) => s.id === missionState.stage);
 panel.innerHTML = `<h3>${esc(missionDef.title)} · ${esc(missionDef.kind)}</h3>${stateBarHTML()}
 <h3 style="margin-top:6px">${esc(stage.title)}</h3><p>${esc(stage.text)}</p>
-${stage.choices.map((ch, i) => `<button class="choice" data-choice="${i}">${esc(ch.text)}<small>${esc(ch.hint)}</small></button>`).join("")}
+${stage.choices.map((ch, i) => `<button class="choice" data-choice="${i}">${esc(ch.text)}<small>${esc(ch.hint)} · ${LANGUAGE === "en" ? "Success chance" : "预计成功率"} ${missionChoiceChance(ch)}%</small></button>`).join("")}
 ${missionState.clues.length? `<p class="meta"><b>已发现线索：</b></p>` + missionState.clues.map((c) => `<div class="log">${esc(c)}</div>`).join(""): ""}
 <div class="row" style="margin-top:10px"><button class="btn ghost small" id="missionQuit">放弃任务</button></div>`;
 $$("#missionPanel [data-choice]").forEach((el) => el.addEventListener("click", () => chooseMission(+el.dataset.choice)));
