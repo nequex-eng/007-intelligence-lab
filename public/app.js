@@ -729,7 +729,30 @@ runDossier(l.books[0]);
 });
 }
 
+let canonWorldLocations = [];
+function renderCanonWorldDirectory() {
+  const q = ($("#canonWorldSearch")?.value || "").trim().toLowerCase();
+  const list = canonWorldLocations.filter(p => [p.name,p.nameEn,p.country,...p.appearances.map(a=>a.title)].join(" ").toLowerCase().includes(q));
+  const box = $("#canonWorldDirectory");
+  if (!box) return;
+  box.innerHTML = list.slice(0,170).map(p => `<div class="card"><h3>${esc(p.name)} <span class="tag ${p.fictional?"red":"gold"}">${p.fictional?"小说虚构地点":"真实地点"}</span></h3><p class="meta">${esc(p.nameEn || "")} · ${esc(p.country || "国家未标注")} · ${p.appearances.length}部作品</p><p>${esc(p.appearances.map(a=>a.title+"："+a.role).join("；"))}</p></div>`).join("") || '<div class="empty">没有匹配地点。</div>';
+}
+async function loadCanonWorldDirectory() {
+  const box = $("#canonWorldDirectory");
+  try {
+    const r = await fetch("/api/world");
+    if (!r.ok) throw new Error("地点接口返回 "+r.status);
+    const d = await r.json();
+    canonWorldLocations = d.locations || [];
+    renderCanonWorldDirectory();
+    $("#canonWorldSearch").addEventListener("input", renderCanonWorldDirectory);
+  } catch(e) {
+    box.innerHTML = '<div class="empty">核验地点索引加载失败：'+esc(e.message)+'</div>';
+  }
+}
+
 function initAtlas() {
+loadCanonWorldDirectory();
 const persons = [...new Set(LOCATIONS.flatMap((l) => l.people))];
 const countries = [...new Set(LOCATIONS.map((l) => l.country))];
 const books = [...new Set(LOCATIONS.flatMap((l) => l.books))];
