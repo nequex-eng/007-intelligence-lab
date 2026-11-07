@@ -477,22 +477,29 @@ $$("#missionPanel [data-choice]").forEach((el) => el.addEventListener("click", (
 $("#missionQuit").addEventListener("click", () => { if (missionDef) localStorage.removeItem("007-mission:" + missionDef.id); missionState = null; missionDef = null; $("#missionPanel").innerHTML = `<h3>任务控制台</h3><p class="meta">任务已放弃。选一个任务重新开始。</p><div class="empty">尚未开始任务</div>`;});
 }
 
+function renderMissionResult(end) {
+const current = missionState;
+$("#missionPanel").innerHTML = `<h3>${esc(missionDef.title)} · 任务结果</h3>${stateBarHTML()}
+<div class="card" style="margin-top:6px"><h3>行动报告·${esc(end.grade)}</h3><p>${esc(end.text)}</p>
+<p><b>行动记录：</b></p><ul style="font-size:14px">${current.log.map((l) => `<li>${esc(l)}</li>`).join("")}</ul>
+<p><b>线索汇总（${current.clues.length}条）：</b></p>${current.clues.length? current.clues.map((c) => `<div class="log">${esc(c)}</div>`).join(""): "<p class='meta'>无线索发现。</p>"}
+<p class="meta">${missionDef.kind === "原著任务"? "原著任务：结局按原著走向评定，超出原著的部分已标注。": "【非原著·原创】本任务为原创设计，结局为模拟结果，不是原著剧情。"}</p>
+<button class="btn small" id="missionAgain">再玩一次</button></div>`;
+$("#missionAgain").addEventListener("click", () => startMission(missionDef.id));
+}
+
 function chooseMission(i) {
 const stage = missionDef.stages.find((s) => s.id === missionState.stage);
 const ch = stage.choices[i];
 missionState.log.push(stage.title + "：" + ch.text);
 applyFx(ch.fx || {});
 if (ch.next === "end") {
-localStorage.removeItem("007-mission:" + missionDef.id);
 const end = missionDef.ending(missionState);
-const s = missionState;
-$("#missionPanel").innerHTML = `<h3>${esc(missionDef.title)} · 任务结果</h3>${stateBarHTML()}
-<div class="card" style="margin-top:6px"><h3>行动报告·${esc(end.grade)}</h3><p>${esc(end.text)}</p>
-<p><b>行动记录：</b></p><ul style="font-size:14px">${s.log.map((l) => `<li>${esc(l)}</li>`).join("")}</ul>
-<p><b>线索汇总（${s.clues.length}条）：</b></p>${s.clues.length? s.clues.map((c) => `<div class="log">${esc(c)}</div>`).join(""): "<p class='meta'>无线索发现。</p>"}
-<p class="meta">${missionDef.kind === "原著任务"? "原著任务：结局按原著走向评定，超出原著的部分已标注。": "【非原著·原创】本任务为原创设计，结局为模拟结果，不是原著剧情。"}</p>
-<button class="btn small" id="missionAgain">再玩一次</button></div>`;
-$("#missionAgain").addEventListener("click", () => startMission(missionDef.id));
+missionState.stage = "end";
+missionState.completed = true;
+missionState.result = end;
+saveMissionState();
+renderMissionResult(end);
 return;
 }
 missionState.stage = ch.next;
@@ -513,7 +520,20 @@ function saveMissionState() {
   try { if (missionDef && missionState) localStorage.setItem("007-mission:" + missionDef.id, JSON.stringify({ missionId: missionDef.id, state: missionState })); } catch(e) {}
 }
 function restoreMissionState() {
-  try { const saved = JSON.parse(localStorage.getItem("007-mission:casino") || "null"); if (!saved || !saved.state) return; const def = missionById(saved.missionId); if (!def || !def.stages.some(x=>x.id===saved.state.stage)) return; missionDef=def; missionState=saved.state; renderMissionStage(); } catch(e) {}
+  try {
+    const saved = JSON.parse(localStorage.getItem("007-mission:casino") || "null");
+    if (!saved || !saved.state) return;
+    const def = missionById(saved.missionId);
+    if (!def) return;
+    missionDef = def;
+    missionState = saved.state;
+    if (missionState.completed && missionState.result) {
+      renderMissionResult(missionState.result);
+      return;
+    }
+    if (!def.stages.some(x => x.id === missionState.stage)) return;
+    renderMissionStage();
+  } catch(e) {}
 }
 function initMissions() { renderMissionList(); loadCasinoCanonBrief(); restoreMissionState(); }
 
