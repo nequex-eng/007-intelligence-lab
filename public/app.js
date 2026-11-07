@@ -320,7 +320,7 @@ const EN_TEXT = new Map([
 ["莱特出现作品","Novels featuring Felix Leiter"],
 ["邦德用过武器","Weapons used by Bond"],
 ["涉及赌场的小说","Novels involving casinos"],
-["布洛菲尔德","Blofeld"],
+["布洛菲尔德","Blofeld"],["与苏联情报机构有关的反派","Villains linked to Soviet intelligence"],["莱特","Felix Leiter"],["武器","Bond’s weapons"],["赌场","Casino novels"],
 ["非原著","Non-canon"],
 ["创建一个新反派","Create a new villain"],
 ["设计悬念结构","Design a suspense structure"],
@@ -653,6 +653,8 @@ modes.forEach((b) => b.addEventListener("click", async () => {
   modes.forEach((x) => x.classList.remove("active"));
   b.classList.add("active");
   chatMode = b.dataset.mode || "talk";
+  saveChatHistory();
+  restoreChatHistory();
   $("#groupPick").style.display = chatMode === "group" ? "block" : "none";
   const hints = { talk: "选择人物后自动匹配其首次登场原著。", report: "向M汇报：系统自动切换为M接收汇报，输入行动经过与证据。", quartermaster: "Q部门：系统自动切换为Q，直接说明任务目的并领取装备。", group: "多角色同场：你与两位人物共同对话；每次发送后，两位人物分别回应。" };
   $("#chatHint").textContent = hints[chatMode] || hints.talk;
