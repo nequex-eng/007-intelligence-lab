@@ -66,7 +66,7 @@ const EN_TEXT = new Map([
 ["情报档案馆","Intelligence Archive"],["人物剧场","Character Theatre"],["任务控制中心","Mission Control"],["世界探索","World Explorer"],
 ["接受第一个任务","Accept Your First Mission"],["见一见邦德","Meet Bond"],["打开情报馆","Open the Archive"],["状态检测中…","Checking system…"],
 ["搜索人物","Search characters"],["按首次登场筛选","Filter by first appearance"],["原著时间线","Canon timeline"],["同场第二人","Second character"],
-["说点什么…","Write a message…"],["发送","Send"],["自由对话","Free conversation"],["向M汇报","Report to M"],["找Q领装备","Request equipment from Q"],["多角色同场","Group scene"],
+["说点什么…","Write a message…"],["发送","Send"],["自由对话","Free conversation"],["角色扮演","Role-play"],["和他们聊天","Chat with Them"],
 ["首次登场：","First appearance: "],["知识截止：","Knowledge cutoff: "],["身份背景：","Background: "],["外貌与行为：","Appearance: "],["性格与价值观：","Personality: "],["语言习惯：","Voice and speech: "],["人际关系：","Relationships: "],["参与事件：","Appearances: "],["知识边界：","Knowledge boundaries: "],["知识库出处索引：","Knowledge sources: "],
 ["人物档案","Character dossier"],["点上方任意人物卡片查看完整档案。","Select a character above to view the full dossier."],["尚未选择人物","No character selected"],
 ["全部作品","All novels"],["全部国家","All countries"],["全部小说","All novels"],["按国家筛选","Filter by country"],["按小说筛选","Filter by novel"],["按年代筛选","Filter by decade"],
@@ -265,7 +265,7 @@ const EN_TEXT = new Map([
 ["全部作品","All novels"],
 ["人物档案","Character dossier"],
 ["点上方任意人物卡片查看完整档案。","Select any character card above to view the full dossier."],
-["角色模拟","Character simulation"],
+["角色模拟","Chat with Them"],["和他们聊天","Chat with Them"],
 ["先选一个人，再开始对话。当前模式：自由对话。","Select a character to begin. Current mode: Free conversation."],
 ["原著时间线","Novel timeline"],
 ["选择人物后自动匹配原著","The character’s debut novel is selected automatically."],
@@ -813,7 +813,7 @@ let selectedChar = null;
 let chatMode = "talk";
 let chatHistory = [];
 let modelAvailable = null;
-function chatStorageKey() { return "007-intel-chat:" + selectedChar + ":" + (document.getElementById("sceneNovel")?.value || "casino-royale") + ":" + (document.getElementById("sceneChapter")?.value || "end"); }
+function chatStorageKey() { return "007-intel-chat:" + selectedChar + ":" + (chatMode === "roleplay" ? "roleplay:" + ($("#groupSecond")?.value || "") : (document.getElementById("sceneNovel")?.value || "casino-royale") + ":" + (document.getElementById("sceneChapter")?.value || "end")); }
 function saveChatHistory() { try { if (selectedChar) localStorage.setItem(chatStorageKey(), JSON.stringify(chatHistory.slice(-80))); } catch(e) {} }
 function restoreChatHistory() {
   try { const saved = JSON.parse(localStorage.getItem(chatStorageKey()) || "[]"); chatHistory = Array.isArray(saved) ? saved.filter(m => m && ["user","assistant"].includes(m.role) && typeof m.content === "string").slice(-80) : []; } catch(e) { chatHistory = []; }
@@ -893,6 +893,7 @@ document.querySelector("#characters.card:last-child").scrollIntoView({ behavior:
 });
 const gs = $("#groupSecond");
 gs.innerHTML = CHARACTERS.filter((x) => x.id!== id).map((x) => `<option value="${x.id}">${esc(LANGUAGE==="en"?x.name:x.zh)}</option>`).join("");
+if (chatMode === "roleplay") restoreChatHistory();
 }
 
 function speakerSurname(character) {
@@ -938,7 +939,7 @@ async function sendChat() {
 const input = $("#chatInput").value.trim();
 if (!input) return;
 if (!selectedChar) { addChatMsg("sys", "请先在上方选一个人，再开始对话。"); return;}
-if (chatMode === "group" && !$("#groupSecond").value) { addChatMsg("sys", "多角色同场需要再选择一位人物。"); return; }
+if (chatMode === "roleplay" && !$("#groupSecond").value) { addChatMsg("sys", LANGUAGE === "en" ? "Choose a second character for the role-play." : "请再选择一位人物参与角色扮演。"); return; }
 const c = charById(selectedChar);
 $("#chatInput").value = "";
 addChatMsg("me", input);
@@ -953,8 +954,8 @@ chatBox.appendChild(thinking);
 chatBox.scrollTop = chatBox.scrollHeight;
 chatHistory.push({ role: "user", content: input});
 saveChatHistory();
-const ids = chatMode === "group" ? [selectedChar, $("#groupSecond").value] : [selectedChar];
-const sysNote = chatMode === "report"? "你正在向M汇报，M只听事实。": chatMode === "quartermaster"? "对方是Q，只谈装备。": "";
+const ids = chatMode === "roleplay" ? [selectedChar, $("#groupSecond").value] : [selectedChar];
+const sysNote = "";
 if (sysNote) addChatMsg("sys", sysNote);
 try {
 const r = await fetch("/api/chat", { method: "POST", headers: { "content-type": "application/json"},
@@ -962,7 +963,7 @@ body: JSON.stringify({ characterIds: ids, novelId: $("#sceneNovel").value, chapt
 if (r.ok) {
 const d = await r.json();
 clearThinking();
-if (chatMode === "group" && Array.isArray(d.replies)) {
+if (chatMode === "roleplay" && Array.isArray(d.replies)) {
   d.replies.forEach((item, index) => {
     const speaker = charById(item.characterId);
      addChatMsg("them", item.content, speaker ? speakerSurname(speaker) : item.characterId, index === 1);
@@ -973,7 +974,7 @@ if (chatMode === "group" && Array.isArray(d.replies)) {
   chatHistory.push({ role: "assistant", content: d.reply, characterId: selectedChar });
 }
 saveChatHistory();
-$("#modelLine").textContent = "模型已接入：" + (d.model || "") + (d.canonMode ? " · " + (d.chapterNo ? "第" + d.chapterNo + "章" : "全书结束") + "章级正典约束已启用" : "");
+$("#modelLine").textContent = (LANGUAGE === "en" ? "Model connected: " : "模型已接入：") + (d.model || "") + (d.canonMode ? " · " + (d.chapterNo ? "第" + d.chapterNo + "章" : "全书结束") + "章级正典约束已启用" : (chatMode === "roleplay" ? (LANGUAGE === "en" ? " · Free cross-story role-play" : " · 跨作品自由角色扮演") : ""));
 return;
 }
 if (r.status === 503) {
@@ -1024,12 +1025,14 @@ modes.forEach((b) => b.addEventListener("click", async () => {
   chatMode = b.dataset.mode || "talk";
   saveChatHistory();
   restoreChatHistory();
-  $("#groupPick").style.display = chatMode === "group" ? "block" : "none";
-  const hints = { talk: "选择人物后，可在其正典出场作品中切换故事时间线。", report: "向M汇报：M可在其全部正典出场作品中接收汇报。", quartermaster: "Q部门：非正典装备职能模拟；原著中的Q仅被提及，未实际出场。", group: "多角色同场：你与两位人物共同对话；两位人物分别回应，时间线需同时符合双方出场记录。" };
-  $("#chatHint").textContent = hints[chatMode] || hints.talk;
-  if (chatMode === "report" || chatMode === "quartermaster") {
-    $("#sceneChapter").value = "";
-    await selectChar(chatMode === "report" ? "m" : "q");
+  $("#groupPick").style.display = chatMode === "roleplay" ? "block" : "none";
+  const hints = { talk: "选择人物后，可在其正典出场作品中切换故事时间线。", roleplay: "先选择一位主角，再指定第二位人物。两人可以跨越不同作品、年代和场景自由相遇；你是独立第三者，不是邦德。" };
+  $("#chatHint").textContent = LANGUAGE === "en" ? (chatMode === "roleplay" ? "Choose a lead character and a second character. They can meet across stories, eras and settings. You are an independent third party, not Bond." : "Talk naturally with the selected character in their established world.") : (hints[chatMode] || hints.talk);
+  $("#timelinePick").style.display = chatMode === "roleplay" ? "none" : "flex";
+  if (chatMode === "roleplay") {
+    const gs = $("#groupSecond");
+    if (gs.options.length === 0 && selectedChar) gs.innerHTML = CHARACTERS.filter(x => x.id !== selectedChar).map(x => '<option value="' + x.id + '">' + esc(LANGUAGE === "en" ? x.name : x.zh) + '</option>').join("");
+    restoreChatHistory();
   }
 }));
 $("#charSearch").addEventListener("input", renderCharGrid);
@@ -1077,7 +1080,12 @@ if ($("#sceneNovelLabel")) $("#sceneNovelLabel").textContent = initialBook ? (LA
 // Render character cards immediately; chapter data is loaded in the background.
 renderCharGrid();
 loadSceneChapters(scene.value);
-if (CHARACTERS.some(c => c.id === "bond")) await selectChar("bond");
+// The visitor is not Bond; leave the character selection empty by default.
+ if (CHARACTERS.some(c => c.id === "bond")) {
+   selectedChar = null;
+   renderCharGrid();
+   $("#charDetail").innerHTML = '<h3>' + (LANGUAGE === "en" ? "Choose a character" : "选择一位人物") + '</h3><p class="meta">' + (LANGUAGE === "en" ? "You are an independent visitor in their world, not James Bond." : "你是这个世界中的独立访客，不是詹姆斯·邦德。") + '</p>';
+ }
 } catch(e) {
 $("#charGrid").innerHTML='<div class="empty">核验知识库加载失败：'+esc(e.message)+'。请检查本地同步与API。</div>';
 }
