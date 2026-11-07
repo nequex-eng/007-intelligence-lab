@@ -5,7 +5,7 @@ export async function onRequest(context) {
   const q = (url.searchParams.get("q") || "").trim();
   const kind = url.searchParams.get("kind") || "all";
   if (q) return json({ source: "verified-canon", results: searchCanon(q, kind, Math.min(Number(url.searchParams.get("limit")) || 30, 100)) });
-  const books = novels.map(n => ({ id: n.novel_id, no: n.novel_no, titleZh: n.title_zh, titleEn: n.title_en, year: n.publication_year, kind: n.kind, chapters: n.chapters?.length || 0, summary: n.story_timeline }));
+  const books = novels.map(n => ({ id: n.novel_id, no: n.novel_no, titleZh: n.title_zh, titleEn: n.title_en, year: n.publication_year, kind: n.kind, kindEn: n.kind === "长篇" ? "Novel" : n.kind === "短篇集" ? "Short-story collection" : n.kind, chapters: n.chapters?.length || 0, summary: n.story_timeline, summaryEn: n.synopsis_en || n.story_timeline }));
   const data = { source: "verified-canon", generated: manifest.generated };
   if (kind === "all" || kind === "books") data.books = books;
   if (kind === "all" || kind === "characters") data.characters = indexes.characters.characters;
