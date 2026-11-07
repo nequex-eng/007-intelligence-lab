@@ -96,7 +96,7 @@ export function characterForScene(id, novelId) {
   const scope = character.knowledge_scope || [];
   const entry = Array.isArray(scope) ? scope.find(x => x.novel === book.novel_id || Number(x.novel_no) === Number(book.novel_no)) : null;
   const status = entry?.status || "unknown";
-  if (status === "dead" || status === "not_yet_introduced" || status === "absent") {
+  if (status !== "present") {
     return { ok: false, error: "CHARACTER_UNAVAILABLE_AT_SCENE", status, character, book };
   }
   return { ok: true, character, book, status };
