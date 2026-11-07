@@ -49,6 +49,7 @@ export async function onRequestPost(context) {
         : "MiniMax 请求失败：请检查 API Key、模型权限与账户额度。以下保留已检索证据。",
       code: out.code,
       modelStatus: llmStatus(context.env || {}),
+      modelError: out.reason || "Unknown MiniMax error",
       evidence
     }, out.code === "MODEL_NOT_CONNECTED" ? 503 : 502);
   } catch (error) {
