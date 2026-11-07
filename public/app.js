@@ -93,7 +93,9 @@ $$("#charGrid [data-char]").forEach((el) => el.addEventListener("click", () => s
 async function selectChar(id) {
 const c = charById(id);
 if (!c) { addChatMsg("sys", "知识库中没有找到该人物，无法启动角色模式。"); return; }
+const previousChar = selectedChar;
 selectedChar = id;
+if (previousChar !== id && $("#sceneChapter")) $("#sceneChapter").value = "";
 const matchedNovel = c.firstNovelId || BOOKS.find(b => b.zh === c.firstBook)?.id || "casino-royale";
 const scene = $("#sceneNovel");
 if (scene && matchedNovel && scene.value !== matchedNovel) {
@@ -249,10 +251,10 @@ $$("#chatModes.chipbtn").forEach((x) => x.classList.remove("active"));
 b.classList.add("active");
 chatMode = b.dataset.mode;
 $("#groupPick").style.display = chatMode === "group"? "block": "none";
-const hints = { talk: "先选一个人，再开始对话。当前模式：自由对话。", report: "向M汇报：先选M，再汇报事实。M只听事实，不听看法。", quartermaster: "找Q领装备：先选Q，再说你要领什么装备。Q只谈装备。", group: "多角色同场：先选主谈人，再选同场第二人，最多同场对话由两人轮流回应。"};
+const hints = { talk: "选择人物后自动匹配其首次登场原著。", report: "向M汇报：系统自动切换为M接收汇报，输入行动经过与证据。", quartermaster: "Q部门：系统自动切换为Q，直接说明任务目的并领取装备。", group: "多角色同场：先选择主谈人物，再选择第二位人物，发送后两人共同回应。"};
 $("#chatHint").textContent = hints[chatMode];
-if (chatMode === "report") selectChar("m");
-if (chatMode === "quartermaster") selectChar("q");
+if (chatMode === "report") { $("#sceneChapter").value = ""; selectChar("m"); }
+if (chatMode === "quartermaster") { $("#sceneChapter").value = ""; selectChar("q"); }
 }));
 $("#chatSend").addEventListener("click", sendChat);
 $("#sceneNovel").addEventListener("change", async () => {
