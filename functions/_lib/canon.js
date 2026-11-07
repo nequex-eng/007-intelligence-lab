@@ -25,7 +25,7 @@ export function resolveEntity(query, kind) {
   const all = Object.entries(indexes).filter(([k]) => !kind || k === kind);
   for (const [category, index] of all) {
     const entries = index[category] || index.entries || [];
-    const hit = entries.find((x) => normalize(x.id) === q);
+    const hit = entries.find((x) => String(x.id || "").trim() === String(query || "").trim());
     if (hit) return { kind: category, entity: hit, ambiguous: false };
   }
   const found = aliases.filter((x) => normalize(x.alias) === q && (!kind || x.kind === kind));
