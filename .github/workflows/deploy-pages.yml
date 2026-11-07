@@ -1,0 +1,37 @@
+name: Deploy 007 Intelligence Lab to Cloudflare Pages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/deploy-pages.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+      - name: Sync latest verified canon knowledge
+        run: npm run sync:knowledge
+      - name: Verify application before deployment
+        run: |
+          npm run test:canon
+          npm run test:api
+          npm run test:ui
+      - name: Deploy to Cloudflare Pages
+        run: npx wrangler@4 pages deploy public --project-name=007-intelligence-lab --commit-dirty=true
+        env:
+          CLOUDFLARE_ACCOUNT_ID: 3c76b79d615b6bc886fe564307682767
+          CLOUDFLARE_API_TOKEN: \${{ secrets.CLOUDFLARE_API_TOKEN }}
