@@ -952,6 +952,7 @@ async function loadCanonWorldDirectory() {
 }
 
 async function initAtlas() {
+  try {
   await loadCanonWorldDirectory();
   const countries = [...new Set(canonWorldLocations.map(p => p.country).filter(Boolean))].sort();
   countries.forEach(c => {
@@ -965,6 +966,13 @@ async function initAtlas() {
   });
   ["atlasCountry","atlasBook","atlasEra"].forEach(id => document.getElementById(id).addEventListener("change", renderAtlas));
   renderAtlas();
+  } catch (e) {
+    const directory = $("#canonWorldDirectory");
+    if (directory) directory.innerHTML = `<div class="empty">世界探索初始化失败：${esc(e.message)}</div>`;
+    const map = $("#mapWrap");
+    if (map) map.textContent = "地图初始化失败，请刷新重试。";
+    console.error("atlas init failed", e);
+  }
 }
 
 // ---- 正典知识库状态 ----
@@ -1011,13 +1019,20 @@ $("#modelLine").textContent = "状态接口不可用，无法确认模型状态�
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-initCharacters();
-initDossier();
-initMissions();
-initExperience();
-initBaccarat();
-initLiterary();
-initAtlas();
-initCanonDataStatus();
-initStatus();
+  const tasks = [
+    ["人物剧场", initCharacters], ["情报档案馆", initDossier],
+    ["任务控制中心", initMissions], ["场景体验", initExperience],
+    ["百家乐", initBaccarat], ["文学研究", initLiterary],
+    ["世界探索", initAtlas], ["知识库状态", initCanonDataStatus],
+    ["模型状态", initStatus]
+  ];
+  for (const [name, init] of tasks) {
+    try {
+      const result = init();
+      if (result && typeof result.catch === "function") result.catch(e => {
+        console.error(name + "初始化失败", e);
+        if (name === "模型状态" && $("#statusPill")) $("#statusPill").textContent = "模型状态检测失败";
+      });
+    } catch (e) { console.error(name + "初始化失败", e); }
+  }
 });
