@@ -1,1 +1,18 @@
-{"description":"007 INTELLIGENCE LAB：基于Ian Fleming 14部007原著的互动文学与情报世界实验室（Cloudflare Pages + Pages Functions）。","devDependencies":{"wrangler":"^4.157.0"},"engines":{"node":">=18"},"name":"007-intelligence-lab","private":true,"scripts":{"deploy":"bash deploy.sh","dev":"wrangler pages dev public"},"version":"1.0.0"}
+{
+  "name": "007-intelligence-lab",
+  "version": "1.1.0",
+  "private": true,
+  "description": "007 Intelligence Lab — four canon-driven interactive modules built on Ian Fleming's verified novels.",
+  "engines": {
+    "node": ">=18"
+  },
+  "devDependencies": {
+    "wrangler": "^4.157.0"
+  },
+  "scripts": {
+    "sync:knowledge": "node scripts/sync-knowledge.mjs",
+    "dev": "npm run sync:knowledge && wrangler pages dev public",
+    "deploy": "bash deploy.sh",
+    "test:canon": "node scripts/test-canon.mjs"
+  }
+}
