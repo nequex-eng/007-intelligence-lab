@@ -23,8 +23,8 @@ export async function onRequest(context) {
     const novel = getNovel(novelId);
     if (!novel) return json({ error: "未知小说" }, 404);
     const chapterValue = url.searchParams.get("chapter");
-    const chapterNo = chapterValue === null || chapterValue === "" ? null : Number(chapterValue);
-    if (chapterNo !== null && (!Number.isInteger(chapterNo) || !novel.chapters?.some(c => Number(c.no) === chapterNo))) {
+    const chapterNo = chapterValue === null || chapterValue.trim() === "" ? null : chapterValue.trim();
+    if (chapterNo !== null && !novel.chapters?.some(c => String(c.no).trim().toUpperCase() === chapterNo.toUpperCase())) {
       return json({ error: "所选章节不属于这部小说", code: "UNKNOWN_CHAPTER" }, 400);
     }
     const result = characterForScene(url.searchParams.get("character"), novelId, chapterNo);
