@@ -134,8 +134,9 @@ export function canonSystemPrompt(character, book, status, question = "", chapte
     for (const fact of novel.facts || []) {
       if (fact.canon_or_inference !== "canon") continue;
       if (novel.novel_no === book.novel_no && chapterNo !== null && chapterNo !== undefined) {
-        const factChapter = Number(String(fact.chapter).match(/\d+/)?.[0]);
-        if (Number.isFinite(factChapter) && factChapter > Number(chapterNo)) continue;
+        const chapterMatch = String(fact.chapter ?? "").match(/\d+/);
+        const factChapter = chapterMatch ? Number(chapterMatch[0]) : NaN;
+        if (!Number.isFinite(factChapter) || factChapter > Number(chapterNo)) continue;
       }
       const hay = [fact.entity, fact.fact, fact.quote].filter(Boolean).join(" ").toLocaleLowerCase();
       const score = terms.reduce((n, term) => n + (hay.includes(term) ? (term.length > 2 ? 3 : 1) : 0), 0);
