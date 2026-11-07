@@ -163,8 +163,8 @@ details summary{cursor:pointer;color:var(--gold2);font-size:15px}
 <button class="chipbtn" data-mode="group">多角色同场</button>
 </div>
 <p class="meta" id="chatHint">先选一个人，再开始对话。当前模式：自由对话。</p>
-<div class="row" style="margin:10px 0"><div style="flex:1"><label for="sceneNovel">小说时间点（按整部小说状态控制人物知识；尚未细化到章内分钟）</label><select id="sceneNovel"><option value="casino-royale">皇家赌场 · 1953</option></select></div></div><div id="groupPick" style="display:none"><label>同场第二人</label><select id="groupSecond"></select></div>
-<div class="chatbox" id="chatLog"><div class="msg sys">对话消息会发送至模型服务生成回复；最近80条对话仅保存在当前浏览器。选择小说时间点后，人物按原著知识边界回答。</div></div>
+<div class="row" style="margin:10px 0;align-items:end"><div style="flex:1"><label for="sceneNovel">选择原著</label><select id="sceneNovel"><option value="casino-royale">皇家赌场 · 1953</option></select></div><div style="flex:1"><label for="sceneChapter">人物所处章节（控制章内未来知识）</label><select id="sceneChapter"><option value="">全书结束（默认）</option></select></div></div><div id="groupPick" style="display:none"><label>同场第二人</label><select id="groupSecond"></select></div>
+<div class="chatbox" id="chatLog"><div class="msg sys">对话消息会发送至模型服务生成回复；最近80条对话仅保存在当前浏览器。选择原著与章节后，人物按出场顺序和章级知识边界回答；默认时间点为全书结束。</div></div>
 <div class="row" style="margin-top:10px"><div style="flex:3"><input id="chatInput" placeholder="说点什么…" maxlength="500"></div><button class="btn small" id="chatSend" style="flex:0 0 auto">发送</button></div>
 <p class="meta" id="modelLine">模型状态检测中…</p>
 </div>
