@@ -18,10 +18,10 @@ export async function onRequest(context) {
       canonFacts: novels.reduce((n, b) => n + (b.facts || []).filter(f => f.canon_or_inference === "canon").length, 0),
       inferenceFacts: novels.reduce((n, b) => n + (b.facts || []).filter(f => f.canon_or_inference === "inference").length, 0),
       coreCharacters: characterCore.length,
-      characters: indexes.characters.total_unique,
-      organizations: indexes.organizations.total_unique,
-      locations: indexes.locations.total_unique,
-      equipment: indexes.equipment.total_unique
+      characters: indexes.characters.characters.length,
+      organizations: indexes.organizations.organizations.length,
+      locations: indexes.locations.locations.length,
+      equipment: indexes.equipment.equipment.length
     },
     knownGaps: manifest.known_gaps || [],
     time: new Date().toISOString()
