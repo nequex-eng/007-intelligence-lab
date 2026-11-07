@@ -254,52 +254,10 @@ details summary{cursor:pointer;color:var(--gold2);font-size:15px}
 </section>
 
 <!--4成为邦德-->
-<section class="mod" id="experience">
-<h2><span class="en">FIELD OPERATIONS</span>实战体验 · 成为邦德</h2>
-<p class="mod-desc">从M办公室领任务，到Q部门领装备，再到酒店、餐厅、酒吧、赌场、俱乐部与豪华汽车。赌场部分是真正可玩的百家乐：有规则、有对手、有筹码输赢。</p>
-<div class="chips" id="expScenes"></div>
-<div class="card" id="expPanel" style="margin-top:12px"><h3>场景</h3><p class="meta">点上方场景进入体验。</p><div class="empty">尚未选择场景</div></div>
-<div class="card" style="margin-top:12px" id="baccaratCard">
-<h3>赌场·百家乐 <span class="tag gold">可玩</span> <span class="tag">规则简化版</span></h3>
-<p class="meta">玩法：押闲家、庄家或和局。牌面点数按个位数计算，A为1点，10、J、Q、K为0点。补牌规则采用简化版：闲家0–5点补牌，6–7点停牌；庄家按简化规则补牌。和局赔8倍，庄赢赔0.95倍（抽水），闲赢赔1倍。对手：勒·希弗坐在对面，他会记住你的下注习惯。</p>
-<div class="statebar">
-<div class="state"><span class="lbl">你的筹码</span><b id="bacChips">1000</b></div>
-<div class="state"><span class="lbl">本局下注</span><b id="bacBet">—</b></div>
-<div class="state"><span class="lbl">战绩</span><b id="bacRecord">0胜0负</b></div>
-<div class="state"><span class="lbl">勒·希弗的评价</span><b id="bacRival" style="font-size:14px">观望中</b></div>
-</div>
-<div class="row">
-<div><label>下注金额</label><input id="bacAmount" type="number" value="100" min="10" max="1000" step="10"></div>
-<div><label>押注方向</label><select id="bacSide"><option value="player">闲家（赔1倍）</option><option value="banker">庄家（赔0.95倍）</option><option value="tie">和局（赔8倍）</option></select></div>
-<div style="flex:0 0 auto"><label>&nbsp;</label><button class="btn small" id="bacDeal">发牌</button></div>
-</div>
-<div id="bacTable" style="margin-top:12px"><div class="empty">尚未开局。筹码1000，用完可点“重新领筹码”恢复。</div></div>
-<div class="row" style="margin-top:10px"><button class="btn ghost small" id="bacReset">重新领筹码</button><span class="meta" id="bacNote"></span></div>
-</div>
-</section>
+
 
 <!--5文学研究室-->
-<section class="mod" id="literary">
-<h2><span class="en">LITERARY INTELLIGENCE</span>文学研究与创作实验</h2>
-<p class="mod-desc">研究伊恩·弗莱明的写作方式：人物塑造、悬念、信息控制、节奏、动作、气氛、女性角色、冷战背景、小说与电影改编差异。原创写作实验一律标注非原著，绝不冒充原著内容。</p>
-<div class="grid g2" id="litTopics"></div>
-<div class="grid g2" style="margin-top:14px;align-items:start">
-<div class="card"><h3>提问分析</h3>
-<p class="meta">输入关键词，检索核验知识库中的人物、事件、事实与出处。文学评论导读与原创实验会明确区分，不把推断冒充原著事实。</p>
-<input id="litQ" placeholder="例如：弗莱明怎么写悬念？邦德和反派有什么共同点？">
-<div style="margin-top:10px"><button class="btn small" id="litAsk">分析</button></div>
-<div id="litAnswer" style="margin-top:12px"><div class="empty">尚未提问</div></div></div>
-<div class="card"><h3>原创写作实验 <span class="tag red">非原著</span></h3>
-<p class="meta">以下生成均为原创实验，灵感来自弗莱明式结构，不是原著内容。</p>
-<div class="chips">
-<button class="chipbtn" data-lab="villain">创建一个新反派</button>
-<button class="chipbtn" data-lab="suspense">设计悬念结构</button>
-<button class="chipbtn" data-lab="mission">设计一场秘密行动</button>
-<button class="chipbtn" data-lab="compare">比较两部小说叙事</button>
-</div>
-<div id="labOut" style="margin-top:12px"><div class="empty">点上方任一实验开始。</div></div></div>
-</div>
-</section>
+
 
 <!--4世界探索-->
 <section class="mod" id="atlas">
