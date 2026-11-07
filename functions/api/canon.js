@@ -1,4 +1,4 @@
-import { manifest, novels, characterCore, indexes, searchCanon, resolveEntity, getNovel, getCharacter, characterForScene } from "../_lib/canon.js";
+import { manifest, novels, characterCore, indexes, relationships, timeline, searchCanon, resolveEntity, getNovel, getCharacter, characterForScene } from "../_lib/canon.js";
 const json = (data, status = 200) => new Response(JSON.stringify(data), { status, headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" } });
 export async function onRequest(context) {
   const url = new URL(context.request.url);
@@ -14,6 +14,8 @@ export async function onRequest(context) {
     const result = characterForScene(url.searchParams.get("character"), url.searchParams.get("novel"));
     return result.ok ? json({ character: result.character, book: { id: result.book.novel_id, title: result.book.title_zh }, status: result.status }) : json({ error: result.error, status: result.status || null }, 409);
   }
+  if (action === "relationships") { const id = url.searchParams.get("id") || ""; return json({ relationships: relationships.filter(p => !id || p.a === id || p.b === id) }); }
+  if (action === "timeline") return json({ timeline });
   if (action === "resolve") return json({ result: resolveEntity(q, url.searchParams.get("kind") || undefined) });
   return json({ results: searchCanon(q, url.searchParams.get("kind") || "all", Math.min(Number(url.searchParams.get("limit")) || 30, 100)) });
 }
