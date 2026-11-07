@@ -250,7 +250,7 @@ details summary{cursor:pointer;color:var(--gold2);font-size:15px}
 <!--6世界地图-->
 <section class="mod" id="atlas">
 <h2><span class="en">WORLD EXPLORER</span>007世界探索</h2>
-<p class="mod-desc">15处地点，全部来自示例知识库。真实城市标注真实坐标，虚构地点（如皇家莱索、蟹礁岛）明确标为虚构，不给假坐标。点地图上的点或下方卡片，进入相关人物、事件与小说。</p>
+<p class="mod-desc">世界探索以核验知识库中的170处地点为目录。地图只绘制有可靠真实坐标的城市；虚构地点与未核实坐标的地点只进入档案，不伪造坐标。</p>
 <div class="row">
 <div><label>按人物筛选</label><select id="atlasPerson"><option value="">全部人物</option></select></div>
 <div><label>按国家筛选</label><select id="atlasCountry"><option value="">全部国家</option></select></div>
@@ -259,20 +259,20 @@ details summary{cursor:pointer;color:var(--gold2);font-size:15px}
 </div>
 <div class="mapwrap" id="mapWrap" style="margin-top:14px"></div>
 <p class="meta">金点为真实地点，红点为小说虚构地点。坐标为城市级示意位置，事件归属以小说为准。</p>
-<div class="grid g3" id="atlasGrid" style="margin-top:12px"></div>
+<div class="grid g3" id="atlasGrid" style="margin-top:12px"></div><div class="card" style="margin-top:16px"><h3>完整地点索引 · 170处</h3><input id="canonWorldSearch" placeholder="搜索地点、国家或小说…" style="margin-bottom:10px"><div id="canonWorldDirectory" class="grid g2"><div class="empty">正在读取核验地点索引…</div></div></div>
 </section>
 
 <!--7TXT导入-->
 <section class="mod" id="import">
 <h2><span class="en">SOURCE INGESTION</span>资料导入与核验</h2>
-<p class="mod-desc">全本14本已转txt共926290词，13本章节索引通过、1本待复核，知识库仍标示例数据·待TXT导入核验。导入流程：本地解析txt（计算哈希、识别小说名与章节、统计字数行数）→摘要POST到服务端校验（重复检测、小说识别、错误报告）→核验后按数据结构入库。服务端不接收、不存储原著全文。</p>
+<p class="mod-desc">全本14本已转txt共926290词，13本章节索引通过、1本待复核，核验知识库已接入。此处仅用于本地检查额外底本，不会直接修改正典知识库。导入流程：本地解析txt（计算哈希、识别小说名与章节、统计字数行数）→摘要POST到服务端校验（重复检测、小说识别、错误报告）→核验后按数据结构入库。服务端不接收、不存储原著全文。</p>
 <div class="grid g2" style="align-items:start">
 <div class="card"><h3>批量导入</h3>
 <label>选择txt文件（可多选，每批最多20个）</label>
 <input type="file" id="txtFiles" accept=".txt" multiple>
 <div style="margin-top:10px"><button class="btn small" id="txtParse">解析并校验</button></div>
 <p class="meta">解析在你的浏览器本地完成，全文不上传。只把文件名、哈希、字数、章节摘要发给服务端校验。</p>
-<div id="importReport" style="margin-top:12px"><div class="empty">全本14本已转txt，章节索引13本通过、1本待复核；当前知识库仍为示例数据，待导入核验后替换。</div></div></div>
+<div id="importReport" style="margin-top:12px"><div class="empty">核验知识库当前含14部作品；八爪女第4篇缺失待换版核对。额外导入文件须独立核验，不会自动进入正典。</div></div></div>
 <div class="card"><h3>数据结构</h3>
 <p class="meta">轻量结构，十张表，导入后每条记录保留书名、章节、原文位置。</p>
 <table><tr><th>表</th><th>内容</th></tr>
