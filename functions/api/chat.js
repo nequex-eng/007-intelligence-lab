@@ -32,20 +32,15 @@ export async function onRequestPost(context) {
     if (new Set(ids).size !== ids.length) return json({ error: "同一人物不能重复加入场景", code: "DUPLICATE_CHARACTER" }, 400);
 
     const language = body.language === "en" ? "en" : "zh";
-    const mode = ["talk", "report", "quartermaster", "group"].includes(body.mode) ? body.mode : "talk";
-    if (mode === "report" && ids[0] !== "m") return json({ error: "向M汇报模式必须由M接收汇报", code: "REPORT_REQUIRES_M" }, 400);
-    if (mode === "quartermaster" && ids[0] !== "q") return json({ error: "装备领取模式必须由Q负责", code: "QUARTERMASTER_REQUIRES_Q" }, 400);
-    const novelId = body.novelId;
-    if (!novelId) {
-      return json({ error: "必须选择小说时间点，才能启动正典人物对话。", code: "SCENE_REQUIRED" }, 400);
-    }
-    const book = getNovel(novelId);
-    if (!book) return json({ error: "未知小说时间点", code: "UNKNOWN_NOVEL" }, 400);
+    const mode = ["talk", "roleplay"].includes(body.mode) ? body.mode : "talk";
+    const novelId = mode === "roleplay" ? null : body.novelId;
+    if (mode === "talk" && !novelId) return json({ error: "必须选择小说时间点", code: "SCENE_REQUIRED" }, 400);
+    const book = novelId ? getNovel(novelId) : null;
+    if (mode === "talk" && !book) return json({ error: "未知小说时间点", code: "UNKNOWN_NOVEL" }, 400);
     const chapterValue = body.chapterNo;
-    const chapterNo = chapterValue === null || chapterValue === undefined || String(chapterValue).trim() === "" ? null : String(chapterValue).trim();
-    if (chapterNo !== null && !book.chapters?.some(c => String(c.no).trim().toUpperCase() === chapterNo.toUpperCase())) {
-      return json({ error: "所选章节不属于这部小说", code: "UNKNOWN_CHAPTER" }, 400);
-    }
+    const chapterNo = mode === "roleplay" ? null : (chapterValue === null || chapterValue === undefined || String(chapterValue).trim() === "" ? null : String(chapterValue).trim());
+    if (mode === "talk" && chapterNo !== null && !book.chapters?.some(c => String(c.no).trim().toUpperCase() === chapterNo.toUpperCase())) return json({error:"所选章节不属于这部小说",code:"UNKNOWN_CHAPTER"},400);
+    if (mode === "roleplay" && ids.length !== 2) return json({error:"角色扮演需要选择两位人物",code:"TWO_CHARACTERS_REQUIRED"},400);
 
     const incoming = Array.isArray(body.messages) ? body.messages : [];
     const history = incoming
@@ -62,44 +57,43 @@ export async function onRequestPost(context) {
       return json({ error: "知识库中没有该人物", code: "UNKNOWN_CHARACTER" }, 404);
     }
 
-    const states = canonicalCharacters.map(c => {
-      // Q is only mentioned in the novels; the on-page armourer is Major Boothroyd.
-      // The site's Q is an explicitly non-canon functional simulation, never a canon appearance.
-      if (c.id === "q") return { ok: true, status: "non-canon-q-branch-simulation" };
+    const states = mode === "roleplay" ? canonicalCharacters.map(c => ({ok:true,status:"free-roleplay"})) : canonicalCharacters.map(c => {
+      if (c.id === "q") return { ok: true, status: "q-character-simulation" };
       return characterForScene(c.id, book.novel_id, chapterNo);
     });
     const unavailable = states.find(s => !s.ok);
-    if (unavailable) {
-      return json({
-        error: unavailable.error === "CHARACTER_NOT_YET_APPEARED" ? "该人物在所选章节尚未登场" : unavailable.error === "CHARACTER_NO_LONGER_PRESENT" ? "该人物在所选章节已经离场或死亡" : "该人物在所选小说时间点不可出场",
-        code: unavailable.error,
-        status: unavailable.status
-      }, 409);
-    }
+    if (unavailable) return json({error:"人物与所选时间点不匹配",code:unavailable.error},409);
 
     const latestQuestion = history[history.length - 1].content;
-    const prompts = canonicalCharacters.map((character, i) => {
-      if (character.id === "q") return language === "en"
-        ? "Q BRANCH — NON-CANON CHARACTER SIMULATION. In Fleming's novels, Q is mentioned but never appears or speaks; the on-page armourer in Dr No is Major Boothroyd, never called Q. This site's Q is an explicitly fictional interactive character representing the practical head of the equipment section. Play him as a real person: a highly capable, exacting British technical professional, dry-witted, impatient with needless fuss, quietly proud of good engineering, protective of his team's work, and accustomed to Bond's risk-taking. Be warm or sharp when the moment calls for it; use concise, natural spoken dialogue, reactions, humour, questions and opinions. Do not turn ordinary conversation into a canon disclaimer or an encyclopedia entry. Answer the human point first. You may discuss plausible training-simulation ideas and hypothetical technical cooperation, but never present invented partnerships, gadgets or events as Fleming canon or film canon. Mention the non-canon status only when asked about source accuracy or when confusion would otherwise arise."
-        : "Q部门——非正典人物模拟。弗莱明原著中的Q只有被提及，从未实际出场或说话；《诺博士》中实际出场的军械官是布思罗伊德少校，原著从未称其为Q。本网站的Q是明确标注的虚构互动人物，代表装备部门负责人。把他演成一个真实的人：技术能力极强、要求严格、英国式冷幽默、对无谓折腾缺乏耐心、对优秀工程有职业自豪感，也很清楚邦德总爱拿装备冒险。根据情境表现出亲切、刻薄、担忧或幽默；使用简洁自然的口语、即时反应、追问和个人意见。不要把普通聊天变成正典免责声明或百科介绍。先回应用户真正想聊的事。可以讨论训练模拟中的合理构想和假设性技术合作，但不得把虚构合作、装备或事件说成弗莱明原著或电影正典。只有用户询问来源准确性，或确实可能造成混淆时，才主动说明非正典身份。";
-      return canonSystemPrompt(character, book, states[i].status, latestQuestion, chapterNo, language);
-    });
+    const roleplayPersona = (character) => {
+      const keys = ["name_zh","name_en","role","role_en","background","background_en","appearance","appearance_en","personality","personality_en","habits","habits_en","voice_style","voice_style_en","relationships"];
+      const profile = {};
+      for (const key of keys) if (character[key] !== undefined && character[key] !== null) profile[key] = character[key];
+      return (language === "en" ? "PERSONALITY AND LIFE BACKGROUND (internalize; never recite): " : "人物性格与生活背景（内化为本人真实经历，不要复述资料）： ") + JSON.stringify(profile).slice(0,5000);
+    };
+    const prompts = canonicalCharacters.map((character, i) => mode === "roleplay"
+      ? roleplayPersona(character)
+      : character.id === "q"
+        ? (language === "en"
+          ? "You are Q, the head of a highly capable intelligence-service technical workshop: exacting, dry-witted, impatient with needless fuss, proud of good engineering and protective of your team. Speak naturally as a real person. Do not mention books, novels, authors, chapters, canon, fiction, adaptations or source material."
+          : "你是Q，情报机构技术部门负责人：技术能力极强、要求严格、英国式冷幽默、对无谓折腾缺乏耐心、对优秀工程有职业自豪感，也保护自己的团队。像真实的人一样自然交谈。禁止提及书籍、小说、作者、章节、正典、虚构、改编或来源资料。")
+        : canonSystemPrompt(character, book, states[i].status, latestQuestion, chapterNo, language));
     const baseRules = language === "en"
-      ? "You are role-playing one specific character from Ian Fleming’s original 007 novels. Reply in natural, immediate, human-sounding dialogue, not as a guide, synopsis or encyclopedia. React to the user's actual point; show temperament, humour, impatience, curiosity, warmth or reserve as appropriate. Never play the user or import film continuity. Preserve canon, but do not volunteer disclaimers or citations in ordinary conversation. When asked for a factual claim about the novels, be precise; if unsupported, say so briefly and then continue the conversation naturally. For hypothetical, personal, social or speculative questions, answer in character without presenting invented details as canon."
-      : "你正在扮演Ian Fleming的007原著人物。只扮演指定人物，不得扮演用户，不得混入电影设定。用自然、即时、有人味的对话回应，不要像导览词、剧情简介或百科全书。先回应用户真正表达的意思，再根据人物性格表现幽默、好奇、不耐烦、克制、亲切或戒备。严格守住正典事实，但普通聊天不要主动免责声明、罗列出处。用户明确询问原著事实时才严谨核对；没有依据就简短说明，再自然接回对话。面对假设、个人看法、日常交流或推测性问题，可以以人物身份表达观点，但不能把虚构内容伪装成原著事实。";
+      ? "You are a real person living in the 007 world, not a narrator, guide, synopsis or encyclopedia. The user is an independent third party and visitor, NOT James Bond, 007, a secret agent or any character. Never call the user Bond or assume their identity, job, history, relationships or shared experiences. Never mention books, novels, authors, chapters, canon, fiction, adaptations, source material or role-play. Treat this as your lived reality. Speak naturally with emotion, humour, opinions, questions and subtext. Do not recite your profile or turn ordinary conversation into lore exposition."
+      : "你是生活在007世界中的真实人物，不是讲解员、导览词、剧情简介或百科全书。用户是独立的第三者和访客，不是詹姆斯·邦德、007、特工或任何系列人物。绝不能称呼用户为邦德，也不得擅自假定用户的身份、职业、经历、人际关系或共同记忆。禁止提及书本、小说、作者、章节、正典、虚构、改编、来源资料或角色扮演。把这个世界当成自己真实生活的现实。使用自然口语、即时情绪反应、幽默、观点、追问和言外之意。不要复述人物档案，不要把日常聊天变成背景知识讲解。";
     const transcript = history.map(m => ({
       role: m.role,
       content: m.content
     }));
 
-    if (mode === "group") {
+    if (mode === "roleplay") {
       const replies = [];
       for (let i = 0; i < canonicalCharacters.length; i++) {
         const character = canonicalCharacters[i];
         const characterName = language === "en" ? character.name_en : character.name_zh;
         const groupRule = language === "en"
-          ? "You are only " + characterName + ". Speak only as this character, using only this character's own canon knowledge. Respond to the user's latest message and, where relevant, the other character's already-spoken words. Do not write the other character's dialogue. Keep this reply distinct and in character."
-          : "你现在只扮演" + characterName + "。只能使用该人物自己的正典知识。回应用户最新发言，并可针对另一位人物已经说过的话作出反应。不得代写另一位人物的台词。保持人物独立、口吻鲜明。";
+          ? "You are " + characterName + ". Stay fully in character and speak only for yourself. The other selected character may come from another era, place or story; you can meet naturally in this shared scene. React to the user's actual words and the other character's previous reply. Never write the other character's dialogue."
+          : "你现在是" + characterName + "。始终保持人物身份，只替自己发言。另一位人物可以来自不同年代、地点或故事，你们可以在当前场景自然相遇。回应用户真正说的话，也可以接住另一位人物上一轮的发言。不得代写另一位人物的台词。";
         const priorScene = replies.map(r => ({
           role: "assistant",
           content: r.content
@@ -123,16 +117,15 @@ export async function onRequestPost(context) {
       return json({
         replies,
         characterIds: canonicalCharacters.map(c => c.id),
-        novelId: book.novel_id, chapterNo, mode, canonMode: true, model: "multi-character"
+        novelId: null, chapterNo: null, mode, canonMode: false, model: "multi-character-roleplay"
       });
     }
 
     const system = [
       baseRules,
       prompts[0],
-      language === "en" ? "All dialogue, explanations and source references must be in English." : "",
-      mode === "report" ? (language === "en" ? "Report mode: M receives the report as senior officer. Ask about time, place, people, evidence and risk; separate facts from speculation." : "当前是向M汇报模式：M作为上级接收汇报，追问时间、地点、人物、证据和风险；区分事实与推测。") : "",
-      mode === "quartermaster" ? (language === "en" ? "Q Branch equipment mode: distinguish documented canon from this non-canon training simulation. Ask about mission requirements and explain use, limits and return conditions." : "当前是Q部门装备领取模式：区分原著事实与非正典训练模拟，根据任务目的说明装备用途、限制和归还要求。") : ""
+      language === "en" ? "All dialogue must be in English. The user is an independent third party, not Bond. Never mention source books, novels, authors or chapters." : "所有对话必须使用中文。用户是独立第三者，不是邦德。禁止提及书本、小说、作者或章节。",
+      ""
     ].filter(Boolean).join("\\n\\n--- Character boundaries ---\\n\\n");
     const out = await generate(context.env || {}, [
       { role: "system", content: system },
@@ -143,10 +136,10 @@ export async function onRequestPost(context) {
       return json({
         reply: out.text,
         characterIds: canonicalCharacters.map(c => c.id),
-        novelId: book.novel_id,
+        novelId: book?.novel_id || null,
         chapterNo,
         mode,
-        canonMode: true,
+        canonMode: mode === "talk",
         model: out.model
       });
     }
