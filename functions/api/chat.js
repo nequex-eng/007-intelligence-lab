@@ -38,8 +38,8 @@ export async function onRequestPost(context) {
     const book = getNovel(novelId);
     if (!book) return json({ error: "未知小说时间点", code: "UNKNOWN_NOVEL" }, 400);
     const chapterValue = body.chapterNo;
-    const chapterNo = chapterValue === null || chapterValue === undefined || chapterValue === "" ? null : Number(chapterValue);
-    if (chapterNo !== null && (!Number.isInteger(chapterNo) || !book.chapters?.some(c => Number(c.no) === chapterNo))) {
+    const chapterNo = chapterValue === null || chapterValue === undefined || String(chapterValue).trim() === "" ? null : String(chapterValue).trim();
+    if (chapterNo !== null && !book.chapters?.some(c => String(c.no).trim().toUpperCase() === chapterNo.toUpperCase())) {
       return json({ error: "所选章节不属于这部小说", code: "UNKNOWN_CHAPTER" }, 400);
     }
 
