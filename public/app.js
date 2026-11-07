@@ -1530,7 +1530,7 @@ async function chooseMission(i) {
   missionState.log.push(stage.title+" · "+ch.text+" ["+label+"]: "+String(d.narrative||""));
   if(d.nextStage==="end"||missionState.risk>=95){const end={grade:d.grade||(LANGUAGE==="en"?"Mission concluded":"任务结束"),text:d.debrief||d.narrative||""};missionState.stage="end";missionState.completed=true;missionState.result=end;saveMissionState();renderMissionResult(end);}
   else{missionState.stage=missionDef.stages.some(x=>x.id===d.nextStage)?d.nextStage:ch.next;saveMissionState();renderMissionStage();}
- }catch(e){const p=$("#missionThinking");if(p)p.textContent=(LANGUAGE==="en"?"AI adjudication failed; no state was changed. ":"大模型裁定失败，任务状态未改变。")+e.message;missionBusy=false;return;}
+ }catch(e){const p=$("#missionThinking");if(p)p.textContent=(LANGUAGE==="en"?"AI adjudication failed; no state was changed. ":"大模型裁定失败，任务状态未改变。")+e.message;missionBusy=false;$("#missionPanel [data-choice]").forEach(el=>el.disabled=false);return;}
  finally{missionBusy=false;}
 }
 function stateBarHTML() {
