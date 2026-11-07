@@ -88,9 +88,7 @@ export async function onRequestPost(context) {
       : "你正在运行007原著正典角色模拟。只扮演指定人物，不得扮演用户，不得混入电影设定。证据不足时明确回答不知道。";
     const transcript = history.map(m => ({
       role: m.role,
-      content: m.role === "assistant" && m.characterId
-        ? (language === "en" ? "[Previous speaker: " : "[此前发言人物：") + (canonicalCharacters.find(c => c.id === m.characterId)?.[language === "en" ? "name_en" : "name_zh"] || m.characterId) + "] " + m.content
-        : m.content
+      content: m.content
     }));
 
     if (mode === "group") {
