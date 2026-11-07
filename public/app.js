@@ -496,7 +496,16 @@ missionState.stage = ch.next;
 renderMissionStage();
 }
 
-function initMissions() { renderMissionList();}
+async function loadCasinoCanonBrief() {
+  const box = $("#missionCanonBrief");
+  try {
+    const r = await fetch("/api/mission?id=casino-royale"); if (!r.ok) throw new Error("任务正典接口返回 "+r.status);
+    const d = await r.json();
+    const facts = d.facts.filter(f => [1,2,3,9,10,11,12,13,18,19,20,21,27].includes(Number(String(f.chapter).replace(/[^0-9]/g,"")))).slice(0,8);
+    box.innerHTML = '<h3>'+esc(d.novel.titleZh)+' · '+d.novel.year+'</h3><p class="meta">'+esc(d.missionMode)+'：玩家选择会产生互动分支，不能冒充原著剧情。</p><p>'+esc(d.novel.timeline)+'</p><p><b>章节目录：</b>'+esc(d.chapters.map(c=>c.no+" "+c.title).join(" · "))+'</p><p><b>核验事实摘录：</b></p><ul>'+facts.map(f=>'<li>'+esc("第"+f.chapter+"章："+f.fact)+'</li>').join("")+'</ul>';
+  } catch(e) { box.innerHTML = '<p class="meta">原著任务资料加载失败：'+esc(e.message)+'。任务剧情暂不标为已完成正典核验。</p>'; }
+}
+function initMissions() { renderMissionList(); loadCasinoCanonBrief(); }
 
 // ---- 成为邦德：场景体验 + 百家乐 ----
 const EXP_SCENES = [
