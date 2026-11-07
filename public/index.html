@@ -108,6 +108,9 @@ details summary{cursor:pointer;color:var(--gold2);font-size:15px}
 .nav a{padding:5px 7px;font-size:13px}
 }
 @media(max-width:560px){.g3,.g4,.g2{grid-template-columns:1fr}.hero h1{font-size:28px}}
+
+.submod{margin-top:20px;padding-top:16px;border-top:1px solid var(--line)}
+.submod>h3{margin:0 0 8px;color:var(--gold2);font-family:Georgia,serif;font-size:21px;letter-spacing:.04em}
 </style>
 </head>
 <body>
@@ -189,6 +192,33 @@ details summary{cursor:pointer;color:var(--gold2);font-size:15px}
 <button class="chipbtn" data-tab="weapons">武器与装备</button>
 </div>
 <div id="dossierTabBody" style="margin-top:12px"></div>
+
+<div class="submod" id="literary">
+<h3><span class="en">LITERARY INTELLIGENCE</span>文学研究与创作实验</h3>
+<p class="mod-desc">研究伊恩·弗莱明的写作方式：人物塑造、悬念、信息控制、节奏、动作、气氛、女性角色、冷战背景、小说与电影改编差异。原创写作实验一律标注非原著，绝不冒充原著内容。</p>
+<div class="grid g2" id="litTopics"></div>
+<div class="grid g2" style="margin-top:14px;align-items:start">
+<div class="card"><h3>提问分析</h3>
+<p class="meta">问一个关于弗莱明写作的问题，系统按示例知识库作答，超出示例范围的一律说不知道。</p>
+<input id="litQ" placeholder="例如：弗莱明怎么写悬念？邦德和反派有什么共同点？">
+<div style="margin-top:10px"><button class="btn small" id="litAsk">分析</button></div>
+<div id="litAnswer" style="margin-top:12px"><div class="empty">尚未提问</div></div></div>
+<div class="card"><h3>原创写作实验 <span class="tag red">非原著</span></h3>
+<p class="meta">以下生成均为原创实验，灵感来自弗莱明式结构，不是原著内容。</p>
+<div class="chips">
+<button class="chipbtn" data-lab="villain">创建一个新反派</button>
+<button class="chipbtn" data-lab="suspense">设计悬念结构</button>
+<button class="chipbtn" data-lab="mission">设计一场秘密行动</button>
+<button class="chipbtn" data-lab="compare">比较两部小说叙事</button>
+</div>
+<div id="labOut" style="margin-top:12px"><div class="empty">点上方任一实验开始。</div></div></div>
+</div>
+</div>
+<div class="card" id="canonDataCard" style="margin-top:16px">
+<h3>正典知识库 · 数据源与核验状态</h3>
+<p class="meta">唯一数据源：nequex-eng/007-intelligence-lab-knowledge。网站不会把互动改编、模型推断或未核验内容写回正典。</p>
+<div id="canonDataStatus"><div class="empty">正在读取知识库状态…</div></div>
+</div>
 </section>
 
 <!--3任务模拟-->
@@ -197,6 +227,30 @@ details summary{cursor:pointer;color:var(--gold2);font-size:15px}
 <p class="mod-desc">你扮演英国秘密情报机构行动人员。每个选择都会改变资金、风险、情报可信度、线索与人物关系，并决定后续分支。状态机是互动改编；原著事实另附章节出处，不把玩家选择伪装成弗莱明原著。</p>
 <div class="card" id="missionCanonBrief" style="margin:12px 0"><p class="meta">正在加载《皇家赌场》核验事实与章节索引…</p></div><div class="grid g2" id="missionList"></div>
 <div class="card" id="missionPanel" style="margin-top:14px"><h3>任务控制台</h3><p class="meta">先在上方选一个任务开始。</p><div class="empty">尚未开始任务</div></div>
+
+<div class="submod" id="experience">
+<h3><span class="en">FIELD OPERATIONS</span>实战体验 · 成为邦德</h3>
+<p class="mod-desc">从M办公室领任务，到Q部门领装备，再到酒店、餐厅、酒吧、赌场、俱乐部与豪华汽车。赌场部分是真正可玩的百家乐：有规则、有对手、有筹码输赢。</p>
+<div class="chips" id="expScenes"></div>
+<div class="card" id="expPanel" style="margin-top:12px"><h3>场景</h3><p class="meta">点上方场景进入体验。</p><div class="empty">尚未选择场景</div></div>
+<div class="card" style="margin-top:12px" id="baccaratCard">
+<h3>赌场·百家乐 <span class="tag gold">可玩</span> <span class="tag">规则简化版</span></h3>
+<p class="meta">玩法：押闲家、庄家或和局。牌面点数按个位数计算，A为1点，10、J、Q、K为0点。补牌规则采用简化版：闲家0–5点补牌，6–7点停牌；庄家按简化规则补牌。和局赔8倍，庄赢赔0.95倍（抽水），闲赢赔1倍。对手：勒·希弗坐在对面，他会记住你的下注习惯。</p>
+<div class="statebar">
+<div class="state"><span class="lbl">你的筹码</span><b id="bacChips">1000</b></div>
+<div class="state"><span class="lbl">本局下注</span><b id="bacBet">—</b></div>
+<div class="state"><span class="lbl">战绩</span><b id="bacRecord">0胜0负</b></div>
+<div class="state"><span class="lbl">勒·希弗的评价</span><b id="bacRival" style="font-size:14px">观望中</b></div>
+</div>
+<div class="row">
+<div><label>下注金额</label><input id="bacAmount" type="number" value="100" min="10" max="1000" step="10"></div>
+<div><label>押注方向</label><select id="bacSide"><option value="player">闲家（赔1倍）</option><option value="banker">庄家（赔0.95倍）</option><option value="tie">和局（赔8倍）</option></select></div>
+<div style="flex:0 0 auto"><label>&nbsp;</label><button class="btn small" id="bacDeal">发牌</button></div>
+</div>
+<div id="bacTable" style="margin-top:12px"><div class="empty">尚未开局。筹码1000，用完可点“重新领筹码”恢复。</div></div>
+<div class="row" style="margin-top:10px"><button class="btn ghost small" id="bacReset">重新领筹码</button><span class="meta" id="bacNote"></span></div>
+</div>
+</div>
 </section>
 
 <!--4成为邦德-->
@@ -247,7 +301,7 @@ details summary{cursor:pointer;color:var(--gold2);font-size:15px}
 </div>
 </section>
 
-<!--6世界地图-->
+<!--4世界探索-->
 <section class="mod" id="atlas">
 <h2><span class="en">WORLD EXPLORER</span>007世界探索</h2>
 <p class="mod-desc">世界探索以核验知识库中的170处地点为目录。地图只绘制有可靠真实坐标的城市；虚构地点与未核实坐标的地点只进入档案，不伪造坐标。</p>
@@ -262,33 +316,6 @@ details summary{cursor:pointer;color:var(--gold2);font-size:15px}
 <div class="grid g3" id="atlasGrid" style="margin-top:12px"></div><div class="card" style="margin-top:16px"><h3>完整地点索引 · 170处</h3><input id="canonWorldSearch" placeholder="搜索地点、国家或小说…" style="margin-bottom:10px"><div id="canonWorldDirectory" class="grid g2"><div class="empty">正在读取核验地点索引…</div></div></div>
 </section>
 
-<!--7TXT导入-->
-<section class="mod" id="import">
-<h2><span class="en">SOURCE INGESTION</span>资料导入与核验</h2>
-<p class="mod-desc">全本14本已转txt共926290词，13本章节索引通过、1本待复核，核验知识库已接入。此处仅用于本地检查额外底本，不会直接修改正典知识库。导入流程：本地解析txt（计算哈希、识别小说名与章节、统计字数行数）→摘要POST到服务端校验（重复检测、小说识别、错误报告）→核验后按数据结构入库。服务端不接收、不存储原著全文。</p>
-<div class="grid g2" style="align-items:start">
-<div class="card"><h3>批量导入</h3>
-<label>选择txt文件（可多选，每批最多20个）</label>
-<input type="file" id="txtFiles" accept=".txt" multiple>
-<div style="margin-top:10px"><button class="btn small" id="txtParse">解析并校验</button></div>
-<p class="meta">解析在你的浏览器本地完成，全文不上传。只把文件名、哈希、字数、章节摘要发给服务端校验。</p>
-<div id="importReport" style="margin-top:12px"><div class="empty">核验知识库当前含14部作品；八爪女第4篇缺失待换版核对。额外导入文件须独立核验，不会自动进入正典。</div></div></div>
-<div class="card"><h3>数据结构</h3>
-<p class="meta">轻量结构，十张表，导入后每条记录保留书名、章节、原文位置。</p>
-<table><tr><th>表</th><th>内容</th></tr>
-<tr><td>books</td><td>小说目录与版本信息</td></tr>
-<tr><td>chapters</td><td>章节结构与位置</td></tr>
-<tr><td>characters</td><td>人物档案与知识边界</td></tr>
-<tr><td>locations</td><td>地点与坐标（虚构地点不给假坐标）</td></tr>
-<tr><td>organizations</td><td>情报机构与犯罪组织</td></tr>
-<tr><td>events</td><td>重要事件与时间线</td></tr>
-<tr><td>objects</td><td>武器与装备</td></tr>
-<tr><td>relationships</td><td>人物关系图谱</td></tr>
-<tr><td>timelines</td><td>跨小说事件顺序</td></tr>
-<tr><td>source_references</td><td>每条记录的书名、章节、原文位置</td></tr></table>
-<p class="meta" style="margin-top:10px">当前状态：<span class="tag gold">框架已完成</span> <span class="tag red">待TXT导入</span> <span class="tag">持久化到D1/KV待扩展</span></p></div>
-</div>
-</section>
 </main>
 
 <footer>
