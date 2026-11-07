@@ -863,7 +863,7 @@ $("#charDetail").innerHTML = `<h3>${esc(LANGUAGE==="en"?c.name:c.zh)}</h3>
 <p><b>${LANGUAGE==="en"?"Appearance: ":"外貌与行为："}</b>${esc(LANGUAGE==="en"?c.appearanceEn:c.appearance)}</p>
 <p><b>${LANGUAGE==="en"?"Personality: ":"性格与价值观："}</b>${esc(LANGUAGE==="en"?c.personalityEn:c.personality)}</p>
 <p><b>${LANGUAGE==="en"?"Voice and speech: ":"语言习惯："}</b>${esc(LANGUAGE==="en"?(c.speechEn?.tone||"See the English profile."):c.speech)}</p>
-<p><b>${LANGUAGE==="en"?"Relationships: ":"人际关系："}</b>${esc(LANGUAGE==="en"?(c.relationships||[]).map(r=>charById(r.with)?.name||r.with).join(", "):c.rel)}</p>
+<p><b>${LANGUAGE==="en"?"Relationships: ":"人际关系："}</b>${esc(LANGUAGE==="en"?(c.relationships||[]).map(r=>charById(r.with)?.name||englishText(r.with)||"Another character").join(", "):c.rel)}</p>
 <p><b>${LANGUAGE==="en"?"Appearances: ":"参与事件："}</b>${esc(LANGUAGE==="en"?c.eventsEn:c.events)}</p>
 <p><b>${LANGUAGE==="en"?"Knowledge boundaries: ":"知识边界："}</b>${esc(LANGUAGE==="en"?(c.knowledgeBoundariesEn||"The shared timeline and knowledge-scope constraints apply."):c.bounds)}</p>
 <p><b>${LANGUAGE==="en"?"Knowledge sources: ":"知识库出处索引："}</b></p>
@@ -872,7 +872,7 @@ $("#charDetail").innerHTML = `<h3>${esc(LANGUAGE==="en"?c.name:c.zh)}</h3>
 <button class="btn small" id="talkThis">${LANGUAGE==="en"?"Talk to "+esc(c.name):"和"+esc(c.zh)+"对话"}</button>`;
 $("#talkThis").addEventListener("click", () => {
 addChatMsg("sys", (LANGUAGE === "en" ? "Selected: " + c.name + ". This conversation is saved locally in this browser by character and novel timeline." : "已选择" + c.zh + "。当前对话按人物与小说时间点保存在本地浏览器。"));
-addChatMsg("them", c.opener, c.zh);
+addChatMsg("them", LANGUAGE === "en" ? c.openerEn : c.opener, LANGUAGE === "en" ? c.name : c.zh);
 $("#chatInput").focus();
 document.querySelector("#characters.card:last-child").scrollIntoView({ behavior: "smooth", block: "nearest"});
 });
@@ -1022,14 +1022,14 @@ BOOKS = (bd.books || []).map(b => ({ id:b.id, zh:b.titleZh, en:b.titleEn, year:b
 canonBooksLoaded = true;
 scene.innerHTML = "";
 CHARACTERS = cd.characters.map(c => ({
-id:c.id, name:c.name, zh:c.nameZh, role:c.role, roleEn:c.roleEn, firstBook:c.firstBook || "未标注", firstBookEn:c.firstBookEn || c.firstBook, firstNovelId:c.firstNovelId || null,
+id:c.id, name:c.name, zh:c.nameZh, role:c.role, roleEn:c.roleEn || "Core character", firstBook:c.firstBook || "未标注", firstBookEn:c.firstBookEn || "First appearance not specified", firstNovelId:c.firstNovelId || null,
 firstYear:c.firstYear || "", cutoff:c.timelineCutoff || "按知识库边界", cutoffEn:c.timelineCutoffEn || "As defined by the verified canon timeline.",
 intro:c.intro || "原文未提供完整背景资料。", introEn:c.introEn || "No detailed background is available in the verified English profile.", appearance:c.appearance || "原文未提供。", appearanceEn:c.appearanceEn || "Not specified in the verified English profile.",
 personality:c.personality || "原文未提供。", personalityEn:c.personalityEn || "Not specified in the verified English profile.", speech:c.speech?.tone || "按原著对话与行为边界生成。", speechEn:c.speechEn || "", relationships:c.relationships || [], knowledgeBoundariesEn:(c.knowledgeBoundariesEn||[]).join("; "),
 rel:Array.isArray(c.relationships)?c.relationships.map(r=>r.type+"："+r.with+"（"+r.change+"）").join("；"):"关系资料待核验。",
 events:Array.isArray(c.knowledgeScope)?c.knowledgeScope.filter(x=>x.status==="present").map(x=>x.title_zh).join("、"):"按知识库出场记录。", eventsEn:Array.isArray(c.knowledgeScope)?c.knowledgeScope.filter(x=>x.status==="present").map(x=>BOOKS.find(b=>b.id===x.novel)?.en || x.novel).join(", "):"",
 bounds:[...(c.knowledgeBoundaries||[]),...(c.behavioralBoundaries||[])].join("；"),
-facts:[...(c.sources||[])].map(x=>"出处索引："+x), factsEn:[...(c.sources||[])].map(x=>"Source index: "+(typeof x==="string" ? (englishText(x)||"Verified source reference") : (englishText(x?.title_en,x?.path,x?.id)||"Verified source reference"))), opener:"请按当前小说时间点与原著事实提问。", scripted:["原著没有明确写到的部分，我不会替作者补写。"]
+facts:[...(c.sources||[])].map(x=>"出处索引："+x), factsEn:[...(c.sources||[])].map(x=>"Source index: "+(typeof x==="string" ? (englishText(x)||"Verified source reference") : (englishText(x?.title_en,x?.path,x?.id)||"Verified source reference"))), opener:"请按当前小说时间点与原著事实提问。", openerEn:"Ask about the character within the selected novel timeline and established canon.", scripted:["原著没有明确写到的部分，我不会替作者补写。"]
 }));
  [...new Map(CHARACTERS.map(c => [c.firstNovelId || c.firstBook, { value: c.firstNovelId || c.firstBook, labelZh: c.firstBook || c.firstNovelId || "首次登场未标注", labelEn: c.firstBookEn || "First appearance not specified" }])).values()].forEach(item=>{const o=document.createElement("option");o.value=item.value;o.dataset.labelZh=item.labelZh;o.dataset.labelEn=item.labelEn;o.textContent=LANGUAGE==="en"?item.labelEn:item.labelZh;bf.appendChild(o);});
  bd.books.forEach(b => { const so=document.createElement("option");so.value=b.id;so.textContent=(LANGUAGE==="en"?b.titleEn:b.titleZh)+" · "+b.year;scene.appendChild(so); });
