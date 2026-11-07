@@ -62,7 +62,7 @@ export async function onRequestPost(context) {
     const unavailable = states.find(s => !s.ok);
     if (unavailable) {
       return json({
-        error: unavailable.error === "CHARACTER_NOT_YET_APPEARED" ? "该人物在所选章节尚未登场" : "该人物在所选小说时间点不可出场",
+        error: unavailable.error === "CHARACTER_NOT_YET_APPEARED" ? "该人物在所选章节尚未登场" : unavailable.error === "CHARACTER_NO_LONGER_PRESENT" ? "该人物在所选章节已经离场或死亡" : "该人物在所选小说时间点不可出场",
         code: unavailable.error,
         status: unavailable.status
       }, 409);
