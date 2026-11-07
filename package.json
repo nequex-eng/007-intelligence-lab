@@ -14,5 +14,6 @@
     "dev": "npm run sync:knowledge && wrangler pages dev public",
     "deploy": "bash deploy.sh",
     "test:canon": "node scripts/test-canon.mjs"
-  }
+  },
+  "type": "module"
 }
