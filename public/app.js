@@ -168,7 +168,7 @@ clearThinking();
 addChatMsg("them", d.reply, c.zh);
 chatHistory.push({ role: "assistant", content: d.reply});
 saveChatHistory();
-$("#modelLine").textContent = "模型已接入：" + (d.model || "") + (d.canonMode ? " · 正典时间线约束已启用" : "");
+$("#modelLine").textContent = "模型已接入：" + (d.model || "") + (d.canonMode ? " · " + (d.chapterNo ? "第" + d.chapterNo + "章" : "全书结束") + "章级正典约束已启用" : "");
 return;
 }
 if (r.status === 503) {
