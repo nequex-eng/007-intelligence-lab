@@ -134,6 +134,7 @@ details summary{cursor:pointer;color:var(--gold2);font-size:15px}
 @media(prefers-reduced-motion:reduce){
   .topbar,.topbar-in{transition:none}
 }
+body[data-language="en"]{font-family:Georgia,"Times New Roman",serif} body[data-language="en"] .sans{font-family:Arial,sans-serif} #languageToggle{flex:0 0 auto;min-width:44px;font-weight:700;border-color:var(--gold);color:var(--gold2)}
 </style>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 </head>
@@ -143,7 +144,7 @@ details summary{cursor:pointer;color:var(--gold2);font-size:15px}
 <nav class="nav sans">
 <a href="#dossier">INTELLIGENCE ARCHIVE · 情报档案馆</a><a href="#characters">CHARACTER THEATRE · 人物剧场</a><a href="#mission">MISSION CONTROL · 任务控制</a><a href="#atlas">WORLD EXPLORER · 世界探索</a>
 </nav>
-<span class="pill" id="statusPill">状态检测中…</span>
+<button class="chipbtn" id="languageToggle" type="button" aria-label="Switch to English">EN</button><span class="pill" id="statusPill">状态检测中…</span>
 </div></header>
 
 <div class="hero">
