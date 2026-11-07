@@ -31,7 +31,7 @@ export async function onRequestPost(context) {
     if (ids.length > 3) return json({ error: "同场最多3人", code: "TOO_MANY_CHARACTERS" }, 400);
     if (new Set(ids).size !== ids.length) return json({ error: "同一人物不能重复加入场景", code: "DUPLICATE_CHARACTER" }, 400);
 
-    const mode = ["talk", "report", "quartermaster", "group"].includes(body.mode) ? body.mode : "talk";
+    const language = body.language === "en" ? "en" : "zh";\n    const mode = ["talk", "report", "quartermaster", "group"].includes(body.mode) ? body.mode : "talk";
     if (mode === "report" && ids[0] !== "m") return json({ error: "向M汇报模式必须由M接收汇报", code: "REPORT_REQUIRES_M" }, 400);
     if (mode === "quartermaster" && ids[0] !== "q") return json({ error: "装备领取模式必须由Q负责", code: "QUARTERMASTER_REQUIRES_Q" }, 400);
     const novelId = body.novelId;
@@ -80,10 +80,10 @@ export async function onRequestPost(context) {
 
     const latestQuestion = history[history.length - 1].content;
     const prompts = canonicalCharacters.map((character, i) =>
-      canonSystemPrompt(character, book, states[i].status, latestQuestion, chapterNo)
+      canonSystemPrompt(character, book, states[i].status, latestQuestion, chapterNo, language)
     );
     const system = [
-      "你正在运行007原著正典角色模拟。只扮演本请求指定的人物，不得扮演用户。",
+      language === "en" ? "You are running a canon-grounded role-play in Ian Fleming’s original 007 novels. Play only the assigned character(s), never the user. Reply entirely in natural English." : "你正在运行007原著正典角色模拟。只扮演本请求指定的人物，不得扮演用户。",\n      language === "en" ? "All dialogue, explanations, labels and source references must be in English. Preserve the same timeline_cutoff and knowledge_scope as Chinese mode. Never import film continuity." : "",
       ...prompts,
       "多人场景规则：每次发言必须以对应人物姓名开头；每个人物只能使用自己的知识范围及场景中明确获知的信息；不得把一个人物的私有知识转移给另一个人物；不得共享彼此未获知的信息。",
       "如果检索事实不足，明确说不知道；不得以电影设定、其他小说的未来事件或常识补写原著空白。",
