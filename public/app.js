@@ -845,16 +845,31 @@ if (!c) { addChatMsg("sys", "知识库中没有找到该人物，无法启动角
 const previousChar = selectedChar;
 selectedChar = id;
 if (previousChar !== id && $("#sceneChapter")) $("#sceneChapter").value = "";
-const matchedNovel = c.firstNovelId || BOOKS.find(b => b.zh === c.firstBook || b.en === c.firstBookEn)?.id || "casino-royale";
 const scene = $("#sceneNovel");
-if (scene && matchedNovel && scene.value !== matchedNovel) {
-  scene.value = matchedNovel;
-  await loadSceneChapters(matchedNovel);
-  $("#sceneChapter").value = "";
+const qSimulation = c.id === "q";
+const availableBooks = qSimulation
+  ? [{ id:"casino-royale", zh:"Q部门模拟（非正典）", en:"Q Branch simulation (non-canon)", year:"" }]
+  : (c.knowledgeScope || []).filter(x => x.status === "present").map(x => BOOKS.find(b => b.id === x.novel)).filter(Boolean);
+if (scene) {
+  const previousNovel = scene.value;
+  scene.innerHTML = "";
+  availableBooks.forEach(book => {
+    const option = document.createElement("option");
+    option.value = book.id;
+    option.textContent = qSimulation ? (LANGUAGE === "en" ? book.en : book.zh) : (LANGUAGE === "en" ? book.en : book.zh) + " · " + book.year;
+    scene.appendChild(option);
+  });
+  const preferred = availableBooks.find(b => b.id === c.firstNovelId)?.id || availableBooks[0]?.id || "casino-royale";
+  scene.value = previousChar === id && availableBooks.some(b => b.id === previousNovel) ? previousNovel : preferred;
 }
-const matchedBook = BOOKS.find(b => b.id === matchedNovel);
+const matchedNovel = scene?.value || "casino-royale";
+const matchedBook = availableBooks.find(b => b.id === matchedNovel) || BOOKS.find(b => b.id === matchedNovel);
 const sceneLabel = $("#sceneNovelLabel");
-if (sceneLabel) sceneLabel.textContent = matchedBook ? (LANGUAGE==="en"?matchedBook.en:matchedBook.zh) + " · " + matchedBook.year + (LANGUAGE==="en"?" (matched to first appearance)":"（按人物首次登场自动匹配）") : (LANGUAGE==="en"?c.firstBookEn:c.firstBook);
+if (sceneLabel) sceneLabel.textContent = matchedBook
+  ? (LANGUAGE==="en"?matchedBook.en:matchedBook.zh) + (qSimulation ? "" : " · " + matchedBook.year) + (qSimulation ? "" : (LANGUAGE==="en"?" (select any novel in which this character appears)":"（可选择该人物出现过的任一作品）"))
+  : (LANGUAGE==="en"?"No verified appearance timeline":"暂无核验的出场作品");
+await loadSceneChapters(matchedNovel);
+$("#sceneChapter").value = "";
 restoreChatHistory();
 renderCharGrid();
 $("#charDetail").innerHTML = `<h3>${esc(LANGUAGE==="en"?c.name:c.zh)}</h3>
@@ -1031,7 +1046,7 @@ BOOKS = (bd.books || []).map(b => ({ id:b.id, zh:b.titleZh, en:b.titleEn, year:b
 canonBooksLoaded = true;
 scene.innerHTML = "";
 CHARACTERS = cd.characters.map(c => ({
-id:c.id, name:c.name, zh:c.nameZh, role:c.role, roleEn:c.roleEn || "Core character", firstBook:c.firstBook || "未标注", firstBookEn:c.firstBookEn || "First appearance not specified", firstNovelId:c.firstNovelId || null,
+id:c.id, name:c.name, zh:c.nameZh, role:c.role, roleEn:c.roleEn || "Core character", firstBook:c.firstBook || "未标注", firstBookEn:c.firstBookEn || "First appearance not specified", firstNovelId:c.firstNovelId || null, knowledgeScope:c.knowledgeScope || [],
 firstYear:c.firstYear || "", cutoff:c.timelineCutoff || "按知识库边界", cutoffEn:c.timelineCutoffEn || "As defined by the verified canon timeline.",
 intro:c.intro || "原文未提供完整背景资料。", introEn:c.introEn || "No detailed background is available in the verified English profile.", appearance:c.appearance || "原文未提供。", appearanceEn:c.appearanceEn || "Not specified in the verified English profile.",
 personality:c.personality || "原文未提供。", personalityEn:c.personalityEn || "Not specified in the verified English profile.", speech:c.speech?.tone || "按原著对话与行为边界生成。", speechEn:c.speechEn || "", relationships:c.relationships || [], knowledgeBoundariesEn:(c.knowledgeBoundariesEn||[]).join("; "),
