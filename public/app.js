@@ -848,12 +848,12 @@ if (!r.ok) throw new Error("status " + r.status);
 const d = await r.json();
 const pill = $("#statusPill");
 if (d.llm && d.llm.available) { pill.textContent = "模型已接入：" + d.llm.provider; modelAvailable = true;}
-else { pill.textContent = "模型待接入·离线演示中"; pill.classList.add("red"); modelAvailable = false;}
-$("#modelLine").textContent = d.llm && d.llm.available? "模型已接入：" + d.llm.provider: "模型状态：未接入，当前为离线演示。接入MiniMax-M3后自动切换实时对话。";
+else { pill.textContent = "模型待接入·人物对话暂停"; pill.classList.add("red"); modelAvailable = false;}
+$("#modelLine").textContent = d.llm && d.llm.available? "模型已接入：" + d.llm.provider: "模型未接入：正典人物对话已暂停；档案、任务与世界探索仍可使用。";
 } catch (e) {
-$("#statusPill").textContent = "接口不可用·离线演示中";
+$("#statusPill").textContent = "状态接口不可用";
 $("#statusPill").classList.add("red");
-$("#modelLine").textContent = "模型状态：接口不可用，当前为离线演示。";
+$("#modelLine").textContent = "状态接口不可用，无法确认模型状态；正典人物对话不会使用无约束回退。";
 }
 }
 
