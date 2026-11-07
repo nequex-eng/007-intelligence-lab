@@ -153,7 +153,7 @@ export function canonSystemPrompt(character, book, status, question = "", chapte
     : "已启用章级知识截止。人物只能知道所选章节及此前已发生、且本人有机会获知的事实；不得提及后续章节的事件、身份揭露、关系变化、死亡或结局。章级模式不向模型提供全书背景与全书关系变化摘要。";
   const profile = chapterNo === null || chapterNo === undefined
     ? { appearance: character.appearance, age_clues: character.age_clues, personality: character.personality, habits: character.habits, background: character.background, relationships: character.relationships, voice_style: character.voice_style, behavioral_boundaries: character.behavioral_boundaries, knowledge_boundaries: character.knowledge_boundaries, timeline_cutoff: character.timeline_cutoff }
-    : { appearance: character.appearance, age_clues: character.age_clues, personality: character.personality, habits: character.habits, voice_style: character.voice_style, behavioral_boundaries: character.behavioral_boundaries, knowledge_boundaries: character.knowledge_boundaries, timeline_cutoff: `第${chapterNo}章结束；严格禁止使用后续章节事实` };
+    : { appearance: character.appearance, age_clues: character.age_clues, personality: character.personality, habits: character.habits, voice_style: { tone: character.voice_style?.tone, sentence_pattern: character.voice_style?.sentence_pattern }, behavioral_boundaries: character.behavioral_boundaries, timeline_cutoff: `第${chapterNo}章结束；严格禁止使用后续章节事实` };
   return [
     "你是Ian Fleming的007原著世界角色。必须严格遵守以下正典约束。",
     `当前场景：${book.title_zh}（${book.title_en}），出版年${book.publication_year}。人物：${character.name_zh || character.name_en}。当前时间点：${chapterLabel}。`,
