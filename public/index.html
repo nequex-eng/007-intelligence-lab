@@ -180,16 +180,14 @@ body[data-language="en"] .label-zh,body[data-language="zh"] .label-en{display:no
 <div class="grid g2" style="margin-top:14px;align-items:start">
 <div class="card" id="charDetail"><h3>人物档案</h3><p class="meta">点上方任意人物卡片查看完整档案。</p><div class="empty">尚未选择人物</div></div>
 <div class="card">
-<h3>角色模拟</h3>
+<h3>和他们聊天</h3>
 <div class="chips" id="chatModes">
 <button class="chipbtn active" data-mode="talk">自由对话</button>
-<button class="chipbtn" data-mode="report">向M汇报</button>
-<button class="chipbtn" data-mode="quartermaster">找Q领装备</button>
-<button class="chipbtn" data-mode="group">多角色同场</button>
+<button class="chipbtn" data-mode="roleplay">角色扮演</button>
 </div>
-<p class="meta" id="chatHint">先选一个人，再开始对话。当前模式：自由对话。</p>
-<div class="row" style="margin:10px 0;align-items:end"><div style="flex:1"><label>原著时间线</label><div class="state" id="sceneNovelLabel">选择人物后自动匹配原著</div><select id="sceneNovel"><option value="casino-royale">皇家赌场 · 1953</option></select></div><div style="flex:1"><label for="sceneChapter">人物所处章节（可选，用于控制章内未来知识；可切换人物出现过的作品）</label><select id="sceneChapter"><option value="">全书结束（默认）</option></select></div></div><div id="groupPick" style="display:none"><label>同场第二人</label><select id="groupSecond"></select></div>
-<div class="chatbox" id="chatLog"><div class="msg sys">对话消息会发送至模型服务生成回复；最近80条对话仅保存在当前浏览器。选择原著与章节后，人物按出场顺序和章级知识边界回答；默认时间点为全书结束。</div></div>
+<p class="meta" id="chatHint">先选一个人，再开始对话。你是独立的访客，不是邦德。</p>
+<div class="row" id="timelinePick" style="margin:10px 0;align-items:end"><div style="flex:1"><label>原著时间线</label><div class="state" id="sceneNovelLabel">选择人物后自动匹配原著</div><select id="sceneNovel"><option value="casino-royale">皇家赌场 · 1953</option></select></div><div style="flex:1"><label for="sceneChapter">人物所处章节（可选，用于控制章内未来知识；可切换人物出现过的作品）</label><select id="sceneChapter"><option value="">全书结束（默认）</option></select></div></div><div id="groupPick" style="display:none"><label>选择与其对话的第二个人物</label><select id="groupSecond"></select></div>
+<div class="chatbox" id="chatLog"><div class="msg sys">消息由已接入的大模型实时生成。你是这个世界中的独立第三者；人物会以自己的身份和性格与你交谈。</div></div>
 <div class="row" style="margin-top:10px"><div style="flex:3"><input id="chatInput" placeholder="说点什么…" maxlength="500"></div><button class="btn small" id="chatSend" style="flex:0 0 auto">发送</button><button class="btn ghost small" id="chatClear" type="button" style="flex:0 0 auto">清空对话</button></div>
 <p class="meta" id="modelLine">模型状态检测中…</p>
 </div>
@@ -307,6 +305,6 @@ body[data-language="en"] .label-zh,body[data-language="zh"] .label-en{display:no
 <p class="sans">数据状态：核验知识库已接入 · 版本与数据规模见情报档案馆状态卡 · 源码与知识库由GitHub版本管理 · 生产部署须经用户授权</p>
 </footer>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="/app.js?v=20261107-12"></script>
+<script src="/app.js?v=20261107-13"></script>
 </body>
 </html>
