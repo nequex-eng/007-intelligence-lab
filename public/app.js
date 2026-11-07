@@ -561,6 +561,17 @@ const EN_TEXT = new Map([
   ["风险-10","Risk −10"],
   ["资金-1500，风险+20","Funds −1,500 · Risk +20"],
   ["情报可信度+10，风险-5","Intelligence confidence +10 · Risk −5"]
+  ["威尼斯密码","The Venice Cipher"],
+  ["非原著·原创","Original · Non-Canon"],
+  ["风险+10","Risk +10"],
+  ["费利克斯·莱特","Felix Leiter"],
+  ["线人同时在给两个人报信，其中一个是买家的人","The contact is feeding information to two people; one works for the buyer."],
+  ["舞会厅有2个出口，运河边可乘船撤离","The ballroom has two exits, and a boat can be taken from the canal."],
+  ["按原著对话与行为边界生成。","Generated within the boundaries of the original dialogue and behaviour."],
+  ["首次登场未标注","First appearance not specified"],
+  ["（选择人物后自动匹配）","(Matched automatically when a character is selected)"],
+  ["选择人物后自动匹配","Matched automatically when a character is selected"],
+  ["多角色同场：你与两位人物共同对话；每次发送后，两位人物分别回应。","Group scene: you speak with two characters, and each responds separately after every message."]
 ]); 
 const originalText = new WeakMap();
 const originalAttributes = new WeakMap();
@@ -1394,25 +1405,39 @@ const LIT_TOPICS = [
 
 const LAB_GEN = {
 villain: () => {
+const pick = (a) => a[Math.floor(Math.random() * a.length)];
+if (LANGUAGE === "en") {
+  const marks = ["Two missing fingers on the left hand", "Skin with an unnatural blue cast in sunlight", "A persistent smell of camphor", "A glass right eye that clicks as it moves"];
+  const obs = ["antique clocks", "deep-sea wrecks", "rare orchids", "expired passports"];
+  const plans = ["trigger a run on three banks on the same day", "replace genuine artefacts with convincing fakes at an auction", "cut an undersea cable and frame a rival", "launder a shipload of stolen goods through a charity gala"];
+  return "Villain concept — Signature trait: " + pick(marks) + "; obsession: " + pick(obs) + "; master plan: " + pick(plans) + ". Fleming test: the trait should be instantly memorable, the obsession should shape the whole story, and the plan should be intricate enough to take Bond half a novel to unravel.";
+}
 const marks = ["左手缺了两根手指", "皮肤在阳光下泛着不自然的青色", "说话时总带着一股樟脑味", "右眼是玻璃义眼，转动时有轻微声响"];
 const obs = ["古董钟表", "深海沉船", "稀有兰花", "过期护照"];
 const plans = ["让三家银行在同一天挤兑", "在拍卖会上调包一批赝品", "切断一条海底电缆，嫁祸给对手", "用一场慈善晚宴洗白一船赃物"];
-const pick = (a) => a[Math.floor(Math.random() * a.length)];
 return "新反派草稿：特征——" + pick(marks) + "；痴迷之物——" + pick(obs) + "；计划——" + pick(plans) + "。弗莱明式检验：特征要一眼能记住，痴迷要贯穿全书，计划要缜密到邦德也得花半本书拆解。";
 },
-suspense: () => "悬念结构（三幕）：第一幕给邦德一个看似简单的任务，只露一半真相；第二幕让邦德发现任务目标本身就是诱饵，信息每揭开一层就推翻上一层；第三幕把冲突压缩进24小时，地点只剩一个密闭空间，悬念靠倒计时收紧。",
+suspense: () => LANGUAGE === "en"
+  ? "Three-act suspense structure: Act I gives Bond an apparently simple assignment and reveals only half the truth. Act II exposes the target as a decoy; every new fact overturns the previous explanation. Act III compresses the conflict into 24 hours and a single enclosed location, tightening the tension through a countdown."
+  : "悬念结构（三幕）：第一幕给邦德一个看似简单的任务，只露一半真相；第二幕让邦德发现任务目标本身就是诱饵，信息每揭开一层就推翻上一层；第三幕把冲突压缩进24小时，地点只剩一个密闭空间，悬念靠倒计时收紧。",
 mission: () => {
+const pick = (a) => a[Math.floor(Math.random() * a.length)];
+if (LANGUAGE === "en") {
+  const cities = ["Lisbon", "Alexandria", "Monte Carlo", "Istanbul"];
+  const targets = ["a forged consular list", "a stolen cipher machine", "a shipment of smuggled gold", "a code clerk who has defected"];
+  return "Operation concept — Location: " + pick(cities) + "; objective: " + pick(targets) + "; structure: M’s briefing (only half the truth) → arrival and reconnaissance (the contact proves unreliable) → approach at a card table or masked ball (first confrontation) → extraction (a tail is spotted and the cover is blown) → debrief (M wants results, not excuses).";
+}
 const cities = ["里斯本", "亚历山大港", "蒙特卡洛", "伊斯坦布尔"];
 const targets = ["一份伪造的领事名单", "一台失窃的密码机", "一批走私黄金", "一个叛逃的密码员"];
-const pick = (a) => a[Math.floor(Math.random() * a.length)];
 return "秘密行动草稿：地点——" + pick(cities) + "；目标——" + pick(targets) + "；结构：M简报（只给一半真相）→抵达侦察（发现线人不可靠）→牌桌或舞会接近目标（第一次交锋）→撤离（有人跟踪，身份暴露）→报告（M只问结果）。";
 },
 compare: () => {
 const a = BOOKS[Math.floor(Math.random() * BOOKS.length)];
 let b = BOOKS[Math.floor(Math.random() * BOOKS.length)];
 if (b.id === a.id) b = BOOKS[(BOOKS.indexOf(a) + 3) % BOOKS.length];
-return `${a.zh}（${a.year}年）与${b.zh}（${b.year}年）：可从叙事视角、人物知识边界、悬念铺设、行动节奏与结局结构进行比较。此处仅生成研究提纲，具体结论需回到章节证据。`;
-
+return LANGUAGE === "en"
+  ? a.en + " (" + a.year + ") and " + b.en + " (" + b.year + "): compare narrative viewpoint, character knowledge boundaries, suspense, operational pacing and resolution. This is a research outline; specific conclusions must be checked against chapter-level evidence."
+  : a.zh + "（" + a.year + "年）与" + b.zh + "（" + b.year + "年）：可从叙事视角、人物知识边界、悬念铺设、行动节奏与结局结构进行比较。此处仅生成研究提纲，具体结论需回到章节证据。";
 }
 };
 
