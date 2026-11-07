@@ -65,7 +65,7 @@ npm run test:ui
 
 - `GET /api/status`：服务状态、模型状态、知识库版本与数据规模。
 - `GET /api/characters`：32位核心人物档案与时间线。
-- `POST /api/chat`：人物对话。请求体支持`characterIds`、`novelId`、可选`chapterNo`、`messages`；校验人物在小说/章节时间点是否已登场，并过滤后续章节事实。
+- `POST /api/chat`：人物对话。请求体支持`characterIds`、`novelId`、可选`chapterNo`、`messages`；章节编号沿用知识库原始编号，兼容阿拉伯数字与罗马数字；同时校验人物首次登场和最后登场章节，并过滤所选章节之后的当前小说事实。
 - `GET /api/dossier?q=关键词`：核验知识检索；支持kind与limit。
 - `GET /api/canon?action=manifest|books|chapters|character|scene|resolve`：知识库元数据、作品目录、章节索引、人物、小说/章节场景校验和别名解析。
 - `GET /api/mission?id=casino-royale`：返回正典任务资料、章节、事件与事实。
@@ -85,4 +85,4 @@ npm run deploy
 
 - `wrangler.toml`：部署配置，Pages静态目录`public`，Workers AI绑定`AI`。
 - `MINIMAX_API_KEY`：Cloudflare Pages Secret / 本地`.dev.vars`，只配置值，不提交密钥。
-- 不使用D1、KV或R2；聊天历史仅保存在用户当前浏览器localStorage，消息仍会发送至模型服务生成回复。世界地图使用OpenStreetMap标准瓦片并显示版权归属；地图坐标仅登记城市级真实地点，不对虚构地点或区域范围做地理定位。
+- 不使用D1、KV或R2；聊天历史与任务分支进度仅保存在用户当前浏览器localStorage，消息仍会发送至模型服务生成回复。任务控制中心支持恢复上次保存的阶段。世界地图使用OpenStreetMap标准瓦片并显示版权归属；地图坐标仅登记城市级真实地点，不对虚构地点或区域范围做地理定位。
