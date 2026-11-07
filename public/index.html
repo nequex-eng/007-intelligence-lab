@@ -114,6 +114,26 @@ details summary{cursor:pointer;color:var(--gold2);font-size:15px}
 
 .submod{margin-top:20px;padding-top:16px;border-top:1px solid var(--line)}
 .submod>h3{margin:0 0 8px;color:var(--gold2);font-family:Georgia,serif;font-size:21px;letter-spacing:.04em}
+
+/* Mobile scroll-reactive header: compact on downward scroll, reveal on upward scroll. */
+.topbar{transition:box-shadow .22s ease,background .22s ease}
+.topbar-in{transition:min-height .22s ease,padding .22s ease,gap .22s ease}
+@media(max-width:760px){
+  .topbar-in{flex-wrap:nowrap;gap:8px;padding:10px 14px;min-height:58px}
+  .brand{font-size:16px;letter-spacing:.09em;overflow:hidden;text-overflow:ellipsis}
+  .brand small{font-size:8px;letter-spacing:.18em}
+  .nav{gap:0;margin-left:auto}
+  .nav a{font-size:11px;padding:5px 6px}
+  .topbar.is-compact{box-shadow:0 5px 18px rgba(0,0,0,.28)}
+  .topbar.is-compact .topbar-in{min-height:42px;padding:5px 12px;gap:8px}
+  .topbar.is-compact .brand{font-size:13px;letter-spacing:.07em;white-space:nowrap}
+  .topbar.is-compact .brand small,
+  .topbar.is-compact .nav{display:none}
+  .topbar.is-compact .pill{font-size:10px;padding:3px 7px;white-space:nowrap}
+}
+@media(prefers-reduced-motion:reduce){
+  .topbar,.topbar-in{transition:none}
+}
 </style>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 </head>
