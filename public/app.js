@@ -20,6 +20,8 @@ async function ensureCanonBooks() {
 }
 
 // 只维护经核对的真实城市/设施坐标；地点名称、国家、虚构属性和作品出处全部来自核验知识库。
+let leafletMap = null;
+let leafletMarkers = null;
 const MAP_COORDINATES = {
   london: [51.5074, -0.1278],
   paris: [48.8566, 2.3522],
@@ -708,41 +710,68 @@ function renderAtlas() {
   const mapW = wrap.clientWidth || 900;
   const mapH = wrap.clientHeight || 300;
   const compact = mapW < 560;
-  wrap.classList.toggle("compact", compact);
-  const dots = list.filter(p => !p.fictional && MAP_COORDINATES[p.id]).map(p => {
-    const [lat,lng] = MAP_COORDINATES[p.id];
-    const xPct = (lng + 180) / 360 * 100;
-    const yPct = (90 - lat) / 180 * 100;
-    return { p, xPct, yPct, xPx: xPct / 100 * mapW, yPx: yPct / 100 * mapH };
-  });
-  const placedBoxes = [];
-  dots.slice().sort((a,b) => a.yPx - b.yPx || a.xPx - b.xPx).forEach(d => {
-    const w = d.p.name.length * 11 + 4, h = 14;
-    let box = null;
-    for (const lane of [0,1,2,3,4,5,6,7]) {
-      const top = lane === 0 ? d.yPx + 10 : lane === 1 ? d.yPx - 10 - h : lane === 2 ? d.yPx + 26 : lane === 3 ? d.yPx - 26 - h : lane === 4 ? d.yPx + 42 : lane === 5 ? d.yPx - 42 - h : lane === 6 ? d.yPx + 58 : d.yPx - 58 - h;
-      const left = Math.max(0, Math.min(mapW - w, d.xPx - w / 2));
-      const cand = { left, top: Math.max(0, Math.min(mapH - h, top)), w, h };
-      const hit = placedBoxes.some(p => cand.left < p.left+p.w+2 && p.left < cand.left+cand.w+2 && cand.top < p.top+p.h+2 && p.top < cand.top+cand.h+2);
-      if (!hit) { box = cand; break; }
+  const dots = list.filter(p => !p.fictional && MAP_COORDINATES[p.id]).map(p => ({ p, coords: MAP_COORDINATES[p.id] }));
+
+  if (window.L && wrap) {
+    if (!leafletMap) {
+      leafletMap = window.L.map(wrap, { scrollWheelZoom: false }).setView([25, 10], 2);
+      window.L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 18,
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a>'
+      }).addTo(leafletMap);
+      leafletMarkers = window.L.layerGroup().addTo(leafletMap);
     }
-    d.lbl = box || { left: Math.max(0, Math.min(mapW-w,d.xPx-w/2)), top: Math.max(0,Math.min(mapH-h,d.yPx+10)), w,h };
-    placedBoxes.push(d.lbl);
-  });
-  wrap.innerHTML = dots.length ? dots.map(d =>
-    `<div class="mapdot" style="left:${d.xPct.toFixed(1)}%;top:${d.yPct.toFixed(1)}%" data-loc="${d.p.id}" title="${esc(d.p.name)}"></div><div class="maplbl" data-loc="${d.p.id}" style="left:${d.lbl.left.toFixed(0)}px;top:${d.lbl.top.toFixed(0)}px;transform:none">${esc(d.p.name)}</div>`
-  ).join("") : `<div style="position:absolute;left:10px;right:10px;top:45%;text-align:center;font-size:13px;color:var(--muted)">当前筛选没有可核验坐标的真实地点；请查看下方完整档案。</div>`;
-  if (list.some(p => p.fictional || !MAP_COORDINATES[p.id])) {
-    wrap.innerHTML += `<div style="position:absolute;left:10px;bottom:8px;font-size:12px;color:var(--muted)">虚构地点与未核验单点坐标只显示在档案，不伪造地图位置。</div>`;
+    leafletMarkers.clearLayers();
+    dots.forEach(d => {
+      const marker = window.L.circleMarker(d.coords, {
+        radius: 6, color: "#80631c", weight: 2, fillColor: "#d2ad43", fillOpacity: 0.92
+      });
+      marker.bindPopup(`<strong>${esc(d.p.name)}</strong><br>${esc(d.p.country)}<br>${d.p.appearances.length}部作品`);
+      marker.on("click", () => showLocation(d.p.id));
+      marker.addTo(leafletMarkers);
+    });
+    if (dots.length === 1) leafletMap.setView(dots[0].coords, 4);
+    else if (dots.length > 1) leafletMap.fitBounds(window.L.latLngBounds(dots.map(d => d.coords)).pad(0.2), { maxZoom: 4 });
+    else leafletMap.setView([25, 10], 2);
+    let empty = wrap.querySelector(".map-empty-overlay");
+    if (!dots.length) {
+      if (!empty) {
+        empty = document.createElement("div");
+        empty.className = "map-empty-overlay";
+        empty.textContent = "当前筛选没有可核验坐标的真实地点；虚构或区域级地点请查看下方档案。";
+        empty.style.cssText = "position:absolute;z-index:500;top:12px;left:12px;max-width:70%;padding:8px 10px;background:rgba(244,240,228,.94);color:#1b241d;border-radius:4px;font-size:12px";
+        wrap.appendChild(empty);
+      }
+    } else if (empty) empty.remove();
+    leafletMap.invalidateSize();
+  } else {
+    wrap.classList.toggle("compact", compact);
+    const placedBoxes = [];
+    dots.forEach(d => {
+      const [lat,lng] = d.coords;
+      d.xPct = (lng + 180) / 360 * 100;
+      d.yPct = (90 - lat) / 180 * 100;
+      d.xPx = d.xPct / 100 * mapW;
+      d.yPx = d.yPct / 100 * mapH;
+    });
+    dots.slice().sort((a,b) => a.yPx - b.yPx || a.xPx - b.xPx).forEach(d => {
+      const w = d.p.name.length * 11 + 4, h = 14;
+      let box = null;
+      for (const lane of [0,1,2,3,4,5,6,7]) {
+        const top = lane === 0 ? d.yPx + 10 : lane === 1 ? d.yPx - 10 - h : lane === 2 ? d.yPx + 26 : lane === 3 ? d.yPx - 26 - h : lane === 4 ? d.yPx + 42 : lane === 5 ? d.yPx - 42 - h : lane === 6 ? d.yPx + 58 : d.yPx - 58 - h;
+        const left = Math.max(0, Math.min(mapW - w, d.xPx - w / 2));
+        const cand = { left, top: Math.max(0, Math.min(mapH - h, top)), w, h };
+        const hit = placedBoxes.some(p => cand.left < p.left+p.w+2 && p.left < cand.left+cand.w+2 && cand.top < p.top+p.h+2 && p.top < cand.top+cand.h+2);
+        if (!hit) { box = cand; break; }
+      }
+      d.lbl = box || { left: Math.max(0, Math.min(mapW-w,d.xPx-w/2)), top: Math.max(0,Math.min(mapH-h,d.yPx+10)), w,h };
+      placedBoxes.push(d.lbl);
+    });
+    wrap.innerHTML = dots.length ? dots.map(d =>
+      `<div class="mapdot" style="left:${d.xPct.toFixed(1)}%;top:${d.yPct.toFixed(1)}%" data-loc="${d.p.id}" title="${esc(d.p.name)}"></div><div class="maplbl" data-loc="${d.p.id}" style="left:${d.lbl.left.toFixed(0)}px;top:${d.lbl.top.toFixed(0)}px;transform:none">${esc(d.p.name)}</div>`
+    ).join("") : `<div style="position:absolute;left:10px;right:10px;top:45%;text-align:center;font-size:13px;color:var(--muted)">当前筛选没有可核验坐标的真实地点；请查看下方完整档案。</div>`;
+    $$("#mapWrap .mapdot").forEach(el => el.addEventListener("click", () => showLocation(el.dataset.loc)));
   }
-  $$("#mapWrap .mapdot").forEach(el => el.addEventListener("click", () => {
-    if (wrap.classList.contains("compact")) {
-      $$("#mapWrap .maplbl").forEach(x => x.classList.remove("show"));
-      const lbl = document.querySelector(`#mapWrap .maplbl[data-loc="${el.dataset.loc}"]`);
-      if (lbl) lbl.classList.add("show");
-    }
-    showLocation(el.dataset.loc);
-  }));
   const mapped = list.filter(p => !p.fictional && MAP_COORDINATES[p.id]);
   const unlocated = list.length - mapped.length;
   $("#atlasGrid").innerHTML = mapped.map(p =>
