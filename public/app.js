@@ -791,21 +791,19 @@ const box = $("#litAnswer");
 if (!q) { box.innerHTML = `<div class="empty">请先输入问题。</div>`; return; }
 box.innerHTML = `<div class="empty">正在核验14部原著索引……</div>`;
 try {
-const r = await fetch("/api/dossier?q=" + encodeURIComponent(q) + "&limit=12");
-if (!r.ok) throw new Error("正典检索接口返回 " + r.status);
-const d = await r.json();
-const results = d.results || [];
-if (!results.length) {
-box.innerHTML = `<div class="empty">核验知识库没有找到与“${esc(q)}”直接匹配的事实或人物记录。当前不做无出处推断。</div>`;
-return;
-}
-box.innerHTML = `<p class="meta">检索到${results.length}条核验记录；以下为资料依据，不等同于模型生成的文学评论。</p>` + results.map(x => {
-const title = x.title_zh || x.name_zh || x.name || x.entity || x.id || "原著记录";
-const source = [x.title_zh && x.novel_id ? x.title_zh : null, x.chapter ? "第"+x.chapter+"章" : null].filter(Boolean).join(" · ") || x.novel_id || (x.sources || []).join("；") || "索引记录";
-const detail = x.fact || x.description || x.summary || x.role || x.quote || "该条目没有提供摘要。";
-const kind = x.canon_or_inference === "inference" ? "推测" : x.canon_or_inference === "canon" ? "正典事实" : x.kind || "档案";
-return `<div class="card" style="margin:8px 0"><h3>${esc(title)} <span class="tag gold">${esc(kind)}</span></h3><p class="meta">出处：${esc(source)}</p><p>${esc(detail)}</p>${x.quote ? `<blockquote>${esc(x.quote)}</blockquote>` : ""}</div>`;
-}).join("");
+const r = await fetch("/api/literary", {
+  method: "POST", headers: { "content-type": "application/json" },
+  body: JSON.stringify({ question: q })
+});
+const d = await r.json().catch(() => ({}));
+const results = d.evidence || [];
+const answer = d.answer
+  ? `<div class="card" style="margin:8px 0"><h3>MiniMax 文学分析</h3><p style="white-space:pre-wrap">${esc(d.answer)}</p><p class="meta">模型：${esc(d.model || "MiniMax")} · 结论仅在所列原著证据范围内成立。</p></div>`
+  : `<div class="empty">${esc(d.error || "模型暂不可用。以下先展示可检索到的原著证据；配置 MiniMax 后可生成完整文学分析。")}</div>`;
+const evidence = results.length
+  ? `<p class="meta">核验知识库证据：${results.length}条</p>` + results.map(x => `<div class="card" style="margin:8px 0"><h3>${esc(x.title || "原著记录")} <span class="tag gold">${esc(x.kind || "正典资料")}</span></h3><p class="meta">出处：${esc(x.source || "索引记录")}</p><p>${esc(x.detail || "")}</p></div>`).join("")
+  : `<div class="empty">知识库没有找到直接匹配的证据；分析会明确区分推断与原著事实。</div>`;
+box.innerHTML = answer + evidence;
 } catch (e) {
 box.innerHTML = `<div class="empty">正典检索失败：${esc(e.message)}。</div>`;
 }
