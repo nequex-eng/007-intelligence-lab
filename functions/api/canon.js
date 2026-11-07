@@ -19,10 +19,16 @@ export async function onRequest(context) {
     return character ? json({ character }) : json({ error: "人物不存在" }, 404);
   }
   if (action === "scene") {
+    const novelId = url.searchParams.get("novel");
+    const novel = getNovel(novelId);
+    if (!novel) return json({ error: "未知小说" }, 404);
     const chapterValue = url.searchParams.get("chapter");
     const chapterNo = chapterValue === null || chapterValue === "" ? null : Number(chapterValue);
-    const result = characterForScene(url.searchParams.get("character"), url.searchParams.get("novel"), chapterNo);
-    return result.ok ? json({ character: result.character, book: { id: result.book.novel_id, title: result.book.title_zh }, status: result.status }) : json({ error: result.error, status: result.status || null }, 409);
+    if (chapterNo !== null && (!Number.isInteger(chapterNo) || !novel.chapters?.some(c => Number(c.no) === chapterNo))) {
+      return json({ error: "所选章节不属于这部小说", code: "UNKNOWN_CHAPTER" }, 400);
+    }
+    const result = characterForScene(url.searchParams.get("character"), novelId, chapterNo);
+    return result.ok ? json({ character: result.character, book: { id: result.book.novel_id, title: result.book.title_zh }, chapterNo, status: result.status }) : json({ error: result.error, status: result.status || null }, 409);
   }
   if (action === "relationships") { const id = url.searchParams.get("id") || ""; return json({ relationships: relationships.filter(p => !id || p.a === id || p.b === id) }); }
   if (action === "timeline") return json({ timeline });
