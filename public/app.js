@@ -856,7 +856,7 @@ $("#charDetail").innerHTML = `<h3>${esc(LANGUAGE==="en"?c.name:c.zh)}</h3>
 <p><b>${LANGUAGE==="en"?"Appearances: ":"参与事件："}</b>${esc(LANGUAGE==="en"?c.eventsEn:c.events)}</p>
 <p><b>${LANGUAGE==="en"?"Knowledge boundaries: ":"知识边界："}</b>${esc(LANGUAGE==="en"?(c.knowledgeBoundariesEn||"The shared timeline and knowledge-scope constraints apply."):c.bounds)}</p>
 <p><b>${LANGUAGE==="en"?"Knowledge sources: ":"知识库出处索引："}</b></p>
-<ul style="font-size:14px;margin:4px 0;padding-left:20px">${c.facts.map((f) => `<li>${esc(f)}</li>`).join("")}</ul>
+<ul style="font-size:14px;margin:4px 0;padding-left:20px">${(LANGUAGE==="en"?c.factsEn:c.facts).map((f) => `<li>${esc(f)}</li>`).join("")}</ul>
 <p class="meta">${SAMPLE}</p>
 <button class="btn small" id="talkThis">${LANGUAGE==="en"?"Talk to "+esc(c.name):"和"+esc(c.zh)+"对话"}</button>`;
 $("#talkThis").addEventListener("click", () => {
@@ -1012,13 +1012,13 @@ canonBooksLoaded = true;
 scene.innerHTML = "";
 CHARACTERS = cd.characters.map(c => ({
 id:c.id, name:c.name, zh:c.nameZh, role:c.role, roleEn:c.roleEn, firstBook:c.firstBook || "未标注", firstBookEn:c.firstBookEn || c.firstBook, firstNovelId:c.firstNovelId || null,
-firstYear:c.firstYear || "", cutoff:c.timelineCutoff || "按知识库边界", cutoffEn:c.timelineCutoffEn || c.timelineCutoff,
+firstYear:c.firstYear || "", cutoff:c.timelineCutoff || "按知识库边界", cutoffEn:c.timelineCutoffEn || "As defined by the verified canon timeline.",
 intro:c.intro || "原文未提供完整背景资料。", introEn:c.introEn || "No detailed background is available in the verified English profile.", appearance:c.appearance || "原文未提供。", appearanceEn:c.appearanceEn || "Not specified in the verified English profile.",
 personality:c.personality || "原文未提供。", personalityEn:c.personalityEn || "Not specified in the verified English profile.", speech:c.speech?.tone || "按原著对话与行为边界生成。", speechEn:c.speechEn || "", relationships:c.relationships || [], knowledgeBoundariesEn:(c.knowledgeBoundariesEn||[]).join("; "),
 rel:Array.isArray(c.relationships)?c.relationships.map(r=>r.type+"："+r.with+"（"+r.change+"）").join("；"):"关系资料待核验。",
 events:Array.isArray(c.knowledgeScope)?c.knowledgeScope.filter(x=>x.status==="present").map(x=>x.title_zh).join("、"):"按知识库出场记录。", eventsEn:Array.isArray(c.knowledgeScope)?c.knowledgeScope.filter(x=>x.status==="present").map(x=>BOOKS.find(b=>b.id===x.novel)?.en || x.novel).join(", "):"",
 bounds:[...(c.knowledgeBoundaries||[]),...(c.behavioralBoundaries||[])].join("；"),
-facts:[...(c.sources||[])].map(x=>"出处索引："+x), opener:"请按当前小说时间点与原著事实提问。", scripted:["原著没有明确写到的部分，我不会替作者补写。"]
+facts:[...(c.sources||[])].map(x=>"出处索引："+x), factsEn:[...(c.sources||[])].map(x=>"Source index: "+(typeof x==="string" ? (englishText(x)||"Verified source reference") : (englishText(x?.title_en,x?.path,x?.id)||"Verified source reference"))), opener:"请按当前小说时间点与原著事实提问。", scripted:["原著没有明确写到的部分，我不会替作者补写。"]
 }));
  [...new Map(CHARACTERS.map(c => [c.firstNovelId || c.firstBook, { value: c.firstNovelId || c.firstBook, labelZh: c.firstBook || c.firstNovelId || "首次登场未标注", labelEn: c.firstBookEn || "First appearance not specified" }])).values()].forEach(item=>{const o=document.createElement("option");o.value=item.value;o.dataset.labelZh=item.labelZh;o.dataset.labelEn=item.labelEn;o.textContent=LANGUAGE==="en"?item.labelEn:item.labelZh;bf.appendChild(o);});
  bd.books.forEach(b => { const so=document.createElement("option");so.value=b.id;so.textContent=(LANGUAGE==="en"?b.titleEn:b.titleZh)+" · "+b.year;scene.appendChild(so); });
@@ -1069,14 +1069,14 @@ async function renderDossierTab(tab) {
     if (!r.ok) throw new Error("档案接口返回 " + r.status);
     const d = await r.json();
     if (tab === "books") {
-      body.innerHTML = LANGUAGE==="en" ? `<p class="meta">14 original novels · Chapter records from the verified knowledge base</p><table><tr><th>Novel</th><th>Publication year</th><th>Format</th><th>Chapters</th><th>Synopsis</th></tr>` + d.books.map(b => `<tr><td><b>${esc(b.titleEn)}</b></td><td>${b.year}</td><td>${esc(b.kindEn || b.kind)}</td><td>${b.chapters}</td><td>${esc(b.summaryEn || "Synopsis not available in English.")}</td></tr>`).join("") + `</table>` : `<p class="meta">14部原著 · 章节摘要来自逐部核验知识库</p><table><tr><th>书名</th><th>英文原名</th><th>出版年</th><th>类型</th><th>章节</th><th>故事时间线</th></tr>` + d.books.map(b => `<tr><td><b>${esc(b.titleZh)}</b></td><td>${esc(b.titleEn)}</td><td>${b.year}</td><td>${esc(b.kind)}</td><td>${b.chapters}</td><td>${esc(b.summary)}</td></tr>`).join("") + `</table>`;
+      body.innerHTML = LANGUAGE==="en" ? `<p class="meta">14 original novels · Chapter records from the verified knowledge base</p><table><tr><th>Novel</th><th>Publication year</th><th>Format</th><th>Chapters</th><th>Synopsis</th></tr>` + d.books.map(b => `<tr><td><b>${esc(b.titleEn)}</b></td><td>${b.year}</td><td>${esc(LANGUAGE==="en" ? (englishText(b.kindEn) || "Novel") : b.kind)}</td><td>${b.chapters}</td><td>${esc(b.summaryEn || "Synopsis not available in English.")}</td></tr>`).join("") + `</table>` : `<p class="meta">14部原著 · 章节摘要来自逐部核验知识库</p><table><tr><th>书名</th><th>英文原名</th><th>出版年</th><th>类型</th><th>章节</th><th>故事时间线</th></tr>` + d.books.map(b => `<tr><td><b>${esc(b.titleZh)}</b></td><td>${esc(b.titleEn)}</td><td>${b.year}</td><td>${esc(b.kind)}</td><td>${b.chapters}</td><td>${esc(b.summary)}</td></tr>`).join("") + `</table>`;
     } else if (tab === "timeline") {
-      body.innerHTML = LANGUAGE==="en" ? `<p class="meta">Listed by publication order; in-story chronology is distinct from publication dates.</p>` + (d.timeline || []).map(t => `<div class="log"><b style="color:var(--gold2)">${esc(t.title_en || BOOKS.find(b=>b.id===t.novel)?.en || t.title_zh || t.novel)}</b>: ${esc(englishText(t.story_timeline_en, t.summary_en) || "A verified English timeline summary is not available for this entry.")}</div>`).join("") : `<p class="meta">按出版顺序排列；故事内部年份与出版年份不混为一谈。</p>` + (d.timeline || []).map(t => `<div class="log"><b style="color:var(--gold2)">${esc(t.title_zh || t.novel)}</b>：${esc(t.story_timeline || "")}</div>`).join("");
+      body.innerHTML = LANGUAGE==="en" ? `<p class="meta">Listed by publication order; in-story chronology is distinct from publication dates.</p>` + (d.timeline || []).map(t => `<div class="log"><b style="color:var(--gold2)">${esc(LANGUAGE==="en" ? (englishText(t.title_en, BOOKS.find(b=>b.id===t.novel)?.en, t.novel) || "Unknown novel") : (t.title_zh || t.novel))}</b>: ${esc(englishText(t.story_timeline_en, t.summary_en) || "A verified English timeline summary is not available for this entry.")}</div>`).join("") : `<p class="meta">按出版顺序排列；故事内部年份与出版年份不混为一谈。</p>` + (d.timeline || []).map(t => `<div class="log"><b style="color:var(--gold2)">${esc(t.title_zh || t.novel)}</b>：${esc(t.story_timeline || "")}</div>`).join("");
     } else {
       const items = tab === "orgs" ? d.organizations : d.equipment;
       const title = LANGUAGE==="en" ? (tab === "orgs" ? "Organisation dossiers" : "Equipment dossiers") : (tab === "orgs" ? "组织档案" : "装备档案");
       body.innerHTML = `<p class="meta">${title} · ${items.length}条核验索引</p><div class="grid g2">` +
-        items.map(o => `<div class="card"><h3>${esc(LANGUAGE==="en" ? (englishText(o.name_en, o.id) || "Unnamed record") : (o.name_zh || o.name || o.id))}</h3><p class="meta">${esc(o.name_en || "")} · ${esc(o.id)}</p><p>${esc(LANGUAGE==="en" ? (englishText(o.description_en, o.role_en, o.note_en) || "No English description is available for this entry.") : (o.description || o.role || o.note || "原著索引条目"))}</p><p class="meta">${LANGUAGE==="en"?"Appearances: ":"出场："}${esc((o.appearances || []).map(a => a.title_en || a.novel || a).join(LANGUAGE==="en"?", ":"、"))}</p></div>`).join("") + `</div>`;
+        items.map(o => `<div class="card"><h3>${esc(LANGUAGE==="en" ? (englishText(o.name_en, o.id) || "Unnamed record") : (o.name_zh || o.name || o.id))}</h3><p class="meta">${esc(o.name_en || "")} · ${esc(o.id)}</p><p>${esc(LANGUAGE==="en" ? (englishText(o.description_en, o.role_en, o.note_en) || "No English description is available for this entry.") : (o.description || o.role || o.note || "原著索引条目"))}</p><p class="meta">${LANGUAGE==="en"?"Appearances: ":"出场："}${esc((o.appearances || []).map(a => LANGUAGE==="en" ? (typeof a === "string" ? (englishText(a) || "Unknown appearance") : (englishText(a.title_en, a.novel) || "Unknown appearance")) : (a.title_zh || a.title || a.novel || a)).join(LANGUAGE==="en"?", ":"、"))}</p></div>`).join("") + `</div>`;
     }
   } catch (e) {
     body.innerHTML = `<div class="empty">核验档案加载失败：${esc(e.message)}。不会回退到旧示例数据。</div>`;
