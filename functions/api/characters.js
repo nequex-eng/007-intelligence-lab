@@ -4,6 +4,7 @@ export async function onRequest() {
   return json({
     characters: characterCore.map(c => ({
       id: c.id, name: c.name_en, nameZh: c.name_zh, role: c.role,
+      firstNovelId: c.first_appearance?.novel || null,
       firstBook: c.first_appearance?.title_zh, firstYear: novels.find(n => n.novel_no === c.first_appearance?.novel_no)?.publication_year,
       timelineCutoff: c.timeline_cutoff, intro: c.background,
       appearance: c.appearance, ageClues: c.age_clues, personality: c.personality,
