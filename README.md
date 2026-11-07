@@ -9,9 +9,9 @@
 ## 四大模块
 
 1. **INTELLIGENCE ARCHIVE / 情报档案馆**：14部原著、章节目录、人物、组织、地点、装备、事件、事实与推测，检索结果保留作品和章节出处。
-2. **CHARACTER THEATRE / 人物剧场**：32位核心人物约束档案；选择小说时间点后，按人物knowledge_scope校验能否出场，注入身份、知识边界、行为边界和原著事实。
+2. **CHARACTER THEATRE / 人物剧场**：32位核心人物约束档案；选择小说与章节时间点，按人物knowledge_scope和首次登场章节校验能否出场，并过滤所选章节之后的事实。章级模式不向模型提供全书背景/关系摘要；对话历史按人物、小说、章节保存在当前浏览器。
 3. **MISSION CONTROL / 任务控制中心**：保留状态机与任务分支；《皇家赌场》任务简报从核验知识库读取事实、章节与故事时间线。玩家选择形成的分支明确标记为互动改编，不冒充原著事件。
-4. **WORLD EXPLORER / 世界探索**：地图保留已有真实坐标点；完整展示核验知识库170处地点。没有可靠坐标的地点不伪造地图位置。文学研究、百家乐和实战体验作为辅助功能保留。
+4. **WORLD EXPLORER / 世界探索**：完整地点目录、国家/小说/年代筛选来自核验知识库170处地点；Leaflet + OpenStreetMap展示有独立核对城市坐标的地点，虚构地点和区域级地点不伪造点位。文学研究归入情报档案馆，百家乐与实战体验归入任务控制中心。
 
 ## 数据源与同步
 
@@ -56,17 +56,18 @@ MINIMAX_API_KEY=你的密钥
 npm run sync:knowledge
 npm run test:canon
 npm run test:api
+npm run test:ui
 ```
 
-测试会检查14部作品、773条事实、实体数量、32位人物约束、别名索引和关键人物时间线边界；API集成测试会直接调用Pages Functions处理器，验证档案、人物、地点、任务与时间线接口。
+测试会检查14部作品、773条事实、实体数量、32位人物约束、别名索引、章级知识截止和人物首次登场边界；API集成测试会直接调用Pages Functions处理器，UI测试会检查四个主模块、唯一DOM ID、人物章节控件、正典地图数据源与前端脚本语法。
 
 ## API
 
 - `GET /api/status`：服务状态、模型状态、知识库版本与数据规模。
 - `GET /api/characters`：32位核心人物档案与时间线。
-- `POST /api/chat`：人物对话。请求体支持`characterIds`、`novelId`、`messages`；指定小说后校验人物是否在该书时间点出场。
+- `POST /api/chat`：人物对话。请求体支持`characterIds`、`novelId`、可选`chapterNo`、`messages`；校验人物在小说/章节时间点是否已登场，并过滤后续章节事实。
 - `GET /api/dossier?q=关键词`：核验知识检索；支持kind与limit。
-- `GET /api/canon?action=manifest|books|character|scene|resolve`：知识库元数据、作品目录、人物、场景校验和别名解析。
+- `GET /api/canon?action=manifest|books|chapters|character|scene|resolve`：知识库元数据、作品目录、章节索引、人物、小说/章节场景校验和别名解析。
 - `GET /api/mission?id=casino-royale`：返回正典任务资料、章节、事件与事实。
 - `GET /api/world`：返回170处核验地点，不包含虚构或未核验坐标。
 - `GET /api/canon?action=relationships&id=bond`：按规范人物ID查询关系。
@@ -84,4 +85,4 @@ npm run deploy
 
 - `wrangler.toml`：部署配置，Pages静态目录`public`，Workers AI绑定`AI`。
 - `MINIMAX_API_KEY`：Cloudflare Pages Secret / 本地`.dev.vars`，只配置值，不提交密钥。
-- 不使用D1、KV或R2；聊天历史仅保存在用户当前浏览器localStorage，消息仍会发送至模型服务生成回复。
+- 不使用D1、KV或R2；聊天历史仅保存在用户当前浏览器localStorage，消息仍会发送至模型服务生成回复。世界地图使用OpenStreetMap标准瓦片并显示版权归属；地图坐标仅登记城市级真实地点，不对虚构地点或区域范围做地理定位。
