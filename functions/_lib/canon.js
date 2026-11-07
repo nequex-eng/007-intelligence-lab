@@ -149,13 +149,11 @@ function questionTerms(question) {
 }
 
 export function canonSystemPrompt(character, book, status, question = "", chapterNo = null) {
-  const allowedNovelNos = new Set((character.knowledge_scope || [])
-    .filter(x => x.status === "present" && x.novel_no <= book.novel_no)
-    .map(x => x.novel_no));
   const terms = questionTerms(question);
   const candidates = [];
+  // 检索只注入当前所选原著的事实；此前作品仅通过人物knowledge_scope中的已知摘要提供背景，避免把其他人物/场景的细节误当作角色亲历。
   for (const novel of novels) {
-    if (novel.novel_no > book.novel_no || !allowedNovelNos.has(novel.novel_no)) continue;
+    if (novel.novel_id !== book.novel_id) continue;
     for (const fact of novel.facts || []) {
       if (fact.canon_or_inference !== "canon") continue;
       if (novel.novel_no === book.novel_no && chapterNo !== null && chapterNo !== undefined) {
@@ -171,12 +169,15 @@ export function canonSystemPrompt(character, book, status, question = "", chapte
   candidates.sort((a, b) => b.score - a.score);
   const facts = candidates.slice(0, 16).map(x => x.text);
   const sceneScope = (character.knowledge_scope || []).find(x => x.novel === book.novel_id);
+  const priorScope = (character.knowledge_scope || []).filter(x => x.status === "present" && x.novel_no < book.novel_no);
+  const priorKnowledge = priorScope.map(x => `${x.title_zh || x.novel}：已知${(x.known || []).join("；") || "未提供"}；未知${(x.unknown || []).join("；") || "未提供"}`);
   const chapterLabel = chapterNo === null || chapterNo === undefined
     ? "全书结束（可使用本书全篇已发生事实）"
     : `第${chapterNo}章结束（严禁引用本章之后的事实）`;
-  const scopeText = chapterNo === null || chapterNo === undefined
+  const currentScopeText = chapterNo === null || chapterNo === undefined
     ? `本书知识范围：已知：${JSON.stringify(sceneScope?.known || [])}；未知：${JSON.stringify(sceneScope?.unknown || [])}`
     : "已启用章级知识截止。人物只能知道所选章节及此前已发生、且本人有机会获知的事实；不得提及后续章节的事件、身份揭露、关系变化、死亡或结局。章级模式不向模型提供全书背景与全书关系变化摘要。";
+  const scopeText = [currentScopeText, priorKnowledge.length ? "此前作品中人物明确记录的知识边界（仅摘要，不注入其他人物的原著事实）：" + priorKnowledge.join(" | ") : ""].filter(Boolean).join("\\n");
   const profile = chapterNo === null || chapterNo === undefined
     ? { appearance: character.appearance, age_clues: character.age_clues, personality: character.personality, habits: character.habits, background: character.background, relationships: character.relationships, voice_style: character.voice_style, behavioral_boundaries: character.behavioral_boundaries, knowledge_boundaries: character.knowledge_boundaries, timeline_cutoff: character.timeline_cutoff }
     : { appearance: character.appearance, age_clues: character.age_clues, personality: character.personality, habits: character.habits, voice_style: { tone: character.voice_style?.tone, sentence_pattern: character.voice_style?.sentence_pattern }, behavioral_boundaries: character.behavioral_boundaries, timeline_cutoff: `第${chapterNo}章结束；严格禁止使用后续章节事实` };
@@ -189,7 +190,7 @@ export function canonSystemPrompt(character, book, status, question = "", chapte
     ...knowledgeControl.rules.map(r => `${r.id} ${r.rule}：${r.text}`),
     "仅可将知识库canon事实作为确定事实；inference必须明确标为推测；原著未写必须回答不知道。不得把电影设定混入原著。",
     "回答涉及正典事实时，必须尽可能注明作品与章节。人物不在场小说的内情只能按可靠转述并注明来源，不得全知叙述。",
-    "以下是按当前人物已出场作品范围及用户问题检索出的canon事实；不代表人物亲历了所有事件：",
+    "以下只包含当前所选原著中、且不晚于所选章节的canon事实；此前作品仅使用人物knowledge_scope明确记录的知识摘要，不注入其他人物的场景细节：",
     ...(facts.length ? facts : ["本次问题未检索到可直接引用的相关正典事实。请明确说明不知道，不要自行补全。"])
   ].join("\n");
 }
