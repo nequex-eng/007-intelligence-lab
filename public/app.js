@@ -572,6 +572,9 @@ const EN_TEXT = new Map([
   ["（选择人物后自动匹配）","(Matched automatically when a character is selected)"],
   ["选择人物后自动匹配","Matched automatically when a character is selected"],
   ["多角色同场：你与两位人物共同对话；每次发送后，两位人物分别回应。","Group scene: you speak with two characters, and each responds separately after every message."]
+  ["输入关键词，如日本、苏联、莱特、武器、赌场、布洛菲尔德…","Search the archive, e.g. Japan, the Soviet Union, Leiter, weapons, casinos or Blofeld…"],
+  ["搜索地点、国家或小说…","Search locations, countries or novels…"],
+  ["输入名字，如邦德、M、Q、布洛菲尔德…","Search by name, e.g. Bond, M, Q or Blofeld…"]
 ]); 
 const originalText = new WeakMap();
 const originalAttributes = new WeakMap();
