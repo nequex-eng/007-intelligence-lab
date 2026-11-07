@@ -337,6 +337,20 @@ const EN_TEXT = new Map([
 ["你与两位人物共同对话；每次发送后，两位人物分别回应。","You are in a three-way conversation with two characters. Both characters reply separately after each message."]
 ]);
 const originalText = new WeakMap();
+const originalAttributes = new WeakMap();
+function translateElementAttributes() {
+  document.querySelectorAll("[placeholder],[title],[aria-label],[alt],[value]").forEach(el => {
+    let saved = originalAttributes.get(el);
+    if (!saved) { saved = {}; originalAttributes.set(el, saved); }
+    ["placeholder","title","aria-label","alt","value"].forEach(name => {
+      if (!el.hasAttribute(name)) return;
+      if (!(name in saved)) saved[name] = el.getAttribute(name);
+      let value = saved[name];
+      if (LANGUAGE === "en") for (const pair of EN_TEXT) value = value.split(pair[0]).join(pair[1]);
+      if (el.getAttribute(name) !== value) el.setAttribute(name, value);
+    });
+  });
+}
 function translateTextNode(n) {
   if (!n || n.nodeType!==3) return;
   if (!originalText.has(n)) originalText.set(n,n.nodeValue);
@@ -355,6 +369,7 @@ function applyLanguage() {
   const b=document.getElementById("languageToggle");
   if(b){b.textContent=LANGUAGE==="en"?"中文":"EN";b.setAttribute("aria-label",LANGUAGE==="en"?"Switch to Chinese":"Switch to English");}
   const w=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);let n;while((n=w.nextNode()))translateTextNode(n);
+  translateElementAttributes();
   const placeholders={charSearch:["输入名字，如邦德、M、Q、布洛菲尔德…","Search by name, e.g. Bond, M, Q or Blofeld…"],chatInput:["说点什么…","Write a message…"],dossierQ:["输入关键词，如日本、苏联、莱特、武器、赌场、布洛菲尔德…","Search the archive…"],canonWorldSearch:["搜索地点、国家或小说…","Search locations, countries or novels…"]};
   for(const [id,v] of Object.entries(placeholders)){const e=document.getElementById(id);if(e)e.placeholder=v[LANGUAGE==="en"?1:0];}
 }
