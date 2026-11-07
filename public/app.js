@@ -1030,7 +1030,14 @@ bf.addEventListener("change", renderCharGrid);
 $("#chatSend").addEventListener("click", (event) => { event.preventDefault(); sendChat(); });
 $("#chatClear").addEventListener("click", (event) => { event.preventDefault(); clearChat(); });
 $("#sceneNovel").addEventListener("change", () => {
-  loadSceneChapters($("#sceneNovel").value);
+  const id = $("#sceneNovel").value;
+  const book = BOOKS.find(b => b.id === id);
+  const c = charById(selectedChar);
+  $("#sceneNovelLabel").textContent = c?.id === "q"
+    ? (LANGUAGE === "en" ? "Q Branch simulation (non-canon)" : "Q部门模拟（非正典）")
+    : book ? (LANGUAGE === "en" ? book.en : book.zh) + " · " + book.year : id;
+  $("#sceneChapter").value = "";
+  loadSceneChapters(id);
   restoreChatHistory();
 });
 $("#sceneChapter").addEventListener("change", restoreChatHistory);
