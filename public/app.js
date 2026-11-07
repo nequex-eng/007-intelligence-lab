@@ -1018,7 +1018,7 @@ modes.forEach((b) => b.addEventListener("click", async () => {
   saveChatHistory();
   restoreChatHistory();
   $("#groupPick").style.display = chatMode === "group" ? "block" : "none";
-  const hints = { talk: "选择人物后自动匹配其首次登场原著。", report: "向M汇报：系统自动切换为M接收汇报，输入行动经过与证据。", quartermaster: "Q部门：系统自动切换为Q，直接说明任务目的并领取装备。", group: "多角色同场：你与两位人物共同对话；每次发送后，两位人物分别回应。" };
+  const hints = { talk: "选择人物后，可在其正典出场作品中切换故事时间线。", report: "向M汇报：M可在其全部正典出场作品中接收汇报。", quartermaster: "Q部门：非正典装备职能模拟；原著中的Q仅被提及，未实际出场。", group: "多角色同场：你与两位人物共同对话；两位人物分别回应，时间线需同时符合双方出场记录。" };
   $("#chatHint").textContent = hints[chatMode] || hints.talk;
   if (chatMode === "report" || chatMode === "quartermaster") {
     $("#sceneChapter").value = "";
