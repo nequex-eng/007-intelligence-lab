@@ -105,7 +105,7 @@ export function characterForScene(id, novelId) {
 function questionTerms(question) {
   const q = normalize(question);
   const english = q.match(/[a-z0-9][a-z0-9'-]{1,}/g) || [];
-  const chinese = [...q.matchAll(/[\\u4e00-\\u9fff]{2,}/g)].flatMap(m => {
+  const chinese = [...q.matchAll(/[\u4e00-\u9fff]{2,}/g)].flatMap(m => {
     const word = m[0], out = [word];
     for (let i = 0; i < word.length - 1; i++) out.push(word.slice(i, i + 2));
     return out;
@@ -142,5 +142,5 @@ export function canonSystemPrompt(character, book, status, question = "") {
     "回答涉及正典事实时，必须尽可能注明作品与章节。人物不在场小说的内情只能按可靠转述并注明来源，不得全知叙述。",
     "以下是按当前人物已出场作品范围及用户问题检索出的canon事实；不代表人物亲历了所有事件：",
     ...(facts.length ? facts : ["本次问题未检索到可直接引用的相关正典事实。请明确说明不知道，不要自行补全。"])
-  ].join("\\n");
+  ].join("\n");
 }
