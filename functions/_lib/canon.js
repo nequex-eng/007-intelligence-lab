@@ -56,7 +56,7 @@ export function searchCanon(query, kind = "all", limit = 30) {
   for (const category of categories) {
     const index = indexes[category];
     const entries = index?.[category] || index?.entries || [];
-    add(category, entries, ["id", "name", "name_en", "name_zh", "aliases", "description", "role", "summary"]);
+    add(category, entries, ["id", "name", "name_en", "name_zh", "aliases", "description", "description_en", "role", "role_en", "summary", "summary_en"]);
   }
   for (const novel of novels) {
     if (results.length >= limit) break;
@@ -66,14 +66,14 @@ export function searchCanon(query, kind = "all", limit = 30) {
     }
     if (kind === "all" || kind === "facts") {
       for (const fact of novel.facts || []) {
-        const hay = [fact.entity, fact.fact, fact.quote, fact.chapter, novel.title_zh, novel.title_en].filter(Boolean).join(" ").toLocaleLowerCase();
+        const hay = [fact.entity, fact.fact, fact.fact_en, fact.quote, fact.quote_en, fact.chapter, novel.title_zh, novel.title_en].filter(Boolean).join(" ").toLocaleLowerCase();
         if (hay.includes(q)) results.push({ kind: "facts", novel_id: novel.novel_id, title_zh: novel.title_zh, title_en: novel.title_en, ...fact });
         if (results.length >= limit) break;
       }
     }
     if (kind === "all" || kind === "events") {
       for (const event of novel.events || []) {
-        if ([event.id, event.title, event.description, event.summary].filter(Boolean).join(" ").toLocaleLowerCase().includes(q)) {
+        if ([event.id, event.title, event.title_en, event.description, event.description_en, event.summary, event.summary_en].filter(Boolean).join(" ").toLocaleLowerCase().includes(q)) {
           results.push({ kind: "events", novel_id: novel.novel_id, title_zh: novel.title_zh, ...event });
         }
       }
