@@ -55,9 +55,10 @@ MINIMAX_API_KEY=你的密钥
 ```bash
 npm run sync:knowledge
 npm run test:canon
+npm run test:api
 ```
 
-测试会检查14部作品、773条事实、实体数量、32位人物约束、别名索引和关键人物时间线边界。
+测试会检查14部作品、773条事实、实体数量、32位人物约束、别名索引和关键人物时间线边界；API集成测试会直接调用Pages Functions处理器，验证档案、人物、地点、任务与时间线接口。
 
 ## API
 
