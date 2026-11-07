@@ -20,7 +20,7 @@ jobs:
       - name: Local Pages runtime smoke test (no production bindings)
         shell: bash
         run: |
-          npx wrangler pages dev public --local --ip 127.0.0.1 --port 8788 > /tmp/wrangler.log 2>&1 &
+          PORT=8788 node scripts/dev-local.mjs > /tmp/wrangler.log 2>&1 &
           SERVER_PID=$!
           trap 'kill $SERVER_PID 2>/dev/null || true' EXIT
           for i in {1..30}; do
