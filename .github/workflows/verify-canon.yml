@@ -18,13 +18,14 @@ jobs:
       - name: Pages Functions smoke test (local only)
         shell: bash
         run: |
-          npx wrangler pages dev public --port 8788 > /tmp/wrangler.log 2>&1 &
+          npx wrangler pages dev public --ip 127.0.0.1 --port 8788 --log-level debug > /tmp/wrangler.log 2>&1 &
           SERVER_PID=$!
           trap 'kill $SERVER_PID 2>/dev/null || true' EXIT
           for i in {1..30}; do
             if curl -fsS http://127.0.0.1:8788/api/status > /tmp/status.json; then break; fi
             sleep 2
           done
+          if [ ! -s /tmp/status.json ]; then cat /tmp/wrangler.log; exit 1; fi
           node -e 'const s=require("/tmp/status.json"); if(!s.ok || s.dataState!=="verified-canon" || s.data.facts!==773 || s.data.coreCharacters!==32) process.exit(1); console.log("Pages API smoke test passed",s.data)'
           curl -fsS 'http://127.0.0.1:8788/api/dossier?q=Bond' > /tmp/dossier.json
           curl -fsS http://127.0.0.1:8788/api/world > /tmp/world.json
