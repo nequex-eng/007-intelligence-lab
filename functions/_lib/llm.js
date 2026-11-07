@@ -30,7 +30,8 @@ async function callMiniMax(env, messages) {
       temperature: 1,
       max_completion_tokens: 8192,
       stream: false,
-      reasoning_split: true
+      reasoning_split: true,
+      reasoning_effort: "low"
     })
   });
   const raw = await response.text().catch(() => "");
