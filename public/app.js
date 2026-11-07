@@ -34,12 +34,12 @@ const LOCATIONS = [
 { id: "crabkey", name: "蟹礁岛", country: "牙买加", lat: null, lng: null, fictional: true, books: ["诺博士"], note: "虚构岛屿，诺博士基地所在地。小说虚构地点，不标注真实坐标。", people: ["邦德", "诺博士"] },
 { id: "newyork", name: "纽约", country: "美国", lat: 40.7128, lng: -74.006, fictional: false, books: ["生死关头", "金刚钻"], note: "邦德在美国行动的重要城市。", people: ["邦德", "费利克斯·莱特"] },
 { id: "lasvegas", name: "拉斯维加斯", country: "美国", lat: 36.1699, lng: -115.1398, fictional: false, books: ["金刚钻"], note: "钻石走私链终点，赌场城市。", people: ["邦德"] },
-{ id: "florida", name: "佛罗里达", country: "美国", lat: 27.6648, lng: -81.5158, fictional: false, books: ["生死关头", "金手指"], note: "邦德多次前往的美国南部州。", people: ["邦德", "费利克斯·莱特"] },
+{ id: "florida", name: "佛罗里达", country: "美国", lat: null, lng: null, fictional: false, books: ["生死关头", "金手指"], note: "区域级地点档案；原著未给出可对应本条目的单一坐标，因此不在地图上伪造精确点。", people: ["邦德", "费利克斯·莱特"] },
 { id: "nassau", name: "拿骚", country: "巴哈马", lat: 25.0443, lng: -77.3504, fictional: false, books: ["霹雳弹"], note: "核勒索案的海域行动中心。", people: ["邦德", "布洛菲尔德"] },
-{ id: "alps", name: "瑞士阿尔卑斯山区", country: "瑞士", lat: 46.559, lng: 9.787, fictional: false, books: ["女王密使"], note: "布洛菲尔德山顶诊所所在地一带，坐标为区域示意。", people: ["邦德", "崔西·邦德", "布洛菲尔德"] },
+{ id: "alps", name: "瑞士阿尔卑斯山区", country: "瑞士", lat: null, lng: null, fictional: false, books: ["女王密使"], note: "区域级地点档案；山顶诊所的具体位置不以区域中心点代替。", people: ["邦德", "崔西·邦德", "布洛菲尔德"] },
 { id: "tokyo", name: "东京", country: "日本", lat: 35.6762, lng: 139.6503, fictional: false, books: ["雷霆谷"], note: "邦德在日本行动的起点。", people: ["邦德"] },
 { id: "fortknox", name: "诺克斯堡", country: "美国", lat: 37.8937, lng: -85.9574, fictional: false, books: ["金手指"], note: "美国黄金储备库，金手指行动目标。", people: ["邦德", "金手指"] },
-{ id: "kent", name: "肯特郡", country: "英国", lat: 51.2787, lng: 0.5217, fictional: false, books: ["月亮牌"], note: "月亮牌导弹基地所在地一带。", people: ["邦德"] }
+{ id: "kent", name: "肯特郡", country: "英国", lat: null, lng: null, fictional: false, books: ["月亮牌"], note: "区域级地点档案；小说中的具体设施位置不以郡中心点代替。", people: ["邦德"] }
 ];
 
 const ORGS = [
@@ -724,7 +724,7 @@ const mapH = wrap.clientHeight || 300;
 const compact = mapW < 560;
 wrap.classList.toggle("compact", compact);
 // 标签防重叠：按纵向排序，贪心分配四档（下/上/远下/远上），同档标签不相交；窄屏只留圆点，点一下才显示名字
-const dots = list.filter((l) =>!l.fictional).map((l) => {
+const dots = list.filter((l) => !l.fictional && Number.isFinite(l.lat) && Number.isFinite(l.lng)).map((l) => {
 const xPct = (l.lng + 180) / 360 * 100;
 const yPct = (90 - l.lat) / 180 * 100;
 return { l, xPct, yPct, xPx: xPct / 100 * mapW, yPx: yPct / 100 * mapH };
@@ -743,8 +743,8 @@ if (!hit) { box = cand; break; }
 d.lbl = box || { left: Math.max(0, Math.min(mapW - w, d.xPx - w / 2)), top: Math.max(0, Math.min(mapH - h, d.yPx + 10)), w, h };
 placedBoxes.push(d.lbl);
 });
-wrap.innerHTML = dots.map((d) =>
-`<div class="mapdot" style="left:${d.xPct.toFixed(1)}%;top:${d.yPct.toFixed(1)}%" data-loc="${d.l.id}" title="${esc(d.l.name)}"></div><div class="maplbl" data-loc="${d.l.id}" style="left:${d.lbl.left.toFixed(0)}px;top:${d.lbl.top.toFixed(0)}px;transform:none">${esc(d.l.name)}</div>`).join("") + (list.some((l) => l.fictional)? `<div style="position:absolute;left:10px;bottom:8px;font-size:12px;color:var(--muted)">虚构地点（皇家莱索、蟹礁岛）不标注坐标，见下方卡片。</div>`: "");
+wrap.innerHTML = (dots.length ? dots.map((d) =>
+`<div class="mapdot" style="left:${d.xPct.toFixed(1)}%;top:${d.yPct.toFixed(1)}%" data-loc="${d.l.id}" title="${esc(d.l.name)}"></div><div class="maplbl" data-loc="${d.l.id}" style="left:${d.lbl.left.toFixed(0)}px;top:${d.lbl.top.toFixed(0)}px;transform:none">${esc(d.l.name)}</div>`).join("") : `<div style="position:absolute;left:10px;right:10px;top:45%;text-align:center;font-size:13px;color:var(--muted)">所选地点没有可核验的单点坐标；请查看下方地点档案。</div>`) + (list.some((l) => l.fictional)? `<div style="position:absolute;left:10px;bottom:8px;font-size:12px;color:var(--muted)">虚构地点不标注真实坐标，见下方档案。</div>`: "");
 $$("#mapWrap .mapdot").forEach((d) => d.addEventListener("click", () => {
 if (wrap.classList.contains("compact")) {
 $$("#mapWrap .maplbl").forEach((x) => x.classList.remove("show"));
