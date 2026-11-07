@@ -87,11 +87,11 @@ export async function onRequestPost(context) {
       language === "en" ? "You are running a canon-grounded role-play in Ian Fleming’s original 007 novels. Play only the assigned character(s), never the user. Reply entirely in natural English." : "你正在运行007原著正典角色模拟。只扮演本请求指定的人物，不得扮演用户。",
       language === "en" ? "All dialogue, explanations, labels and source references must be in English. Preserve the same timeline_cutoff and knowledge_scope as Chinese mode. Never import film continuity." : "",
       ...prompts,
-      "多人场景规则：每次发言必须以对应人物姓名开头；每个人物只能使用自己的知识范围及场景中明确获知的信息；不得把一个人物的私有知识转移给另一个人物；不得共享彼此未获知的信息。",
-      "如果检索事实不足，明确说不知道；不得以电影设定、其他小说的未来事件或常识补写原著空白。",
-      mode === "report" ? "当前是向M汇报模式：M是接收汇报的上级。以情报主管口吻听取行动结果，追问时间、地点、人物、证据和风险；区分已证实事实与推测，不要把M扮演成邦德。" : "",
-      mode === "quartermaster" ? "当前是Q部门装备领取模式：Q负责装备与技术说明。注意：Q在《皇家赌场》中仅被M提及，并未正式出场；本次是明确标注的非正典训练扩展，不得声称这是原著情节，也不得照搬电影版Q的发明或口吻。仅根据知识库可证实的职责提供谨慎的装备建议，区分原著事实与模拟建议；根据任务目的询问必要条件，说明用途、限制和归还要求。" : "",
-      mode === "group" ? "当前是多角色同场模式：所有被选人物都必须参与；每轮至少让每位人物各发言一次，姓名置于发言开头；人物之间不得共享未获知的私有知识。" : ""
+      language === "en" ? "Group scenes: every selected character must speak at least once, prefacing each turn with their name. Each character uses only their own knowledge and information explicitly learned in the scene; never transfer private knowledge between characters." : "多人场景规则：每次发言必须以对应人物姓名开头；每个人物只能使用自己的知识范围及场景中明确获知的信息；不得把一个人物的私有知识转移给另一个人物；不得共享彼此未获知的信息。",
+      language === "en" ? "If retrieved evidence is insufficient, say you do not know. Never fill gaps with film continuity, future events from other novels, or assumptions." : "如果检索事实不足，明确说不知道；不得以电影设定、其他小说的未来事件或常识补写原著空白。",
+      mode === "report" ? (language === "en" ? "Report mode: M is the senior officer receiving the report. Listen as the head of the Service; ask about time, place, people, evidence and risk. Separate verified facts from speculation; do not play Bond." : "当前是向M汇报模式：M是接收汇报的上级。以情报主管口吻听取行动结果，追问时间、地点、人物、证据和风险；区分已证实事实与推测，不要把M扮演成邦德。") : "",
+      mode === "quartermaster" ? (language === "en" ? "Q Branch equipment mode: Q handles equipment and technical briefings. Q is only mentioned by M in Casino Royale and does not physically appear; this is an explicitly non-canon training extension, not a novel scene. Do not import film inventions or mannerisms. Distinguish documented canon from simulated suggestions; ask about mission requirements and explain use, limits and return conditions." : "当前是Q部门装备领取模式：Q负责装备与技术说明。注意：Q在《皇家赌场》中仅被M提及，并未正式出场；本次是明确标注的非正典训练扩展，不得声称这是原著情节，也不得照搬电影版Q的发明或口吻。仅根据知识库可证实的职责提供谨慎的装备建议，区分原著事实与模拟建议；根据任务目的询问必要条件，说明用途、限制和归还要求。") : "",
+      mode === "group" ? (language === "en" ? "Group scene: all selected characters must participate in each round. Start each turn with the character’s name. Characters must not share private information they have not learned." : "当前是多角色同场模式：所有被选人物都必须参与；每轮至少让每位人物各发言一次，姓名置于发言开头；人物之间不得共享未获知的私有知识。") : ""
     ].filter(Boolean).join("\n\n--- 人物边界 ---\n\n");
 
     const out = await generate(context.env || {}, [
