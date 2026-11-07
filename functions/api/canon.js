@@ -11,7 +11,7 @@ export async function onRequest(context) {
     if (!novel) return json({ error: "未知小说" }, 404);
     return json({
       novel: { id: novel.novel_id, titleZh: novel.title_zh, titleEn: novel.title_en },
-      chapters: (novel.chapters || []).map(c => ({ no: c.no, title: c.title, summary: c.summary }))
+      chapters: (novel.chapters || []).map(c => ({ no: c.no, title: c.title, titleEn: c.title_en || c.titleEn || null, summary: c.summary, summaryEn: c.summary_en || c.summaryEn || null }))
     });
   }
   if (action === "character") {
