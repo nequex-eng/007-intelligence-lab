@@ -28,6 +28,11 @@ assert.ok(app.includes('fetch("/api/world")'), "world explorer reads canonical l
 assert.ok(app.includes('fetch("/api/canon?action=chapters&novel="'), "character theatre reads canonical chapter index");
 assert.ok(app.includes('chapterNo: $("#sceneChapter").value || null'), "chat request includes selected chapter");
 assert.ok(app.includes("firstNovelId"), "character selection automatically matches first-appearance novel");
+assert.ok(app.includes('const modes = $("#chatModes .chipbtn")'), "chat mode controls bind before remote data loading");
+assert.ok(app.includes('loadSceneChapters(scene.value);'), "chapter index loads without blocking initial character rendering");
+assert.ok(!app.includes('await loadSceneChapters(scene.value);'), "slow chapter index cannot block character cards and chat controls");
+assert.ok(app.indexOf('const modes = $("#chatModes .chipbtn")') < app.indexOf('fetch("/api/characters")'), "chat mode handlers are registered before API requests");
+
 assert.ok(app.includes("mode: chatMode"), "chat mode is sent to server");
 assert.ok(app.includes('$("#chatModes .chipbtn")'), "all four chat mode controls are bound inside their container");
 assert.ok(!app.includes('$("#chatModes.chipbtn")'), "invalid chat mode selector is absent");
