@@ -28,7 +28,7 @@ export async function onRequestPost(context) {
       const states = canonicalCharacters.map(c => characterForScene(c.id, book.novel_id));
       const unavailable = states.find(s => !s.ok);
       if (unavailable) return json({ error: "该人物在所选小说时间点不可出场", code: unavailable.error, status: unavailable.status }, 409);
-      system = canonicalCharacters.map((c, i) => canonSystemPrompt(c, book, states[i].status)).join("\n\n--- 同场人物分隔 ---\n\n");
+      system = canonicalCharacters.map((c, i) => canonSystemPrompt(c, book, states[i].status, history[history.length - 1].content)).join("\n\n--- 同场人物分隔 ---\n\n");
       system += "\n\n多人场景规则：你只扮演被指定的人物；每次发言必须以对应人物姓名开头；人物不得共享彼此未获知的信息。";
     } else {
       const chars = ids.map(id => findCharacter(id));
