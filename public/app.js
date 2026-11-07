@@ -59,6 +59,7 @@ const $ = (s) => document.querySelector(s);
 const $$ = (s) => Array.from(document.querySelectorAll(s));
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 
+const englishText = (...values) => values.find(v => typeof v === "string" && v.trim() && !/[\u3400-\u9fff]/.test(v)) || "";
 let CHARACTERS = [];
 let LANGUAGE = (() => { try { return localStorage.getItem("007-language")==="en" ? "en" : "zh"; } catch (_) { return "zh"; } })();
 const EN_TEXT = new Map([
@@ -711,9 +712,14 @@ function applyLanguage() {
   translateElementAttributes();
   const placeholders={charSearch:["输入名字，如邦德、M、Q、布洛菲尔德…","Search by name, e.g. Bond, M, Q or Blofeld…"],chatInput:["说点什么…","Write a message…"],dossierQ:["输入关键词，如日本、苏联、莱特、武器、赌场、布洛菲尔德…","Search the archive…"],canonWorldSearch:["搜索地点、国家或小说…","Search locations, countries or novels…"]};
   for(const [id,v] of Object.entries(placeholders)){const e=document.getElementById(id);if(e)e.placeholder=v[LANGUAGE==="en"?1:0];}
+  document.querySelectorAll("#charBookFilter option[data-label-zh]").forEach(o => { o.textContent = LANGUAGE === "en" ? (o.dataset.labelEn || "Novel not specified") : o.dataset.labelZh; });
   document.querySelectorAll("#sceneChapter option[data-title-zh]").forEach(o => {
     o.textContent = LANGUAGE === "en" ? (o.dataset.titleEn || "Chapter " + o.value) : "第" + o.value + "章 · " + o.dataset.titleZh;
   });
+  const activeDossierTab = document.querySelector("#dossierTabs .chipbtn.active")?.dataset.tab;
+  if (activeDossierTab) renderDossierTab(activeDossierTab);
+  const activeDossierQuery = document.getElementById("dossierQ")?.value?.trim();
+  if (activeDossierQuery) runDossier(activeDossierQuery);
   if (Array.isArray(canonWorldLocations) && canonWorldLocations.length) {
     const countrySelect = document.getElementById("atlasCountry");
     if (countrySelect) [...countrySelect.options].slice(1).forEach(o => {
@@ -1014,7 +1020,7 @@ events:Array.isArray(c.knowledgeScope)?c.knowledgeScope.filter(x=>x.status==="pr
 bounds:[...(c.knowledgeBoundaries||[]),...(c.behavioralBoundaries||[])].join("；"),
 facts:[...(c.sources||[])].map(x=>"出处索引："+x), opener:"请按当前小说时间点与原著事实提问。", scripted:["原著没有明确写到的部分，我不会替作者补写。"]
 }));
- [...new Map(CHARACTERS.map(c => [c.firstNovelId || c.firstBook, { value: c.firstNovelId || c.firstBook, label: c.firstBook || c.firstNovelId || "首次登场未标注" }])).values()].forEach(item=>{const o=document.createElement("option");o.value=item.value;o.textContent=item.label;bf.appendChild(o);});
+ [...new Map(CHARACTERS.map(c => [c.firstNovelId || c.firstBook, { value: c.firstNovelId || c.firstBook, labelZh: c.firstBook || c.firstNovelId || "首次登场未标注", labelEn: c.firstBookEn || "First appearance not specified" }])).values()].forEach(item=>{const o=document.createElement("option");o.value=item.value;o.dataset.labelZh=item.labelZh;o.dataset.labelEn=item.labelEn;o.textContent=LANGUAGE==="en"?item.labelEn:item.labelZh;bf.appendChild(o);});
  bd.books.forEach(b => { const so=document.createElement("option");so.value=b.id;so.textContent=(LANGUAGE==="en"?b.titleEn:b.titleZh)+" · "+b.year;scene.appendChild(so); });
 scene.value="casino-royale";
 const initialBook = BOOKS.find(b => b.id === scene.value);
@@ -1042,12 +1048,12 @@ async function runDossier(q) {
     }
     box.innerHTML = `<p class="meta">共${results.length}条 · 来源：核验知识库 · 原著事实与推测分别标记。</p>` +
       results.map(h => {
-        const title = h.kind === "facts" ? (LANGUAGE==="en" ? (h.entity_en || h.entity || h.title_en || h.title_zh || "Canon fact") : (h.entity || h.title_zh || "原著事实")) : (LANGUAGE==="en" ? (h.title_en || h.name_en || h.name || h.title || h.entity || h.id || "Untitled record") : (h.title_zh || h.name_zh || h.name || h.name_en || h.title || h.entity || h.id || "未命名记录"));
+        const title = h.kind === "facts" ? (LANGUAGE==="en" ? (englishText(h.entity_en, h.title_en, h.id) || "Canon fact") : (h.entity || h.title_zh || "原著事实")) : (LANGUAGE==="en" ? (englishText(h.title_en, h.name_en, h.name, h.title, h.entity, h.id) || "Untitled record") : (h.title_zh || h.name_zh || h.name || h.name_en || h.title || h.entity || h.id || "未命名记录"));
         const kind = LANGUAGE==="en" ? ({facts:"Facts",characters:"Characters",locations:"Locations",organizations:"Organisations",equipment:"Equipment",events:"Events",timeline:"Timeline",books:"Novels"}[h.kind] || h.kind || "Dossier") : (h.kind || "档案");
-        const sourceBook = LANGUAGE==="en" ? (h.title_en || BOOKS.find(b=>b.id===h.novel_id)?.en || h.novel_id) : (h.title_zh || h.novel_id); const source = [sourceBook && h.novel_id ? sourceBook : null, h.chapter ? (LANGUAGE==="en" ? "Chapter "+h.chapter : "第"+h.chapter+"章") : null, h.source_novel || null].filter(Boolean).join(" · ") || (h.sources || []).join("；") || (LANGUAGE==="en"?"Indexed record":"索引记录");
-        const detail = LANGUAGE==="en" ? (h.fact_en || h.summary_en || h.description_en || h.role_en || h.note_en || h.quote_en || h.fact || h.summary || h.description || h.role || h.note || h.change || h.quote || "No summary is available for this entry.") : (h.fact || h.summary || h.description || h.story_timeline || h.role || h.note || h.change || h.quote || "该条目没有提供摘要字段。");
-        const status = h.canon_or_inference === "inference" ? "推测" : h.canon_or_inference === "canon" ? "正典事实" : kind;
-        return `<div class="card" style="margin:8px 0"><h3>${esc(title)} <span class="tag gold">${esc(status)}</span></h3><p class="meta">出处：${esc(source)}</p><p>${esc(detail)}</p>${(LANGUAGE==="en" ? (h.quote_en || h.quote) : h.quote) ? `<blockquote>${esc(LANGUAGE==="en" ? (h.quote_en || h.quote) : h.quote)}</blockquote>` : ""}</div>`;
+        const sourceBook = LANGUAGE==="en" ? (englishText(h.title_en, BOOKS.find(b=>b.id===h.novel_id)?.en, h.novel_id) || "Unknown novel") : (h.title_zh || h.novel_id); const source = [sourceBook && h.novel_id ? sourceBook : null, h.chapter ? (LANGUAGE==="en" ? "Chapter "+h.chapter : "第"+h.chapter+"章") : null, LANGUAGE==="en" ? englishText(h.source_novel) : h.source_novel].filter(Boolean).join(" · ") || (LANGUAGE==="en"?"Indexed record":"索引记录");
+        const detail = LANGUAGE==="en" ? (englishText(h.fact_en, h.summary_en, h.description_en, h.role_en, h.note_en, h.quote_en) || "No English summary is available for this entry.") : (h.fact || h.summary || h.description || h.story_timeline || h.role || h.note || h.change || h.quote || "该条目没有提供摘要字段。");
+        const status = LANGUAGE === "en" ? (h.canon_or_inference === "inference" ? "Inference" : h.canon_or_inference === "canon" ? "Canon fact" : kind) : (h.canon_or_inference === "inference" ? "推测" : h.canon_or_inference === "canon" ? "正典事实" : kind);
+        return `<div class="card" style="margin:8px 0"><h3>${esc(title)} <span class="tag gold">${esc(status)}</span></h3><p class="meta">出处：${esc(source)}</p><p>${esc(detail)}</p>${(LANGUAGE==="en" ? h.quote_en : h.quote) ? `<blockquote>${esc(LANGUAGE==="en" ? (h.quote_en || h.quote) : h.quote)}</blockquote>` : ""}</div>`;
       }).join("");
   } catch (e) {
     box.innerHTML = `<div class="empty">核验检索暂时不可用：${esc(e.message)}。已禁用旧示例数据回退，避免把未核验内容冒充正典。</div>`;
@@ -1065,12 +1071,12 @@ async function renderDossierTab(tab) {
     if (tab === "books") {
       body.innerHTML = LANGUAGE==="en" ? `<p class="meta">14 original novels · Chapter records from the verified knowledge base</p><table><tr><th>Novel</th><th>Publication year</th><th>Format</th><th>Chapters</th><th>Synopsis</th></tr>` + d.books.map(b => `<tr><td><b>${esc(b.titleEn)}</b></td><td>${b.year}</td><td>${esc(b.kindEn || b.kind)}</td><td>${b.chapters}</td><td>${esc(b.summaryEn || "Synopsis not available in English.")}</td></tr>`).join("") + `</table>` : `<p class="meta">14部原著 · 章节摘要来自逐部核验知识库</p><table><tr><th>书名</th><th>英文原名</th><th>出版年</th><th>类型</th><th>章节</th><th>故事时间线</th></tr>` + d.books.map(b => `<tr><td><b>${esc(b.titleZh)}</b></td><td>${esc(b.titleEn)}</td><td>${b.year}</td><td>${esc(b.kind)}</td><td>${b.chapters}</td><td>${esc(b.summary)}</td></tr>`).join("") + `</table>`;
     } else if (tab === "timeline") {
-      body.innerHTML = LANGUAGE==="en" ? `<p class="meta">Listed by publication order; in-story chronology is distinct from publication dates.</p>` + (d.timeline || []).map(t => `<div class="log"><b style="color:var(--gold2)">${esc(t.title_en || BOOKS.find(b=>b.id===t.novel)?.en || t.title_zh || t.novel)}</b>: ${esc(t.story_timeline_en || t.summary_en || t.story_timeline || "A verified English timeline summary is not available for this entry.")}</div>`).join("") : `<p class="meta">按出版顺序排列；故事内部年份与出版年份不混为一谈。</p>` + (d.timeline || []).map(t => `<div class="log"><b style="color:var(--gold2)">${esc(t.title_zh || t.novel)}</b>：${esc(t.story_timeline || "")}</div>`).join("");
+      body.innerHTML = LANGUAGE==="en" ? `<p class="meta">Listed by publication order; in-story chronology is distinct from publication dates.</p>` + (d.timeline || []).map(t => `<div class="log"><b style="color:var(--gold2)">${esc(t.title_en || BOOKS.find(b=>b.id===t.novel)?.en || t.title_zh || t.novel)}</b>: ${esc(englishText(t.story_timeline_en, t.summary_en) || "A verified English timeline summary is not available for this entry.")}</div>`).join("") : `<p class="meta">按出版顺序排列；故事内部年份与出版年份不混为一谈。</p>` + (d.timeline || []).map(t => `<div class="log"><b style="color:var(--gold2)">${esc(t.title_zh || t.novel)}</b>：${esc(t.story_timeline || "")}</div>`).join("");
     } else {
       const items = tab === "orgs" ? d.organizations : d.equipment;
       const title = LANGUAGE==="en" ? (tab === "orgs" ? "Organisation dossiers" : "Equipment dossiers") : (tab === "orgs" ? "组织档案" : "装备档案");
       body.innerHTML = `<p class="meta">${title} · ${items.length}条核验索引</p><div class="grid g2">` +
-        items.map(o => `<div class="card"><h3>${esc(LANGUAGE==="en" ? (o.name_en || o.name || o.name_zh || o.id) : (o.name_zh || o.name || o.id))}</h3><p class="meta">${esc(o.name_en || "")} · ${esc(o.id)}</p><p>${esc(LANGUAGE==="en" ? (o.description_en || o.role_en || o.note_en || o.description || o.role || o.note || "Canon index entry") : (o.description || o.role || o.note || "原著索引条目"))}</p><p class="meta">${LANGUAGE==="en"?"Appearances: ":"出场："}${esc((o.appearances || []).map(a => a.title_en || a.novel || a).join(LANGUAGE==="en"?", ":"、"))}</p></div>`).join("") + `</div>`;
+        items.map(o => `<div class="card"><h3>${esc(LANGUAGE==="en" ? (englishText(o.name_en, o.id) || "Unnamed record") : (o.name_zh || o.name || o.id))}</h3><p class="meta">${esc(o.name_en || "")} · ${esc(o.id)}</p><p>${esc(LANGUAGE==="en" ? (englishText(o.description_en, o.role_en, o.note_en) || "No English description is available for this entry.") : (o.description || o.role || o.note || "原著索引条目"))}</p><p class="meta">${LANGUAGE==="en"?"Appearances: ":"出场："}${esc((o.appearances || []).map(a => a.title_en || a.novel || a).join(LANGUAGE==="en"?", ":"、"))}</p></div>`).join("") + `</div>`;
     }
   } catch (e) {
     body.innerHTML = `<div class="empty">核验档案加载失败：${esc(e.message)}。不会回退到旧示例数据。</div>`;
@@ -1650,6 +1656,7 @@ function renderAtlas() {
         empty.style.cssText = "position:absolute;z-index:500;top:12px;left:12px;max-width:70%;padding:8px 10px;background:rgba(244,240,228,.94);color:#1b241d;border-radius:4px;font-size:12px";
         wrap.appendChild(empty);
       }
+      empty.textContent = LANGUAGE === "en" ? "No verified real locations with coordinates match these filters. See the dossiers below for fictional or regional locations." : "当前筛选没有可核验坐标的真实地点；虚构或区域级地点请查看下方档案。";
     } else if (empty) empty.remove();
     leafletMap.invalidateSize();
   } else {
@@ -1700,9 +1707,9 @@ function showLocation(id) {
     <div class="row"><button class="btn small" id="locBack">${LANGUAGE === "en" ? "Back to World Explorer" : "返回地点探索"}</button><button class="btn ghost small" id="locDossier">${LANGUAGE === "en" ? "Search this location in the archive" : "去情报馆检索此地点"}</button></div></div>`;
   $("#locBack").addEventListener("click", renderAtlas);
   $("#locDossier").addEventListener("click", () => {
-    $("#dossierQ").value = p.name;
+    $("#dossierQ").value = locationName(p);
     document.getElementById("dossier").scrollIntoView({ behavior: "smooth" });
-    runDossier(p.name);
+    runDossier(locationName(p));
   });
 }
 
