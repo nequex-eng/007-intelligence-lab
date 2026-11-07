@@ -114,7 +114,7 @@ details summary{cursor:pointer;color:var(--gold2);font-size:15px}
 <header class="topbar"><div class="topbar-in">
 <div class="brand">007 INTELLIGENCE LAB<small>THE WORLD OF IAN FLEMING</small></div>
 <nav class="nav sans">
-<a href="#characters">人物档案</a><a href="#dossier">情报馆</a><a href="#mission">任务模拟</a><a href="#experience">成为邦德</a><a href="#literary">文学研究室</a><a href="#atlas">世界地图</a><a href="#import">TXT导入</a>
+<a href="#dossier">INTELLIGENCE ARCHIVE · 情报档案馆</a><a href="#characters">CHARACTER THEATRE · 人物剧场</a><a href="#mission">MISSION CONTROL · 任务控制</a><a href="#atlas">WORLD EXPLORER · 世界探索</a>
 </nav>
 <span class="pill" id="statusPill">状态检测中…</span>
 </div></header>
@@ -144,8 +144,8 @@ details summary{cursor:pointer;color:var(--gold2);font-size:15px}
 <main>
 <!--1人物-->
 <section class="mod" id="characters">
-<h2><span class="en">CHARACTER FILES</span>人物档案与角色模拟</h2>
-<p class="mod-desc">12人完整档案：身份背景、外貌行为、性格价值观、语言习惯、人际关系、首次登场、参与事件、知识边界。三层约束写进每一次对话：人物核心+原著事实检索+场景与知识控制。邦德不知道自己尚未经历的事，电影版剧情不算原著，自由发挥必标。</p>
+<h2><span class="en">CHARACTER THEATRE</span>人物剧场</h2>
+<p class="mod-desc">32位核心人物正典档案：身份、外貌、性格、习惯、语言风格、人际关系、时间线与知识边界。对话按小说时间点执行三层约束；电影设定与原著隔离。</p>
 <div class="row"><div><label>搜索人物</label><input id="charSearch" placeholder="输入名字，如邦德、M、Q、布洛菲尔德…"></div>
 <div><label>按首次登场筛选</label><select id="charBookFilter"><option value="">全部作品</option></select></div></div>
 <div class="grid g4" id="charGrid" style="margin-top:14px"></div>
@@ -160,8 +160,8 @@ details summary{cursor:pointer;color:var(--gold2);font-size:15px}
 <button class="chipbtn" data-mode="group">多角色同场</button>
 </div>
 <p class="meta" id="chatHint">先选一个人，再开始对话。当前模式：自由对话。</p>
-<div id="groupPick" style="display:none"><label>同场第二人</label><select id="groupSecond"></select></div>
-<div class="chatbox" id="chatLog"><div class="msg sys">对话只保存在你的浏览器里，不上传服务器。模型未接入时显示离线脚本化演示回复，并明确标注。</div></div>
+<div class="row" style="margin:10px 0"><div style="flex:1"><label for="sceneNovel">场景时间点（必选，决定人物能知道什么）</label><select id="sceneNovel"><option value="casino-royale">皇家赌场 · 1953</option></select></div></div><div id="groupPick" style="display:none"><label>同场第二人</label><select id="groupSecond"></select></div>
+<div class="chatbox" id="chatLog"><div class="msg sys">对话内容会发送至模型服务生成回复；本网站不保存聊天历史。选择小说时间点后，人物按原著知识边界回答。</div></div>
 <div class="row" style="margin-top:10px"><div style="flex:3"><input id="chatInput" placeholder="说点什么…" maxlength="500"></div><button class="btn small" id="chatSend" style="flex:0 0 auto">发送</button></div>
 <p class="meta" id="modelLine">模型状态检测中…</p>
 </div>
@@ -170,7 +170,7 @@ details summary{cursor:pointer;color:var(--gold2);font-size:15px}
 
 <!--2情报馆-->
 <section class="mod" id="dossier">
-<h2><span class="en">INTELLIGENCE DOSSIER</span>情报档案馆</h2>
+<h2><span class="en">INTELLIGENCE ARCHIVE</span>情报档案馆</h2>
 <p class="mod-desc">跨全系列检索：小说、人物、地点、组织、武器装备、事件、反派计划、线索、关系、时间线。结果尽量给出书名与出处，原著事实与模型推断明确区分，推断必标。</p>
 <div class="row"><div style="flex:3"><input id="dossierQ" placeholder="输入关键词，如日本、苏联、莱特、武器、赌场、布洛菲尔德…"></div><button class="btn small" id="dossierGo" style="flex:0 0 auto">检索</button></div>
 <div class="chips">
@@ -193,7 +193,7 @@ details summary{cursor:pointer;color:var(--gold2);font-size:15px}
 
 <!--3任务模拟-->
 <section class="mod" id="mission">
-<h2><span class="en">MISSION SIMULATOR</span>任务模拟器</h2>
+<h2><span class="en">MISSION CONTROL</span>任务控制中心</h2>
 <p class="mod-desc">你扮演英国秘密情报机构行动人员。每个选择都会改变资金、风险、情报可信度、线索与人物关系，并决定后续分支与最终报告——不是AI自由讲故事，是真实状态机。</p>
 <div class="grid g2" id="missionList"></div>
 <div class="card" id="missionPanel" style="margin-top:14px"><h3>任务控制台</h3><p class="meta">先在上方选一个任务开始。</p><div class="empty">尚未开始任务</div></div>
@@ -201,7 +201,7 @@ details summary{cursor:pointer;color:var(--gold2);font-size:15px}
 
 <!--4成为邦德-->
 <section class="mod" id="experience">
-<h2><span class="en">BOND EXPERIENCE</span>成为詹姆斯·邦德</h2>
+<h2><span class="en">FIELD OPERATIONS</span>实战体验 · 成为邦德</h2>
 <p class="mod-desc">从M办公室领任务，到Q部门领装备，再到酒店、餐厅、酒吧、赌场、俱乐部与豪华汽车。赌场部分是真正可玩的百家乐：有规则、有对手、有筹码输赢。</p>
 <div class="chips" id="expScenes"></div>
 <div class="card" id="expPanel" style="margin-top:12px"><h3>场景</h3><p class="meta">点上方场景进入体验。</p><div class="empty">尚未选择场景</div></div>
@@ -226,7 +226,7 @@ details summary{cursor:pointer;color:var(--gold2);font-size:15px}
 
 <!--5文学研究室-->
 <section class="mod" id="literary">
-<h2><span class="en">FLEMING LITERARY LAB</span>文学研究室</h2>
+<h2><span class="en">LITERARY INTELLIGENCE</span>文学研究与创作实验</h2>
 <p class="mod-desc">研究伊恩·弗莱明的写作方式：人物塑造、悬念、信息控制、节奏、动作、气氛、女性角色、冷战背景、小说与电影改编差异。原创写作实验一律标注非原著，绝不冒充原著内容。</p>
 <div class="grid g2" id="litTopics"></div>
 <div class="grid g2" style="margin-top:14px;align-items:start">
@@ -249,7 +249,7 @@ details summary{cursor:pointer;color:var(--gold2);font-size:15px}
 
 <!--6世界地图-->
 <section class="mod" id="atlas">
-<h2><span class="en">WORLD ATLAS</span>007世界地图</h2>
+<h2><span class="en">WORLD EXPLORER</span>007世界探索</h2>
 <p class="mod-desc">15处地点，全部来自示例知识库。真实城市标注真实坐标，虚构地点（如皇家莱索、蟹礁岛）明确标为虚构，不给假坐标。点地图上的点或下方卡片，进入相关人物、事件与小说。</p>
 <div class="row">
 <div><label>按人物筛选</label><select id="atlasPerson"><option value="">全部人物</option></select></div>
@@ -264,7 +264,7 @@ details summary{cursor:pointer;color:var(--gold2);font-size:15px}
 
 <!--7TXT导入-->
 <section class="mod" id="import">
-<h2><span class="en">TXT IMPORT</span>原著TXT导入</h2>
+<h2><span class="en">SOURCE INGESTION</span>资料导入与核验</h2>
 <p class="mod-desc">全本14本已转txt共926290词，13本章节索引通过、1本待复核，知识库仍标示例数据·待TXT导入核验。导入流程：本地解析txt（计算哈希、识别小说名与章节、统计字数行数）→摘要POST到服务端校验（重复检测、小说识别、错误报告）→核验后按数据结构入库。服务端不接收、不存储原著全文。</p>
 <div class="grid g2" style="align-items:start">
 <div class="card"><h3>批量导入</h3>
