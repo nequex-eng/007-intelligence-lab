@@ -100,6 +100,13 @@ const chatValidButOffline = await json(await chat(postCtx("/api/chat", {
 assert.equal(chatValidButOffline.status, 503);
 assert.equal(chatValidButOffline.body.code, "MODEL_NOT_CONNECTED", "valid canon chat must stop cleanly when no model is configured");
 
+const quartermasterSimulation = await json(await chat(postCtx("/api/chat", {
+  characterIds: ["q"], mode: "quartermaster", novelId: "casino-royale",
+  messages: [{ role: "user", content: "我即将前往皇家莱索赌场，需要哪些监听与通信装备？" }]
+})));
+assert.equal(quartermasterSimulation.status, 503, "Q quartermaster mode is an explicitly non-canon simulation and must reach model availability check");
+assert.equal(quartermasterSimulation.body.code, "MODEL_NOT_CONNECTED");
+
 const chatMBeforeAppearance = await json(await chat(postCtx("/api/chat", {
   characterIds: ["m"],
   novelId: "casino-royale",
