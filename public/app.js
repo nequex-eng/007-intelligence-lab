@@ -898,7 +898,7 @@ gs.innerHTML = CHARACTERS.filter((x) => x.id!== id).map((x) => `<option value="$
 function speakerSurname(character) {
   if (!character) return "";
   const name = LANGUAGE === "en" ? (character.name || "") : (character.zh || character.name || "");
-  const parts = name.trim().split(/[·・\\s]+/).filter(Boolean);
+  const parts = name.trim().split(/[·・\s]+/).filter(Boolean);
   return parts.length ? parts[parts.length - 1] : name;
 }
 
