@@ -778,7 +778,7 @@ const EN_TEXT = new Map([
   ["搜索地点、国家或小说…","Search locations, countries or novels…"],
   ["正在读取核验地点索引…","Loading verified location index…"],
   ["本站为粉丝研究模拟，非官方，与伊恩·弗莱明遗产管理方及出版方无关。对话与原创任务由AI生成或按示例脚本演示，不是原著引文。原著引用必要、简短并标注出处，不提供整本小说下载，不做公开阅读网站。","This is an unofficial fan research simulation and is not affiliated with the Ian Fleming estate or publishers. Conversations and original missions are AI-generated or scripted demonstrations, not novel quotations. Any necessary quotations are brief and sourced; no complete novel downloads or public ebook library are provided."],
-  ["数据状态：核验知识库已接入 · 版本与数据规模见情报档案馆状态卡 · 源码与知识库由GitHub版本管理 · 生产部署须经用户授权","Data: verified knowledge base connected · see the Archive status panel for version and scale · source code and knowledge base are version-controlled on GitHub · production deployment requires user authorisation"]
+  ["数据状态：核验知识库已接入 · 版本与数据规模见情报档案馆状态卡 · 源码与知识库由GitHub版本管理 · 生产部署须经用户授权","Data: verified knowledge base connected · see the Archive status panel for version and scale · source code and knowledge base are version-controlled on GitHub · production deployment requires user authorisation"],
 ["M办公室·领任务","M’s Office · Assignment"],
 ["Q部门·领装备","Q Branch · Equipment"],
 ["豪华酒店·入住","Luxury Hotel · Check-in"],
