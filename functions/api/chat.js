@@ -31,6 +31,9 @@ export async function onRequestPost(context) {
     if (ids.length > 3) return json({ error: "同场最多3人", code: "TOO_MANY_CHARACTERS" }, 400);
     if (new Set(ids).size !== ids.length) return json({ error: "同一人物不能重复加入场景", code: "DUPLICATE_CHARACTER" }, 400);
 
+    const mode = ["talk", "report", "quartermaster", "group"].includes(body.mode) ? body.mode : "talk";
+    if (mode === "report" && ids[0] !== "m") return json({ error: "向M汇报模式必须由M接收汇报", code: "REPORT_REQUIRES_M" }, 400);
+    if (mode === "quartermaster" && ids[0] !== "q") return json({ error: "装备领取模式必须由Q负责", code: "QUARTERMASTER_REQUIRES_Q" }, 400);
     const novelId = body.novelId;
     if (!novelId) {
       return json({ error: "必须选择小说时间点，才能启动正典人物对话。", code: "SCENE_REQUIRED" }, 400);
@@ -76,8 +79,11 @@ export async function onRequestPost(context) {
       "你正在运行007原著正典角色模拟。只扮演本请求指定的人物，不得扮演用户。",
       ...prompts,
       "多人场景规则：每次发言必须以对应人物姓名开头；每个人物只能使用自己的知识范围及场景中明确获知的信息；不得把一个人物的私有知识转移给另一个人物；不得共享彼此未获知的信息。",
-      "如果检索事实不足，明确说不知道；不得以电影设定、其他小说的未来事件或常识补写原著空白。"
-    ].join("\n\n--- 人物边界 ---\n\n");
+      "如果检索事实不足，明确说不知道；不得以电影设定、其他小说的未来事件或常识补写原著空白。",
+      mode === "report" ? "当前是向M汇报模式：M是接收汇报的上级。以情报主管口吻听取行动结果，追问时间、地点、人物、证据和风险；区分已证实事实与推测，不要把M扮演成邦德。" : "",
+      mode === "quartermaster" ? "当前是Q部门装备领取模式：Q负责装备与技术说明。根据任务目的询问必要条件，说明可领装备、用途、限制和归还要求；不要跳出Q的职责。" : "",
+      mode === "group" ? "当前是多角色同场模式：所有被选人物都必须参与；每轮至少让每位人物各发言一次，姓名置于发言开头；人物之间不得共享未获知的私有知识。" : ""
+    ].filter(Boolean).join("\n\n--- 人物边界 ---\n\n");
 
     const out = await generate(context.env || {}, [
       { role: "system", content: system },
@@ -90,6 +96,7 @@ export async function onRequestPost(context) {
         characterIds: canonicalCharacters.map(c => c.id),
         novelId: book.novel_id,
         chapterNo,
+        mode,
         canonMode: true,
         model: out.model
       });
