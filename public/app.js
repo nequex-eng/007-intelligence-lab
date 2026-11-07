@@ -219,6 +219,8 @@ try {
 const [cr, br] = await Promise.all([fetch("/api/characters"), fetch("/api/canon?action=books")]);
 if (!cr.ok || !br.ok) throw new Error("canonical data unavailable");
 const cd = await cr.json(), bd = await br.json();
+BOOKS = (bd.books || []).map(b => ({ id:b.id, zh:b.titleZh, en:b.titleEn, year:b.year, kind:b.kind }));
+canonBooksLoaded = true;
 scene.innerHTML = "";
 CHARACTERS = cd.characters.map(c => ({
 id:c.id, name:c.name, zh:c.nameZh, role:c.role, firstBook:c.firstBook || "未标注", firstNovelId:c.firstNovelId || null,
@@ -486,10 +488,14 @@ return `<div class="card clickable" data-mission="${m.id}" data-resume="${saved}
 ${saved ? `<p class="meta">已保存进度：${esc(savedStage)}</p>` : ""}
 <button class="btn small">${saved ? "继续上次任务" : "开始任务"}</button></div>`;
 }).join("");
-$("#missionList [data-mission]").forEach((el) => el.addEventListener("click", () => {
-if (el.dataset.resume === "true") restoreMissionState(el.dataset.mission);
-else startMission(el.dataset.mission);
-}));
+$("#missionList").onclick = (event) => {
+const el = event.target.closest("[data-mission]");
+if (!el) return;
+const id = el.dataset.mission;
+if (el.dataset.resume === "true") {
+  if (!restoreMissionState(id)) startMission(id);
+} else startMission(id);
+};
 }
 
 function startMission(id) {
@@ -1009,8 +1015,8 @@ if (!r.ok) throw new Error("status " + r.status);
 const d = await r.json();
 const pill = $("#statusPill");
 if (d.llm && d.llm.available) { pill.textContent = "模型已接入：" + d.llm.provider; modelAvailable = true;}
-else { pill.textContent = "模型待接入·人物对话暂停"; pill.classList.add("red"); modelAvailable = false;}
-$("#modelLine").textContent = d.llm && d.llm.available? "模型已接入：" + d.llm.provider: "模型未接入：正典人物对话已暂停；档案、任务与世界探索仍可使用。";
+else { pill.textContent = "MiniMax未配置·人物对话暂停"; pill.classList.add("red"); modelAvailable = false;}
+$("#modelLine").textContent = d.llm && d.llm.available? "模型已接入：" + d.llm.provider: "MiniMax未配置：正典人物对话与文学分析暂停；档案、任务与世界探索仍可使用。";
 } catch (e) {
 $("#statusPill").textContent = "状态接口不可用";
 $("#statusPill").classList.add("red");
