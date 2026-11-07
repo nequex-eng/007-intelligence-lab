@@ -104,7 +104,7 @@ $("#charDetail").innerHTML = `<h3>${esc(c.name)} · ${esc(c.zh)}</h3>
 <p><b>人际关系：</b>${esc(c.rel)}</p>
 <p><b>参与事件：</b>${esc(c.events)}</p>
 <p><b>知识边界：</b>${esc(c.bounds)}</p>
-<p><b>原著事实（可检索）：</b></p>
+<p><b>知识库出处索引：</b></p>
 <ul style="font-size:14px;margin:4px 0;padding-left:20px">${c.facts.map((f) => `<li>${esc(f)}</li>`).join("")}</ul>
 <p class="meta">${SAMPLE}</p>
 <button class="btn small" id="talkThis">和${esc(c.zh)}对话</button>`;
