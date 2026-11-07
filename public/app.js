@@ -272,6 +272,33 @@ async function loadSceneChapters(novelId) {
 async function initCharacters() {
 const bf = $("#charBookFilter");
 const scene = $("#sceneNovel");
+
+// Bind controls before remote chapter loading: a slow chapter index must not disable the theatre.
+const modes = $("#chatModes .chipbtn");
+modes.forEach((b) => b.addEventListener("click", async () => {
+  modes.forEach((x) => x.classList.remove("active"));
+  b.classList.add("active");
+  chatMode = b.dataset.mode || "talk";
+  $("#groupPick").style.display = chatMode === "group" ? "block" : "none";
+  const hints = { talk: "选择人物后自动匹配其首次登场原著。", report: "向M汇报：系统自动切换为M接收汇报，输入行动经过与证据。", quartermaster: "Q部门：系统自动切换为Q，直接说明任务目的并领取装备。", group: "多角色同场：先选择主谈人物，再选择第二位人物，发送后两人共同回应。" };
+  $("#chatHint").textContent = hints[chatMode] || hints.talk;
+  if (chatMode === "report" || chatMode === "quartermaster") {
+    $("#sceneChapter").value = "";
+    await selectChar(chatMode === "report" ? "m" : "q");
+  }
+}));
+$("#charSearch").addEventListener("input", renderCharGrid);
+bf.addEventListener("change", renderCharGrid);
+$("#chatSend").addEventListener("click", (event) => { event.preventDefault(); sendChat(); });
+$("#sceneNovel").addEventListener("change", () => {
+  loadSceneChapters($("#sceneNovel").value);
+  restoreChatHistory();
+});
+$("#sceneChapter").addEventListener("change", restoreChatHistory);
+$("#chatInput").addEventListener("keydown", (event) => {
+  if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); sendChat(); }
+});
+
 try {
 const [cr, br] = await Promise.all([fetch("/api/characters"), fetch("/api/canon?action=books")]);
 if (!cr.ok || !br.ok) throw new Error("canonical data unavailable");
@@ -294,31 +321,12 @@ facts:[...(c.sources||[])].map(x=>"出处索引："+x), opener:"请按当前小�
 scene.value="casino-royale";
 const initialBook = BOOKS.find(b => b.id === scene.value);
 if ($("#sceneNovelLabel")) $("#sceneNovelLabel").textContent = initialBook ? initialBook.zh + " · " + initialBook.year + "（选择人物后自动匹配）" : "选择人物后自动匹配";
-await loadSceneChapters(scene.value);
+// Render character cards immediately; chapter data is loaded in the background.
+renderCharGrid();
+loadSceneChapters(scene.value);
 } catch(e) {
 $("#charGrid").innerHTML='<div class="empty">核验知识库加载失败：'+esc(e.message)+'。请检查本地同步与API。</div>';
 }
-
-$("#charSearch").addEventListener("input", renderCharGrid);
-bf.addEventListener("change", renderCharGrid);
-$("#chatModes .chipbtn").forEach((b) => b.addEventListener("click", () => {
-$("#chatModes .chipbtn").forEach((x) => x.classList.remove("active"));
-b.classList.add("active");
-chatMode = b.dataset.mode;
-$("#groupPick").style.display = chatMode === "group"? "block": "none";
-const hints = { talk: "选择人物后自动匹配其首次登场原著。", report: "向M汇报：系统自动切换为M接收汇报，输入行动经过与证据。", quartermaster: "Q部门：系统自动切换为Q，直接说明任务目的并领取装备。", group: "多角色同场：先选择主谈人物，再选择第二位人物，发送后两人共同回应。"};
-$("#chatHint").textContent = hints[chatMode];
-if (chatMode === "report") { $("#sceneChapter").value = ""; selectChar("m"); }
-if (chatMode === "quartermaster") { $("#sceneChapter").value = ""; selectChar("q"); }
-}));
-$("#chatSend").addEventListener("click", sendChat);
-$("#sceneNovel").addEventListener("change", async () => {
-await loadSceneChapters($("#sceneNovel").value);
-restoreChatHistory();
-});
-$("#sceneChapter").addEventListener("change", restoreChatHistory);
-$("#chatInput").addEventListener("keydown", (e) => { if (e.key === "Enter") sendChat();});
-renderCharGrid();
 }
 
 // ---- 情报档案馆 ----
