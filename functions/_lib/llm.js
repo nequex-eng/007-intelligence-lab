@@ -57,9 +57,12 @@ async function callMiniMax(env, messages) {
   const text = Array.isArray(content)
     ? content.map(x => typeof x === "string" ? x : x.text || "").join("")
     : content;
-  return typeof text === "string" && text.trim()
-    ? { ok: true, text: text.trim() }
-    : { ok: false, reason: "Empty content in model response" };
+  if (typeof text === "string" && text.trim()) return { ok: true, text: text.trim() };
+  const choice = data?.choices?.[0];
+  const msg = choice?.message || {};
+  const reason = `Empty content; top=${Object.keys(data || {}).join(",")}; choice=${Object.keys(choice || {}).join(",")}; message=${Object.keys(msg).join(",")}; finish=${choice?.finish_reason || "none"}; reasoningChars=${typeof msg.reasoning_content === "string" ? msg.reasoning_content.length : 0}; replyChars=${typeof data?.reply === "string" ? data.reply.length : 0}`;
+  console.error("MiniMax response shape", reason);
+  return { ok: false, reason };
 }
 
 export async function generate(env, messages) {
