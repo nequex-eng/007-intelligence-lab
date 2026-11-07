@@ -119,7 +119,7 @@ function filteredCanonLocations() {
   return canonWorldLocations.filter(p =>
     (!country || p.country === country) &&
     (!book || p.appearances.some(a => a.novel === book)) &&
-    (!era || p.appearances.some(a => era === "1950s" ? Number(a.year) < 1960 : Number(a.year) >= 1960))
+    (!era || p.appearances.some(a => { const year = Number(a.year); return Number.isFinite(year) && (era === "1950s" ? year < 1960 : year >= 1960); }))
   );
 }
 
