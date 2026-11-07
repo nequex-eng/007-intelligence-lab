@@ -41,6 +41,12 @@ const m = await json(await mission(ctx("/api/mission?id=casino-royale")));
 assert.equal(m.body.novel.id, "casino-royale");
 assert.equal(m.body.missionMode, "interactive-adaptation");
 assert.ok(m.body.facts.length > 0);
+for (const novelId of ["dr-no", "goldfinger", "thunderball"]) {
+  const missionBrief = await json(await mission(ctx("/api/mission?id=" + novelId)));
+  assert.equal(missionBrief.status, 200, `mission brief exists for ${novelId}`);
+  assert.ok(missionBrief.body.chapters.length > 0, `mission brief has chapters for ${novelId}`);
+  assert.ok(missionBrief.body.facts.length > 0, `mission brief has canon facts for ${novelId}`);
+}
 
 const sceneOk = await json(await canon(ctx("/api/canon?action=scene&character=bond&novel=casino-royale")));
 assert.equal(sceneOk.status, 200);
