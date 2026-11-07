@@ -51,7 +51,7 @@ export async function onRequestPost(context) {
     const history = incoming
       .filter(m => m && typeof m.content === "string" && (m.role === "user" || m.role === "assistant"))
       .slice(-24)
-      .map(m => ({ role: m.role, content: m.content.slice(0, 1200) }));
+      .map(m => ({ role: m.role, content: m.content.slice(0, 1200), characterId: typeof m.characterId === "string" ? m.characterId : null }));
 
     if (!history.length || history[history.length - 1].role !== "user") {
       return json({ error: "请先说一句话", code: "MESSAGE_REQUIRED" }, 400);
