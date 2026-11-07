@@ -131,9 +131,12 @@ function restoreChatHistory() {
 function charById(id) { return CHARACTERS.find((c) => c.id === id);}
 
 function renderCharGrid() {
-const q = ($("#charSearch").value || "").trim();
+const q = ($("#charSearch").value || "").trim().toLocaleLowerCase();
 const bf = $("#charBookFilter").value;
-const list = CHARACTERS.filter((c) => (!q || (c.zh + c.name + c.role).includes(q)) && (!bf || c.firstBook === bf));
+const list = CHARACTERS.filter((c) => {
+  const searchable = [c.zh, c.name, c.role, ...(c.aliases || [])].filter(Boolean).join(" ").toLocaleLowerCase();
+  return (!q || searchable.includes(q)) && (!bf || c.firstNovelId === bf || c.firstBook === bf);
+});
 $("#charGrid").innerHTML = list.length? list.map((c) =>
 `<div class="card clickable ${selectedChar === c.id? "active": ""}" data-char="${c.id}">
 <h3>${esc(c.name)}</h3><p style="font-size:15px;margin:2px 0">${esc(c.zh)}</p>
@@ -274,7 +277,7 @@ const bf = $("#charBookFilter");
 const scene = $("#sceneNovel");
 
 // Bind controls before remote chapter loading: a slow chapter index must not disable the theatre.
-const modes = $("#chatModes .chipbtn");
+const modes = $$("#chatModes .chipbtn");
 modes.forEach((b) => b.addEventListener("click", async () => {
   modes.forEach((x) => x.classList.remove("active"));
   b.classList.add("active");
@@ -316,7 +319,7 @@ events:Array.isArray(c.knowledgeScope)?c.knowledgeScope.filter(x=>x.status==="pr
 bounds:[...(c.knowledgeBoundaries||[]),...(c.behavioralBoundaries||[])].join("；"),
 facts:[...(c.sources||[])].map(x=>"出处索引："+x), opener:"请按当前小说时间点与原著事实提问。", scripted:["原著没有明确写到的部分，我不会替作者补写。"]
 }));
- [...new Set(CHARACTERS.map(c=>c.firstBook))].forEach(b=>{const o=document.createElement("option");o.value=b;o.textContent=b;bf.appendChild(o);});
+ [...new Map(CHARACTERS.map(c => [c.firstNovelId || c.firstBook, { value: c.firstNovelId || c.firstBook, label: c.firstBook || c.firstNovelId || "首次登场未标注" }])).values()].forEach(item=>{const o=document.createElement("option");o.value=item.value;o.textContent=item.label;bf.appendChild(o);});
  bd.books.forEach(b => { const so=document.createElement("option");so.value=b.id;so.textContent=b.titleZh+" · "+b.year;scene.appendChild(so); });
 scene.value="casino-royale";
 const initialBook = BOOKS.find(b => b.id === scene.value);
@@ -324,6 +327,7 @@ if ($("#sceneNovelLabel")) $("#sceneNovelLabel").textContent = initialBook ? ini
 // Render character cards immediately; chapter data is loaded in the background.
 renderCharGrid();
 loadSceneChapters(scene.value);
+if (CHARACTERS.some(c => c.id === "bond")) await selectChar("bond");
 } catch(e) {
 $("#charGrid").innerHTML='<div class="empty">核验知识库加载失败：'+esc(e.message)+'。请检查本地同步与API。</div>';
 }
