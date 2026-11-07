@@ -47,6 +47,14 @@ assert.equal(sceneOk.status, 200);
 const sceneBlocked = await json(await canon(ctx("/api/canon?action=scene&character=m&novel=spy-who-loved-me")));
 assert.equal(sceneBlocked.status, 409);
 
+const chapters = await json(await canon(ctx("/api/canon?action=chapters&novel=casino-royale")));
+assert.equal(chapters.status, 200);
+assert.equal(chapters.body.chapters.length, 27, "chapter index is exposed from the knowledge base");
+const mBeforeAppearance = await json(await canon(ctx("/api/canon?action=scene&character=m&novel=casino-royale&chapter=1")));
+assert.equal(mBeforeAppearance.status, 409, "M cannot appear before chapter 2");
+const mAtAppearance = await json(await canon(ctx("/api/canon?action=scene&character=m&novel=casino-royale&chapter=2")));
+assert.equal(mAtAppearance.status, 200);
+
 const chatWithoutTimeline = await json(await chat(postCtx("/api/chat", {
   characterIds: ["bond"],
   messages: [{ role: "user", content: "你是谁？" }]
@@ -57,10 +65,28 @@ assert.equal(chatWithoutTimeline.body.code, "SCENE_REQUIRED", "chat must require
 const chatValidButOffline = await json(await chat(postCtx("/api/chat", {
   characterIds: ["bond"],
   novelId: "casino-royale",
+  chapterNo: 1,
   messages: [{ role: "user", content: "你是谁？" }]
 })));
 assert.equal(chatValidButOffline.status, 503);
 assert.equal(chatValidButOffline.body.code, "MODEL_NOT_CONNECTED", "valid canon chat must stop cleanly when no model is configured");
+
+const chatMBeforeAppearance = await json(await chat(postCtx("/api/chat", {
+  characterIds: ["m"],
+  novelId: "casino-royale",
+  chapterNo: 1,
+  messages: [{ role: "user", content: "你是谁？" }]
+})));
+assert.equal(chatMBeforeAppearance.status, 409, "M must be blocked before first appearance");
+
+const chatInvalidChapter = await json(await chat(postCtx("/api/chat", {
+  characterIds: ["bond"],
+  novelId: "casino-royale",
+  chapterNo: 999,
+  messages: [{ role: "user", content: "你是谁？" }]
+})));
+assert.equal(chatInvalidChapter.status, 400);
+assert.equal(chatInvalidChapter.body.code, "UNKNOWN_CHAPTER");
 
 const chatFutureKnowledgeBlocked = await json(await chat(postCtx("/api/chat", {
   characterIds: ["vesper-lynd"],
