@@ -90,10 +90,23 @@ $("#charGrid").innerHTML = list.length? list.map((c) =>
 $$("#charGrid [data-char]").forEach((el) => el.addEventListener("click", () => selectChar(el.dataset.char)));
 }
 
-function selectChar(id) {
-selectedChar = id;
-restoreChatHistory();
+async function selectChar(id) {
 const c = charById(id);
+if (!c) { addChatMsg("sys", "知识库中没有找到该人物，无法启动角色模式。"); return; }
+const previousChar = selectedChar;
+selectedChar = id;
+if (previousChar !== id && $("#sceneChapter")) $("#sceneChapter").value = "";
+const matchedNovel = c.firstNovelId || BOOKS.find(b => b.zh === c.firstBook)?.id || "casino-royale";
+const scene = $("#sceneNovel");
+if (scene && matchedNovel && scene.value !== matchedNovel) {
+  scene.value = matchedNovel;
+  await loadSceneChapters(matchedNovel);
+  $("#sceneChapter").value = "";
+}
+const matchedBook = BOOKS.find(b => b.id === matchedNovel);
+const sceneLabel = $("#sceneNovelLabel");
+if (sceneLabel) sceneLabel.textContent = matchedBook ? matchedBook.zh + " · " + matchedBook.year + "（按人物首次登场自动匹配）" : (c.firstBook || "自动匹配原著");
+restoreChatHistory();
 renderCharGrid();
 $("#charDetail").innerHTML = `<h3>${esc(c.name)} · ${esc(c.zh)}</h3>
 <p><span class="tag gold">${esc(c.role)}</span> <span class="tag">首次登场：${esc(c.firstBook)}（${c.firstYear}年）</span> <span class="tag red">知识截止：${esc(c.cutoff)}</span></p>
@@ -138,6 +151,7 @@ async function sendChat() {
 const input = $("#chatInput").value.trim();
 if (!input) return;
 if (!selectedChar) { addChatMsg("sys", "请先在上方选一个人，再开始对话。"); return;}
+if (chatMode === "group" && !$("#groupSecond").value) { addChatMsg("sys", "多角色同场需要再选择一位人物。"); return; }
 const c = charById(selectedChar);
 $("#chatInput").value = "";
 addChatMsg("me", input, "你");
@@ -157,7 +171,7 @@ const sysNote = chatMode === "report"? "你正在向M汇报，M只听事实。":
 if (sysNote) addChatMsg("sys", sysNote);
 try {
 const r = await fetch("/api/chat", { method: "POST", headers: { "content-type": "application/json"},
-body: JSON.stringify({ characterIds: ids, novelId: $("#sceneNovel").value, chapterNo: $("#sceneChapter").value || null, messages: chatHistory.slice(-12)})});
+body: JSON.stringify({ characterIds: ids, novelId: $("#sceneNovel").value, chapterNo: $("#sceneChapter").value || null, mode: chatMode, messages: chatHistory.slice(-12)})});
 if (r.ok) {
 const d = await r.json();
 clearThinking();
@@ -208,9 +222,11 @@ try {
 const [cr, br] = await Promise.all([fetch("/api/characters"), fetch("/api/canon?action=books")]);
 if (!cr.ok || !br.ok) throw new Error("canonical data unavailable");
 const cd = await cr.json(), bd = await br.json();
+BOOKS = (bd.books || []).map(b => ({ id:b.id, zh:b.titleZh, en:b.titleEn, year:b.year, kind:b.kind }));
+canonBooksLoaded = true;
 scene.innerHTML = "";
 CHARACTERS = cd.characters.map(c => ({
-id:c.id, name:c.name, zh:c.nameZh, role:c.role, firstBook:c.firstBook || "未标注",
+id:c.id, name:c.name, zh:c.nameZh, role:c.role, firstBook:c.firstBook || "未标注", firstNovelId:c.firstNovelId || null,
 firstYear:c.firstYear || "", cutoff:c.timelineCutoff || "按知识库边界",
 intro:c.intro || "原文未提供完整背景资料。", appearance:c.appearance || "原文未提供。",
 personality:c.personality || "原文未提供。", speech:c.speech?.tone || "按原著对话与行为边界生成。",
@@ -222,6 +238,8 @@ facts:[...(c.sources||[])].map(x=>"出处索引："+x), opener:"请按当前小�
  [...new Set(CHARACTERS.map(c=>c.firstBook))].forEach(b=>{const o=document.createElement("option");o.value=b;o.textContent=b;bf.appendChild(o);});
  bd.books.forEach(b => { const so=document.createElement("option");so.value=b.id;so.textContent=b.titleZh+" · "+b.year;scene.appendChild(so); });
 scene.value="casino-royale";
+const initialBook = BOOKS.find(b => b.id === scene.value);
+if ($("#sceneNovelLabel")) $("#sceneNovelLabel").textContent = initialBook ? initialBook.zh + " · " + initialBook.year + "（选择人物后自动匹配）" : "选择人物后自动匹配";
 await loadSceneChapters(scene.value);
 } catch(e) {
 $("#charGrid").innerHTML='<div class="empty">核验知识库加载失败：'+esc(e.message)+'。请检查本地同步与API。</div>';
@@ -234,10 +252,10 @@ $$("#chatModes.chipbtn").forEach((x) => x.classList.remove("active"));
 b.classList.add("active");
 chatMode = b.dataset.mode;
 $("#groupPick").style.display = chatMode === "group"? "block": "none";
-const hints = { talk: "先选一个人，再开始对话。当前模式：自由对话。", report: "向M汇报：先选M，再汇报事实。M只听事实，不听看法。", quartermaster: "找Q领装备：先选Q，再说你要领什么装备。Q只谈装备。", group: "多角色同场：先选主谈人，再选同场第二人，最多同场对话由两人轮流回应。"};
+const hints = { talk: "选择人物后自动匹配其首次登场原著。", report: "向M汇报：系统自动切换为M接收汇报，输入行动经过与证据。", quartermaster: "Q部门：系统自动切换为Q，直接说明任务目的并领取装备。", group: "多角色同场：先选择主谈人物，再选择第二位人物，发送后两人共同回应。"};
 $("#chatHint").textContent = hints[chatMode];
-if (chatMode === "report") selectChar("m");
-if (chatMode === "quartermaster") selectChar("q");
+if (chatMode === "report") { $("#sceneChapter").value = ""; selectChar("m"); }
+if (chatMode === "quartermaster") { $("#sceneChapter").value = ""; selectChar("q"); }
 }));
 $("#chatSend").addEventListener("click", sendChat);
 $("#sceneNovel").addEventListener("change", async () => {
@@ -473,10 +491,14 @@ return `<div class="card clickable" data-mission="${m.id}" data-resume="${saved}
 ${saved ? `<p class="meta">已保存进度：${esc(savedStage)}</p>` : ""}
 <button class="btn small">${saved ? "继续上次任务" : "开始任务"}</button></div>`;
 }).join("");
-$("#missionList [data-mission]").forEach((el) => el.addEventListener("click", () => {
-if (el.dataset.resume === "true") restoreMissionState(el.dataset.mission);
-else startMission(el.dataset.mission);
-}));
+$("#missionList").onclick = (event) => {
+const el = event.target.closest("[data-mission]");
+if (!el) return;
+const id = el.dataset.mission;
+if (el.dataset.resume === "true") {
+  if (!restoreMissionState(id)) startMission(id);
+} else startMission(id);
+};
 }
 
 function startMission(id) {
@@ -647,72 +669,78 @@ function showExpScene(id) {
 }
 
 // 百家乐（简化规则，已在页面说明）
-let bacChips = 1000, bacWins = 0, bacLosses = 0, bacStreak = 0;
+let bacChips = 1000, bacWins = 0, bacLosses = 0, bacPushes = 0, bacStreak = 0;
 const SUITS = ["♠", "♥", "♦", "♣"];
 const RANKS = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
-function drawCard() {
-  const r = RANKS[Math.floor(Math.random() * RANKS.length)];
-  const s = SUITS[Math.floor(Math.random() * SUITS.length)];
-  const v = r === "A" ? 1 : (["10", "J", "Q", "K"].includes(r) ? 0 : parseInt(r, 10));
-  return { label: r + s, value: v };
+function createShoe() {
+  const deck = [];
+  for (const suit of SUITS) for (const rank of RANKS) {
+    const value = rank === "A" ? 1 : (["10", "J", "Q", "K"].includes(rank) ? 0 : parseInt(rank, 10));
+    deck.push({ label: rank + suit, value });
+  }
+  for (let i = deck.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [deck[i], deck[j]] = [deck[j], deck[i]];
+  }
+  return deck;
 }
+function drawCard(shoe) { return shoe.pop(); }
 function handTotal(cards) { return cards.reduce((a, c) => a + c.value, 0) % 10; }
 function playBaccarat() {
-  const amount = Math.max(10, Math.min(bacChips, parseInt($("#bacAmount").value, 10) || 100));
   if (bacChips < 10) { $("#bacNote").textContent = "筹码不足，请点“重新领筹码”。"; return; }
+  const requested = parseInt($("#bacAmount").value, 10);
+  if (!Number.isFinite(requested) || requested < 10) { $("#bacNote").textContent = "每局最低下注10筹码。"; return; }
+  const amount = Math.min(bacChips, requested);
   const side = $("#bacSide").value;
-  const player = [drawCard(), drawCard()];
-  const banker = [drawCard(), drawCard()];
-  let pTotal = handTotal(player);
-  let bTotal = handTotal(banker);
+  const shoe = createShoe();
+  const player = [drawCard(shoe), drawCard(shoe)];
+  const banker = [drawCard(shoe), drawCard(shoe)];
+  bacChips -= amount;
+  let pTotal = handTotal(player), bTotal = handTotal(banker);
   const pNatural = pTotal >= 8, bNatural = bTotal >= 8;
   let pThird = null;
   if (!pNatural && !bNatural) {
-    if (pTotal <= 5) { pThird = drawCard(); player.push(pThird); pTotal = handTotal(player); }
-    if (pThird === null) { if (bTotal <= 5) { banker.push(drawCard()); bTotal = handTotal(banker); } }
-    else {
+    if (pTotal <= 5) { pThird = drawCard(shoe); player.push(pThird); pTotal = handTotal(player); }
+    if (pThird === null) {
+      if (bTotal <= 5) { banker.push(drawCard(shoe)); bTotal = handTotal(banker); }
+    } else {
       const tv = pThird.value;
-      if (bTotal <= 2) banker.push(drawCard());
-      else if (bTotal === 3 && tv !== 8) banker.push(drawCard());
-      else if (bTotal === 4 && tv >= 2 && tv <= 7) banker.push(drawCard());
-      else if (bTotal === 5 && tv >= 4 && tv <= 7) banker.push(drawCard());
-      else if (bTotal === 6 && (tv === 6 || tv === 7)) banker.push(drawCard());
+      if (bTotal <= 2) banker.push(drawCard(shoe));
+      else if (bTotal === 3 && tv !== 8) banker.push(drawCard(shoe));
+      else if (bTotal === 4 && tv >= 2 && tv <= 7) banker.push(drawCard(shoe));
+      else if (bTotal === 5 && tv >= 4 && tv <= 7) banker.push(drawCard(shoe));
+      else if (bTotal === 6 && (tv === 6 || tv === 7)) banker.push(drawCard(shoe));
       bTotal = handTotal(banker);
     }
   }
-  let result, payout = 0;
-  if (pTotal === bTotal) result = "tie";
-  else if (pTotal > bTotal) result = "player";
-  else result = "banker";
-  let text = "";
-  if (side === result) {
-    if (result === "tie") payout = amount * 8;
-    else if (result === "banker") payout = Math.floor(amount * 0.95);
-    else payout = amount;
-    bacChips += payout; bacWins++; bacStreak = bacStreak > 0 ? bacStreak + 1 : 1;
-    text = result === "tie" ? "和局！你押中和局，赢" + payout + "筹码。" : "你赢了这把，赢" + payout + "筹码。";
+  const result = pTotal === bTotal ? "tie" : pTotal > bTotal ? "player" : "banker";
+  let payout = 0, outcome = "";
+  if (result === "tie" && side !== "tie") {
+    bacChips += amount; bacPushes++; bacStreak = 0;
+    outcome = "和局，庄闲投注退回本金，本局不输不赢。";
+  } else if (side === result) {
+    payout = result === "tie" ? amount * 8 : result === "banker" ? Math.floor(amount * 0.95) : amount;
+    bacChips += amount + payout; bacWins++; bacStreak = bacStreak > 0 ? bacStreak + 1 : 1;
+    outcome = result === "tie" ? "和局！你押中和局，净赢" + payout + "筹码。" : "你赢了这把，净赢" + payout + "筹码。";
   } else {
-    bacChips -= amount; bacLosses++; bacStreak = bacStreak < 0 ? bacStreak - 1 : -1;
-    text = "这把输了，输掉" + amount + "筹码。" + (result === "tie" ? "本局为和局。" : (result === "player" ? "闲家胜。" : "庄家胜。"));
+    bacLosses++; bacStreak = bacStreak < 0 ? bacStreak - 1 : -1;
+    outcome = "这把输了，输掉" + amount + "筹码。" + (result === "player" ? "闲家胜。" : result === "banker" ? "庄家胜。" : "本局和局。");
   }
   const rival = bacStreak >= 3 ? "勒·希弗眯起眼睛：“你今晚手气不错，邦德先生。”" : bacStreak <= -3 ? "勒·希弗冷笑：“筹码会自己长脚走到我这边来。”" : bacStreak > 0 ? "勒·希弗：“继续，别停。”" : bacStreak < 0 ? "勒·希弗：“别急，牌桌还长着呢。”" : "勒·希弗观望中。";
   $("#bacChips").textContent = bacChips;
   $("#bacBet").textContent = amount + "·" + ({ player: "闲家", banker: "庄家", tie: "和局" }[side]);
-  $("#bacRecord").textContent = bacWins + "胜" + bacLosses + "负";
+  $("#bacRecord").textContent = bacWins + "胜" + bacLosses + "负" + bacPushes + "和";
   $("#bacRival").textContent = rival;
-  $("#bacTable").innerHTML = `<table><tr><th>闲家</th><th>点数</th><th>庄家</th><th>点数</th></tr>
-  <tr><td>${player.map((c) => esc(c.label)).join(" ")}</td><td><b>${pTotal}</b></td><td>${banker.map((c) => esc(c.label)).join(" ")}</td><td><b>${bTotal}</b></td></tr></table>
-  <p style="margin-top:10px">${esc(text)}</p><p class="meta">${esc(rival)}</p>
-  <p class="meta">简化规则说明：闲家0–5点补牌，6–7点停牌；庄家按简化补牌表执行。和局赔8倍，庄赢赔0.95倍，闲赢赔1倍。</p>`;
+  $("#bacTable").innerHTML = `<table><tr><th>闲家</th><th>点数</th><th>庄家</th><th>点数</th></tr><tr><td>${player.map(c => esc(c.label)).join(" ")}</td><td><b>${pTotal}</b></td><td>${banker.map(c => esc(c.label)).join(" ")}</td><td><b>${bTotal}</b></td></tr></table><p style="margin-top:10px">${esc(outcome)}</p><p class="meta">${esc(rival)}</p>`;
   $("#bacNote").textContent = bacChips <= 0 ? "筹码用完了，点“重新领筹码”恢复1000。" : "";
 }
 
 function initBaccarat() {
   $("#bacDeal").addEventListener("click", playBaccarat);
   $("#bacReset").addEventListener("click", () => {
-    bacChips = 1000; bacWins = 0; bacLosses = 0; bacStreak = 0;
+    bacChips = 1000; bacWins = 0; bacLosses = 0; bacPushes = 0; bacStreak = 0;
     $("#bacChips").textContent = bacChips;
-    $("#bacRecord").textContent = "0胜0负";
+    $("#bacRecord").textContent = "0胜0负0和";
     $("#bacRival").textContent = "观望中";
     $("#bacBet").textContent = "—";
     $("#bacTable").innerHTML = `<div class="empty">已重新领筹码1000。祝牌桌好运。</div>`;
@@ -766,26 +794,24 @@ const box = $("#litAnswer");
 if (!q) { box.innerHTML = `<div class="empty">请先输入问题。</div>`; return; }
 box.innerHTML = `<div class="empty">正在核验14部原著索引……</div>`;
 try {
-const r = await fetch("/api/dossier?q=" + encodeURIComponent(q) + "&limit=12");
-if (!r.ok) throw new Error("正典检索接口返回 " + r.status);
-const d = await r.json();
-const results = d.results || [];
-if (!results.length) {
-box.innerHTML = `<div class="empty">核验知识库没有找到与“${esc(q)}”直接匹配的事实或人物记录。当前不做无出处推断。</div>`;
-return;
-}
-box.innerHTML = `<p class="meta">检索到${results.length}条核验记录；以下为资料依据，不等同于模型生成的文学评论。</p>` + results.map(x => {
-const title = x.title_zh || x.name_zh || x.name || x.entity || x.id || "原著记录";
-const source = [x.title_zh && x.novel_id ? x.title_zh : null, x.chapter ? "第"+x.chapter+"章" : null].filter(Boolean).join(" · ") || x.novel_id || (x.sources || []).join("；") || "索引记录";
-const detail = x.fact || x.description || x.summary || x.role || x.quote || "该条目没有提供摘要。";
-const kind = x.canon_or_inference === "inference" ? "推测" : x.canon_or_inference === "canon" ? "正典事实" : x.kind || "档案";
-return `<div class="card" style="margin:8px 0"><h3>${esc(title)} <span class="tag gold">${esc(kind)}</span></h3><p class="meta">出处：${esc(source)}</p><p>${esc(detail)}</p>${x.quote ? `<blockquote>${esc(x.quote)}</blockquote>` : ""}</div>`;
-}).join("");
+const r = await fetch("/api/literary", {
+  method: "POST", headers: { "content-type": "application/json" },
+  body: JSON.stringify({ question: q })
+});
+const d = await r.json().catch(() => ({}));
+const results = d.evidence || [];
+const answer = d.answer
+  ? `<div class="card" style="margin:8px 0"><h3>MiniMax 文学分析</h3><p style="white-space:pre-wrap">${esc(d.answer)}</p><p class="meta">模型：${esc(d.model || "MiniMax")} · 结论仅在所列原著证据范围内成立。</p></div>`
+  : `<div class="empty">${esc(d.error || "模型暂不可用。以下先展示可检索到的原著证据；配置 MiniMax 后可生成完整文学分析。")}</div>`;
+const evidence = results.length
+  ? `<p class="meta">核验知识库证据：${results.length}条</p>` + results.map(x => `<div class="card" style="margin:8px 0"><h3>${esc(x.title || "原著记录")} <span class="tag gold">${esc(x.kind || "正典资料")}</span></h3><p class="meta">出处：${esc(x.source || "索引记录")}</p><p>${esc(x.detail || "")}</p></div>`).join("")
+  : `<div class="empty">知识库没有找到直接匹配的证据；分析会明确区分推断与原著事实。</div>`;
+box.innerHTML = answer + evidence;
 } catch (e) {
 box.innerHTML = `<div class="empty">正典检索失败：${esc(e.message)}。</div>`;
 }
 });
-$("[data-lab]").forEach((b) => b.addEventListener("click", async () => {
+$$("[data-lab]").forEach((b) => b.addEventListener("click", async () => {
 try {
 if (b.dataset.lab === "compare") await ensureCanonBooks();
 $("#labOut").innerHTML = `<p style="font-size:15px">${esc(LAB_GEN[b.dataset.lab]())}</p><p class="meta">研究提纲/原创实验内容，不替代原著章节证据。</p>`;
@@ -933,6 +959,7 @@ async function loadCanonWorldDirectory() {
 }
 
 async function initAtlas() {
+  try {
   await loadCanonWorldDirectory();
   const countries = [...new Set(canonWorldLocations.map(p => p.country).filter(Boolean))].sort();
   countries.forEach(c => {
@@ -946,6 +973,13 @@ async function initAtlas() {
   });
   ["atlasCountry","atlasBook","atlasEra"].forEach(id => document.getElementById(id).addEventListener("change", renderAtlas));
   renderAtlas();
+  } catch (e) {
+    const directory = $("#canonWorldDirectory");
+    if (directory) directory.innerHTML = `<div class="empty">世界探索初始化失败：${esc(e.message)}</div>`;
+    const map = $("#mapWrap");
+    if (map) map.textContent = "地图初始化失败，请刷新重试。";
+    console.error("atlas init failed", e);
+  }
 }
 
 // ---- 正典知识库状态 ----
@@ -982,8 +1016,8 @@ if (!r.ok) throw new Error("status " + r.status);
 const d = await r.json();
 const pill = $("#statusPill");
 if (d.llm && d.llm.available) { pill.textContent = "模型已接入：" + d.llm.provider; modelAvailable = true;}
-else { pill.textContent = "模型待接入·人物对话暂停"; pill.classList.add("red"); modelAvailable = false;}
-$("#modelLine").textContent = d.llm && d.llm.available? "模型已接入：" + d.llm.provider: "模型未接入：正典人物对话已暂停；档案、任务与世界探索仍可使用。";
+else { pill.textContent = "MiniMax未配置·人物对话暂停"; pill.classList.add("red"); modelAvailable = false;}
+$("#modelLine").textContent = d.llm && d.llm.available? "模型已接入：" + d.llm.provider: "MiniMax未配置：正典人物对话与文学分析暂停；档案、任务与世界探索仍可使用。";
 } catch (e) {
 $("#statusPill").textContent = "状态接口不可用";
 $("#statusPill").classList.add("red");
@@ -992,13 +1026,20 @@ $("#modelLine").textContent = "状态接口不可用，无法确认模型状态�
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-initCharacters();
-initDossier();
-initMissions();
-initExperience();
-initBaccarat();
-initLiterary();
-initAtlas();
-initCanonDataStatus();
-initStatus();
+  const tasks = [
+    ["人物剧场", initCharacters], ["情报档案馆", initDossier],
+    ["任务控制中心", initMissions], ["场景体验", initExperience],
+    ["百家乐", initBaccarat], ["文学研究", initLiterary],
+    ["世界探索", initAtlas], ["知识库状态", initCanonDataStatus],
+    ["模型状态", initStatus]
+  ];
+  for (const [name, init] of tasks) {
+    try {
+      const result = init();
+      if (result && typeof result.catch === "function") result.catch(e => {
+        console.error(name + "初始化失败", e);
+        if (name === "模型状态" && $("#statusPill")) $("#statusPill").textContent = "模型状态检测失败";
+      });
+    } catch (e) { console.error(name + "初始化失败", e); }
+  }
 });
