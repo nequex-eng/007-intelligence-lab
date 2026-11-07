@@ -1,3 +1,57 @@
+
+// 手机端顶栏随滚动方向自动收敛：下滑隐藏副标题与导航，上滑恢复完整导航。
+(() => {
+  const topbar = document.querySelector(".topbar");
+  if (!topbar) return;
+  const mobile = window.matchMedia("(max-width: 760px)");
+  let lastY = Math.max(0, window.scrollY || 0);
+  let directionTravel = 0;
+  let compact = false;
+  const setCompact = (next) => {
+    if (!mobile.matches || (window.scrollY || 0) < 48) next = false;
+    if (compact === next) return;
+    compact = next;
+    topbar.classList.toggle("is-compact", compact);
+    topbar.setAttribute("data-compact", compact ? "true" : "false");
+  };
+  const onScroll = () => {
+    if (!mobile.matches) {
+      setCompact(false);
+      lastY = Math.max(0, window.scrollY || 0);
+      directionTravel = 0;
+      return;
+    }
+    const y = Math.max(0, window.scrollY || 0);
+    const delta = y - lastY;
+    if (y < 48) {
+      directionTravel = 0;
+      setCompact(false);
+    } else if (Math.abs(delta) > 1) {
+      directionTravel += delta;
+      if (directionTravel > 12) {
+        setCompact(true);
+        directionTravel = 0;
+      } else if (directionTravel < -10) {
+        setCompact(false);
+        directionTravel = 0;
+      }
+    }
+    lastY = y;
+  };
+  window.addEventListener("scroll", onScroll, { passive: true });
+  mobile.addEventListener?.("change", () => {
+    directionTravel = 0;
+    lastY = Math.max(0, window.scrollY || 0);
+    setCompact(false);
+  });
+  topbar.addEventListener("click", (event) => {
+    if (compact && mobile.matches && !event.target.closest("a")) {
+      setCompact(false);
+      directionTravel = 0;
+    }
+  });
+})();
+
 // 007 INTELLIGENCE LAB前端逻辑。
 // 正典内容统一来自核验知识库API；静态场景仅用于明确标注的互动体验。
 const SAMPLE = "核验知识库 · Ian Fleming 14部原著";
