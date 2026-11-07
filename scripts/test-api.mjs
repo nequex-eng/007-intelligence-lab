@@ -137,6 +137,7 @@ const lit = await json(await literary(postCtx("/api/literary", { question: "é‚¦å
 assert.equal(lit.status, 503, "literary analysis reports missing MiniMax configuration instead of silent fallback");
 assert.equal(lit.body.code, "MODEL_NOT_CONNECTED");
 assert.ok(Array.isArray(lit.body.evidence));
+assert.ok(lit.body.evidence.length > 0, "literary natural-language question retrieves supporting canon evidence");
 
 const ambiguous = await json(await canon(ctx("/api/canon?action=resolve&q=Molony&kind=characters")));
 assert.equal(ambiguous.body.result.ambiguous, true);
