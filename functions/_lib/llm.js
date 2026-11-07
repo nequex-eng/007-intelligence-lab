@@ -28,7 +28,7 @@ async function callMiniMax(env, messages) {
       model: MINIMAX_MODEL,
       messages,
       temperature: 1,
-      max_completion_tokens: 2048,
+      max_completion_tokens: 8192,
       stream: false,
       reasoning_split: true
     })
