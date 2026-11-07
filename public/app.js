@@ -76,8 +76,7 @@ const EN_TEXT = new Map([
 ["32位核心人物正典档案：身份、外貌、性格、习惯、语言风格、人际关系、时间线与知识边界。对话按小说时间点执行三层约束；电影设定与原著隔离。","32 core character dossiers covering identity, appearance, personality, habits, speech, relationships, timelines and knowledge boundaries. Role-play follows a three-layer canon constraint system; film continuity is kept separate."],
 ["跨全系列检索：小说、人物、地点、组织、武器装备、事件、反派计划、线索、关系、时间线。结果尽量给出书名与出处，原著事实与模型推断明确区分，推断必标。","Search across all novels, characters, locations, organisations, equipment, events, plots, clues, relationships and timelines. Results distinguish sourced canon from inference and identify their sources."],
 ["你扮演英国秘密情报机构行动人员。每个选择都会改变资金、风险、情报可信度、线索与人物关系，并决定后续分支。状态机是互动改编；原著事实另附章节出处，不把玩家选择伪装成弗莱明原著。","You are an operative of the British Secret Service. Your choices affect funds, risk, intelligence confidence, clues and relationships. Mission branches are interactive adaptations, never presented as Fleming canon; source facts retain chapter references."],
-["世界探索以核验知识库中的170处地点为目录。地图只绘制有可靠真实坐标的城市；虚构地点与未核实坐标的地点只进入档案，不伪造坐标。","Explore 170 locations from the verified knowledge base. The map plots only real cities with reliable coordinates; fictional or unverified locations remain in the archive without fabricated pins."]
-
+["世界探索以核验知识库中的170处地点为目录。地图只绘制有可靠真实坐标的城市；虚构地点与未核实坐标的地点只进入档案，不伪造坐标。","Explore 170 locations from the verified knowledge base. The map plots only real cities with reliable coordinates; fictional or unverified locations remain in the archive without fabricated pins."],
 ["核验知识库 · Ian Fleming 14部原著","Verified Canon Database · Ian Fleming’s 14 Original Novels"],
 ["原文未提供完整背景资料。","No detailed background is provided in the source material."],
 ["原文未提供。","Not specified in the source material."],
@@ -250,7 +249,6 @@ const EN_TEXT = new Map([
 ["雷霆谷","You Only Live Twice"],
 ["金枪人","The Man with the Golden Gun"],
 ["八爪女与黎明生死线","Octopussy and The Living Daylights"],
-,
 ["数据状态：","Data status: "],
 ["14本","14 novels"],
 ["弗莱明邦德小说","Fleming Bond novels"],
