@@ -660,72 +660,78 @@ function showExpScene(id) {
 }
 
 // 百家乐（简化规则，已在页面说明）
-let bacChips = 1000, bacWins = 0, bacLosses = 0, bacStreak = 0;
+let bacChips = 1000, bacWins = 0, bacLosses = 0, bacPushes = 0, bacStreak = 0;
 const SUITS = ["♠", "♥", "♦", "♣"];
 const RANKS = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
-function drawCard() {
-  const r = RANKS[Math.floor(Math.random() * RANKS.length)];
-  const s = SUITS[Math.floor(Math.random() * SUITS.length)];
-  const v = r === "A" ? 1 : (["10", "J", "Q", "K"].includes(r) ? 0 : parseInt(r, 10));
-  return { label: r + s, value: v };
+function createShoe() {
+  const deck = [];
+  for (const suit of SUITS) for (const rank of RANKS) {
+    const value = rank === "A" ? 1 : (["10", "J", "Q", "K"].includes(rank) ? 0 : parseInt(rank, 10));
+    deck.push({ label: rank + suit, value });
+  }
+  for (let i = deck.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [deck[i], deck[j]] = [deck[j], deck[i]];
+  }
+  return deck;
 }
+function drawCard(shoe) { return shoe.pop(); }
 function handTotal(cards) { return cards.reduce((a, c) => a + c.value, 0) % 10; }
 function playBaccarat() {
-  const amount = Math.max(10, Math.min(bacChips, parseInt($("#bacAmount").value, 10) || 100));
   if (bacChips < 10) { $("#bacNote").textContent = "筹码不足，请点“重新领筹码”。"; return; }
+  const requested = parseInt($("#bacAmount").value, 10);
+  if (!Number.isFinite(requested) || requested < 10) { $("#bacNote").textContent = "每局最低下注10筹码。"; return; }
+  const amount = Math.min(bacChips, requested);
   const side = $("#bacSide").value;
-  const player = [drawCard(), drawCard()];
-  const banker = [drawCard(), drawCard()];
-  let pTotal = handTotal(player);
-  let bTotal = handTotal(banker);
+  const shoe = createShoe();
+  const player = [drawCard(shoe), drawCard(shoe)];
+  const banker = [drawCard(shoe), drawCard(shoe)];
+  bacChips -= amount;
+  let pTotal = handTotal(player), bTotal = handTotal(banker);
   const pNatural = pTotal >= 8, bNatural = bTotal >= 8;
   let pThird = null;
   if (!pNatural && !bNatural) {
-    if (pTotal <= 5) { pThird = drawCard(); player.push(pThird); pTotal = handTotal(player); }
-    if (pThird === null) { if (bTotal <= 5) { banker.push(drawCard()); bTotal = handTotal(banker); } }
-    else {
+    if (pTotal <= 5) { pThird = drawCard(shoe); player.push(pThird); pTotal = handTotal(player); }
+    if (pThird === null) {
+      if (bTotal <= 5) { banker.push(drawCard(shoe)); bTotal = handTotal(banker); }
+    } else {
       const tv = pThird.value;
-      if (bTotal <= 2) banker.push(drawCard());
-      else if (bTotal === 3 && tv !== 8) banker.push(drawCard());
-      else if (bTotal === 4 && tv >= 2 && tv <= 7) banker.push(drawCard());
-      else if (bTotal === 5 && tv >= 4 && tv <= 7) banker.push(drawCard());
-      else if (bTotal === 6 && (tv === 6 || tv === 7)) banker.push(drawCard());
+      if (bTotal <= 2) banker.push(drawCard(shoe));
+      else if (bTotal === 3 && tv !== 8) banker.push(drawCard(shoe));
+      else if (bTotal === 4 && tv >= 2 && tv <= 7) banker.push(drawCard(shoe));
+      else if (bTotal === 5 && tv >= 4 && tv <= 7) banker.push(drawCard(shoe));
+      else if (bTotal === 6 && (tv === 6 || tv === 7)) banker.push(drawCard(shoe));
       bTotal = handTotal(banker);
     }
   }
-  let result, payout = 0;
-  if (pTotal === bTotal) result = "tie";
-  else if (pTotal > bTotal) result = "player";
-  else result = "banker";
-  let text = "";
-  if (side === result) {
-    if (result === "tie") payout = amount * 8;
-    else if (result === "banker") payout = Math.floor(amount * 0.95);
-    else payout = amount;
-    bacChips += payout; bacWins++; bacStreak = bacStreak > 0 ? bacStreak + 1 : 1;
-    text = result === "tie" ? "和局！你押中和局，赢" + payout + "筹码。" : "你赢了这把，赢" + payout + "筹码。";
+  const result = pTotal === bTotal ? "tie" : pTotal > bTotal ? "player" : "banker";
+  let payout = 0, outcome = "";
+  if (result === "tie" && side !== "tie") {
+    bacChips += amount; bacPushes++; bacStreak = 0;
+    outcome = "和局，庄闲投注退回本金，本局不输不赢。";
+  } else if (side === result) {
+    payout = result === "tie" ? amount * 8 : result === "banker" ? Math.floor(amount * 0.95) : amount;
+    bacChips += amount + payout; bacWins++; bacStreak = bacStreak > 0 ? bacStreak + 1 : 1;
+    outcome = result === "tie" ? "和局！你押中和局，净赢" + payout + "筹码。" : "你赢了这把，净赢" + payout + "筹码。";
   } else {
-    bacChips -= amount; bacLosses++; bacStreak = bacStreak < 0 ? bacStreak - 1 : -1;
-    text = "这把输了，输掉" + amount + "筹码。" + (result === "tie" ? "本局为和局。" : (result === "player" ? "闲家胜。" : "庄家胜。"));
+    bacLosses++; bacStreak = bacStreak < 0 ? bacStreak - 1 : -1;
+    outcome = "这把输了，输掉" + amount + "筹码。" + (result === "player" ? "闲家胜。" : result === "banker" ? "庄家胜。" : "本局和局。");
   }
   const rival = bacStreak >= 3 ? "勒·希弗眯起眼睛：“你今晚手气不错，邦德先生。”" : bacStreak <= -3 ? "勒·希弗冷笑：“筹码会自己长脚走到我这边来。”" : bacStreak > 0 ? "勒·希弗：“继续，别停。”" : bacStreak < 0 ? "勒·希弗：“别急，牌桌还长着呢。”" : "勒·希弗观望中。";
   $("#bacChips").textContent = bacChips;
   $("#bacBet").textContent = amount + "·" + ({ player: "闲家", banker: "庄家", tie: "和局" }[side]);
-  $("#bacRecord").textContent = bacWins + "胜" + bacLosses + "负";
+  $("#bacRecord").textContent = bacWins + "胜" + bacLosses + "负" + bacPushes + "和";
   $("#bacRival").textContent = rival;
-  $("#bacTable").innerHTML = `<table><tr><th>闲家</th><th>点数</th><th>庄家</th><th>点数</th></tr>
-  <tr><td>${player.map((c) => esc(c.label)).join(" ")}</td><td><b>${pTotal}</b></td><td>${banker.map((c) => esc(c.label)).join(" ")}</td><td><b>${bTotal}</b></td></tr></table>
-  <p style="margin-top:10px">${esc(text)}</p><p class="meta">${esc(rival)}</p>
-  <p class="meta">简化规则说明：闲家0–5点补牌，6–7点停牌；庄家按简化补牌表执行。和局赔8倍，庄赢赔0.95倍，闲赢赔1倍。</p>`;
+  $("#bacTable").innerHTML = `<table><tr><th>闲家</th><th>点数</th><th>庄家</th><th>点数</th></tr><tr><td>${player.map(c => esc(c.label)).join(" ")}</td><td><b>${pTotal}</b></td><td>${banker.map(c => esc(c.label)).join(" ")}</td><td><b>${bTotal}</b></td></tr></table><p style="margin-top:10px">${esc(outcome)}</p><p class="meta">${esc(rival)}</p>`;
   $("#bacNote").textContent = bacChips <= 0 ? "筹码用完了，点“重新领筹码”恢复1000。" : "";
 }
 
 function initBaccarat() {
   $("#bacDeal").addEventListener("click", playBaccarat);
   $("#bacReset").addEventListener("click", () => {
-    bacChips = 1000; bacWins = 0; bacLosses = 0; bacStreak = 0;
+    bacChips = 1000; bacWins = 0; bacLosses = 0; bacPushes = 0; bacStreak = 0;
     $("#bacChips").textContent = bacChips;
-    $("#bacRecord").textContent = "0胜0负";
+    $("#bacRecord").textContent = "0胜0负0和";
     $("#bacRival").textContent = "观望中";
     $("#bacBet").textContent = "—";
     $("#bacTable").innerHTML = `<div class="empty">已重新领筹码1000。祝牌桌好运。</div>`;
@@ -798,7 +804,7 @@ return `<div class="card" style="margin:8px 0"><h3>${esc(title)} <span class="ta
 box.innerHTML = `<div class="empty">正典检索失败：${esc(e.message)}。</div>`;
 }
 });
-$("[data-lab]").forEach((b) => b.addEventListener("click", async () => {
+$$("[data-lab]").forEach((b) => b.addEventListener("click", async () => {
 try {
 if (b.dataset.lab === "compare") await ensureCanonBooks();
 $("#labOut").innerHTML = `<p style="font-size:15px">${esc(LAB_GEN[b.dataset.lab]())}</p><p class="meta">研究提纲/原创实验内容，不替代原著章节证据。</p>`;
