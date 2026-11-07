@@ -83,20 +83,61 @@ export async function onRequestPost(context) {
     const prompts = canonicalCharacters.map((character, i) =>
       canonSystemPrompt(character, book, states[i].status, latestQuestion, chapterNo, language)
     );
-    const system = [
-      language === "en" ? "You are running a canon-grounded role-play in Ian Fleming’s original 007 novels. Play only the assigned character(s), never the user. Reply entirely in natural English." : "你正在运行007原著正典角色模拟。只扮演本请求指定的人物，不得扮演用户。",
-      language === "en" ? "All dialogue, explanations, labels and source references must be in English. Preserve the same timeline_cutoff and knowledge_scope as Chinese mode. Never import film continuity." : "",
-      ...prompts,
-      language === "en" ? "Group scenes: every selected character must speak at least once, prefacing each turn with their name. Each character uses only their own knowledge and information explicitly learned in the scene; never transfer private knowledge between characters." : "多人场景规则：每次发言必须以对应人物姓名开头；每个人物只能使用自己的知识范围及场景中明确获知的信息；不得把一个人物的私有知识转移给另一个人物；不得共享彼此未获知的信息。",
-      language === "en" ? "If retrieved evidence is insufficient, say you do not know. Never fill gaps with film continuity, future events from other novels, or assumptions." : "如果检索事实不足，明确说不知道；不得以电影设定、其他小说的未来事件或常识补写原著空白。",
-      mode === "report" ? (language === "en" ? "Report mode: M is the senior officer receiving the report. Listen as the head of the Service; ask about time, place, people, evidence and risk. Separate verified facts from speculation; do not play Bond." : "当前是向M汇报模式：M是接收汇报的上级。以情报主管口吻听取行动结果，追问时间、地点、人物、证据和风险；区分已证实事实与推测，不要把M扮演成邦德。") : "",
-      mode === "quartermaster" ? (language === "en" ? "Q Branch equipment mode: Q handles equipment and technical briefings. Q is only mentioned by M in Casino Royale and does not physically appear; this is an explicitly non-canon training extension, not a novel scene. Do not import film inventions or mannerisms. Distinguish documented canon from simulated suggestions; ask about mission requirements and explain use, limits and return conditions." : "当前是Q部门装备领取模式：Q负责装备与技术说明。注意：Q在《皇家赌场》中仅被M提及，并未正式出场；本次是明确标注的非正典训练扩展，不得声称这是原著情节，也不得照搬电影版Q的发明或口吻。仅根据知识库可证实的职责提供谨慎的装备建议，区分原著事实与模拟建议；根据任务目的询问必要条件，说明用途、限制和归还要求。") : "",
-      mode === "group" ? (language === "en" ? "Group scene: all selected characters must participate in each round. Start each turn with the character’s name. Characters must not share private information they have not learned." : "当前是多角色同场模式：所有被选人物都必须参与；每轮至少让每位人物各发言一次，姓名置于发言开头；人物之间不得共享未获知的私有知识。") : ""
-    ].filter(Boolean).join("\n\n--- 人物边界 ---\n\n");
+    const baseRules = language === "en"
+      ? "You are running a canon-grounded role-play in Ian Fleming’s original 007 novels. Reply entirely in natural English. Never play the user. Never import film continuity. If evidence is insufficient, say you do not know."
+      : "你正在运行007原著正典角色模拟。只扮演指定人物，不得扮演用户，不得混入电影设定。证据不足时明确回答不知道。";
+    const transcript = history.map(m => ({
+      role: m.role,
+      content: m.role === "assistant" && m.characterId
+        ? (language === "en" ? "[Previous speaker: " : "[此前发言人物：") + (canonicalCharacters.find(c => c.id === m.characterId)?.[language === "en" ? "name_en" : "name_zh"] || m.characterId) + "] " + m.content
+        : m.content
+    }));
 
+    if (mode === "group") {
+      const replies = [];
+      for (let i = 0; i < canonicalCharacters.length; i++) {
+        const character = canonicalCharacters[i];
+        const characterName = language === "en" ? character.name_en : character.name_zh;
+        const groupRule = language === "en"
+          ? "You are only " + characterName + ". Speak only as this character, using only this character's own canon knowledge. Respond to the user's latest message and, where relevant, the other character's already-spoken words. Do not write the other character's dialogue. Keep this reply distinct and in character."
+          : "你现在只扮演" + characterName + "。只能使用该人物自己的正典知识。回应用户最新发言，并可针对另一位人物已经说过的话作出反应。不得代写另一位人物的台词。保持人物独立、口吻鲜明。";
+        const priorScene = replies.map(r => ({
+          role: "assistant",
+          content: (language === "en" ? "[The other character said: " : "[另一位人物刚才说：") + r.content + "]"
+        }));
+        const out = await generate(context.env || {}, [
+          { role: "system", content: [baseRules, prompts[i], groupRule,
+            language === "en"
+              ? "This is a two-character conversation with the user. Only your own character speaks in this response. Do not add speaker headings or labels."
+              : "这是用户与两位人物的三方对话。本次回复只允许你所扮演的人物发言，不要添加说话人抬头或姓名标签。"
+          ].join("\\n\\n") },
+          ...transcript.slice(0, -1),
+          ...priorScene,
+          transcript[transcript.length - 1]
+        ]);
+        if (!out.ok) {
+          if (out.code === "MODEL_NOT_CONNECTED") return json({ error: "模型尚未接入", code: out.code, status: llmStatus(context.env || {}) }, 503);
+          return json({ error: "多角色对话生成失败，请重试", code: "MODEL_ERROR", modelError: out.reason || "Unknown MiniMax error" }, 502);
+        }
+        replies.push({ characterId: character.id, content: out.text });
+      }
+      return json({
+        replies,
+        characterIds: canonicalCharacters.map(c => c.id),
+        novelId: book.novel_id, chapterNo, mode, canonMode: true, model: "multi-character"
+      });
+    }
+
+    const system = [
+      baseRules,
+      prompts[0],
+      language === "en" ? "All dialogue, explanations and source references must be in English." : "",
+      mode === "report" ? (language === "en" ? "Report mode: M receives the report as senior officer. Ask about time, place, people, evidence and risk; separate facts from speculation." : "当前是向M汇报模式：M作为上级接收汇报，追问时间、地点、人物、证据和风险；区分事实与推测。") : "",
+      mode === "quartermaster" ? (language === "en" ? "Q Branch equipment mode: distinguish documented canon from this non-canon training simulation. Ask about mission requirements and explain use, limits and return conditions." : "当前是Q部门装备领取模式：区分原著事实与非正典训练模拟，根据任务目的说明装备用途、限制和归还要求。") : ""
+    ].filter(Boolean).join("\\n\\n--- Character boundaries ---\\n\\n");
     const out = await generate(context.env || {}, [
       { role: "system", content: system },
-      ...history
+      ...transcript
     ]);
 
     if (out.ok) {
