@@ -1,0 +1,26 @@
+name: live-production-smoke
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "scripts/live-smoke.mjs"
+      - ".github/workflows/live-smoke.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  production-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Exercise live production endpoints
+        run: node scripts/live-smoke.mjs
