@@ -4,7 +4,7 @@
 
 ## 改造分支
 
-当前四模块改造在 `feature/canon-four-labs` 独立分支进行。未经用户明确授权，不合并主分支、不部署生产。
+四模块改造已通过自动化验证并合并至 `main`。Cloudflare Pages 已连接此 GitHub 仓库，`main` 是生产分支。
 
 ## 四大模块
 
@@ -73,13 +73,16 @@ npm run test:ui
 - `GET /api/canon?action=relationships&id=bond`：按规范人物ID查询关系。
 - `GET /api/canon?action=timeline`：返回14部故事时间线。
 
-## 部署（仅用户另行授权后）
+## 生产部署
 
-```bash
-npm run deploy
-```
+Cloudflare Pages 项目 `007-intelligence-lab` 已连接本仓库：
+- 生产分支：`main`
+- 构建命令：`npm install --no-audit --no-fund && npm run sync:knowledge`
+- 输出目录：`public`
+- Pages Functions：自动从仓库根目录的 `functions/` 构建
+- 预览部署：当前关闭
 
-该命令会先同步核验知识库，再执行`bash deploy.sh`。需要设置`CLOUDFLARE_API_TOKEN`。当前工作阶段禁止自行部署生产；即使脚本可运行，也必须等待用户明确授权。
+合并到 `main` 的提交会自动同步核验知识库并触发生产构建。不要把 `functions/_data/canon-data.js` 手工提交；它由构建步骤生成。
 
 ## Cloudflare绑定
 
