@@ -38,7 +38,7 @@ npm install
 npm run dev
 ```
 
-`npm run dev`会先执行`npm run sync:knowledge`，再以Wrangler `--local`模式启动Pages开发环境，不需要Cloudflare API Token。Workers AI远程调用不在本地模拟；如需真实模型回复，可在`.dev.vars`中配置MiniMax密钥。默认打开：
+`npm run dev`会先执行`npm run sync:knowledge`，再由`dev-local.mjs`复制前端与Functions到临时目录，使用不含远程AI绑定的本地Wrangler配置启动Pages，不修改生产配置，也不需要Cloudflare API Token。若要真实模型回复，可在`.dev.vars`中配置MiniMax密钥；本地副本会读取该文件。默认打开：
 
 http://localhost:8788
 
