@@ -1,10 +1,10 @@
-import { characterCore, timeline } from "../_lib/canon.js";
+import { characterCore, timeline, novels } from "../_lib/canon.js";
 const json = (data) => new Response(JSON.stringify(data), { headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" } });
 export async function onRequest() {
   return json({
     characters: characterCore.map(c => ({
       id: c.id, name: c.name_en, nameZh: c.name_zh, role: c.role,
-      firstBook: c.first_appearance?.title_zh, firstYear: c.first_appearance?.novel_no,
+      firstBook: c.first_appearance?.title_zh, firstYear: novels.find(n => n.novel_no === c.first_appearance?.novel_no)?.publication_year,
       timelineCutoff: c.timeline_cutoff, intro: c.background,
       appearance: c.appearance, ageClues: c.age_clues, personality: c.personality,
       habits: c.habits, relationships: c.relationships, speech: c.voice_style,
