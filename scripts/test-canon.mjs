@@ -21,6 +21,11 @@ assert.equal(characterForScene("m", "casino-royale", 1).ok, false, "M must not a
 assert.equal(characterForScene("m", "casino-royale", 2).ok, true, "M may appear from first chapter appearance");
 assert.equal(characterForScene("le-chiffre", "casino-royale", 18).ok, true, "Le Chiffre remains present through his last chapter");
 assert.equal(characterForScene("le-chiffre", "casino-royale", 19).error, "CHARACTER_NO_LONGER_PRESENT", "Le Chiffre cannot appear after his last chapter");
+assert.equal(characterForScene("mr-big", "live-and-let-die", "XXII").ok, true, "Mr Big remains present through chapter XXII");
+assert.equal(characterForScene("mr-big", "live-and-let-die", "XXIII").error, "CHARACTER_NO_LONGER_PRESENT", "Mr Big cannot appear after chapter XXII");
+const romanChapterPrompt = canonSystemPrompt(getCharacter("bond"), getNovel("live-and-let-die"), "present", "Mr Big", "I");
+assert.ok(romanChapterPrompt.includes("[生死关头 / 第I章]"), "Roman numeral chapter facts are included");
+assert.ok(!romanChapterPrompt.includes("[生死关头 / 第II章]"), "Roman numeral future chapter facts are excluded");
 assert.equal(characterForScene("vesper-lynd", "live-and-let-die", 1).ok, false, "Vesper remains unavailable after death");
 const chapterOnePrompt = canonSystemPrompt(getCharacter("bond"), getNovel("casino-royale"), "present", "勒·希弗", 1);
 assert.ok(chapterOnePrompt.includes("当前时间点：第1章结束"), "prompt states the selected chapter cutoff");
