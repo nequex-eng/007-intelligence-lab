@@ -7,7 +7,7 @@ import { onRequest as mission } from "../functions/api/mission.js";
 import { onRequest as canon } from "../functions/api/canon.js";
 import { onRequestPost as chat } from "../functions/api/chat.js";
 import { onRequestPost as literary } from "../functions/api/literary.js";
-import { llmAvailable, llmStatus, minimaxKey, MINIMAX_URL, MINIMAX_MODEL } from "../functions/_lib/llm.js";
+import { llmAvailable, llmStatus, minimaxKey, minimaxPayload, MINIMAX_URL, MINIMAX_MODEL, generate } from "../functions/_lib/llm.js";
 
 const ctx = (path) => ({ request: new Request("http://localhost" + path), env: {} });
 const postCtx = (path, body) => ({
@@ -24,6 +24,25 @@ assert.equal(minimaxKey({ MINIMAX_API_KEY: "", MINIMAX_API_KEY1: "same-key" }), 
 assert.equal(llmStatus({ MINIMAX_API_KEY1: "same-key" }).mode, "minimax");
 assert.equal(MINIMAX_URL, "https://api.minimaxi.com/v1/chat/completions", "M3 must use the OpenAI-compatible chat endpoint");
 assert.equal(MINIMAX_MODEL, "MiniMax-M3");
+const payload = minimaxPayload([{ role: "user", content: "ping" }]);
+assert.equal(payload.thinking.type, "disabled", "M3 thinking must be disabled for latency-sensitive roleplay");
+assert.equal(payload.max_completion_tokens, 4096);
+assert.equal(payload.model, "MiniMax-M3");
+const originalFetch = globalThis.fetch;
+let mockedRequest;
+try {
+  globalThis.fetch = async (url, options) => {
+    mockedRequest = { url, body: JSON.parse(options.body) };
+    return new Response(JSON.stringify({ choices: [{ message: { content: "M3 mock reply" } }] }), { status: 200, headers: { "content-type": "application/json" } });
+  };
+  const generated = await generate({ MINIMAX_API_KEY1: "same-key" }, [{ role: "user", content: "ping" }]);
+  assert.equal(generated.ok, true, "MiniMax response parser accepts OpenAI-compatible message.content");
+  assert.equal(generated.text, "M3 mock reply");
+  assert.equal(mockedRequest.url, MINIMAX_URL);
+  assert.equal(mockedRequest.body.thinking.type, "disabled");
+} finally {
+  globalThis.fetch = originalFetch;
+}
 
 const s = await json(await status(ctx("/api/status")));
 assert.equal(s.status, 200);
