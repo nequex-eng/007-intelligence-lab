@@ -1,0 +1,32 @@
+name: verify-canon-integration
+on:
+  push:
+    branches: [main, feature/canon-four-labs]
+  pull_request:
+    branches: [main]
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm install
+      - run: npm run sync:knowledge
+      - run: npm run test:canon
+      - name: Pages Functions smoke test (local only)
+        shell: bash
+        run: |
+          npx wrangler pages dev public --port 8788 > /tmp/wrangler.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill $SERVER_PID 2>/dev/null || true' EXIT
+          for i in {1..30}; do
+            if curl -fsS http://127.0.0.1:8788/api/status > /tmp/status.json; then break; fi
+            sleep 2
+          done
+          node -e 'const s=require("/tmp/status.json"); if(!s.ok || s.dataState!=="verified-canon" || s.data.facts!==773 || s.data.coreCharacters!==32) process.exit(1); console.log("Pages API smoke test passed",s.data)'
+          curl -fsS 'http://127.0.0.1:8788/api/dossier?q=Bond' > /tmp/dossier.json
+          curl -fsS http://127.0.0.1:8788/api/world > /tmp/world.json
+          node -e 'const d=require("/tmp/dossier.json"),w=require("/tmp/world.json"); if(!Array.isArray(d.results)||!Array.isArray(w.locations)||w.locations.length!==170) process.exit(1); console.log("Dossier and world endpoints passed")'
