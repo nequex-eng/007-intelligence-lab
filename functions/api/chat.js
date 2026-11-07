@@ -91,7 +91,26 @@ export async function onRequestPost(context) {
       return { role: m.role, content: m.content };
     });
 
-    if (["roleplay","group"].includes(mode)) {
+    if (mode === "roleplay") {
+      const playerCharacter = canonicalCharacters[0];
+      const respondingCharacter = canonicalCharacters[1];
+      const playerName = language === "en" ? playerCharacter.name_en : playerCharacter.name_zh;
+      const respondingName = language === "en" ? respondingCharacter.name_en : respondingCharacter.name_zh;
+      const roleplayRules = language === "en"
+        ? "This is strict one-to-one character role-play. The USER is playing " + playerName + " and every user message is spoken by that character. You are " + respondingName + ", the only AI-controlled character. Reply only as yourself; never write, narrate or decide the user's character's words or actions. Treat both characters as real people sharing a lived world, even if they come from different stories or eras. Never mention books, novels, authors, fiction, adaptations or role-play."
+        : "这是严格的一对一人物扮演。用户扮演" + playerName + "，用户每条消息都视为该人物说出的话。你扮演" + respondingName + "，这是唯一由AI控制的人物。只以自己的身份回应，绝不替用户扮演的人物写台词、叙述行动或替其做决定。即使两人来自不同作品或年代，也把他们视为生活在同一个真实世界中的人。禁止提及书籍、小说、作者、虚构、改编或角色扮演。";
+      const out = await generate(context.env || {}, [
+        { role: "system", content: [roleplayRules, prompts[1], "Speak naturally and directly to the user's character. Do not provide scene labels or meta commentary."].join("\\n\\n") },
+        ...transcript
+      ]);
+      if (!out.ok) {
+        if (out.code === "MODEL_NOT_CONNECTED") return json({ error: "模型尚未接入", code: out.code, status: llmStatus(context.env || {}) }, 503);
+        return json({ error: "角色对话生成失败，请重试", code: "MODEL_ERROR", modelError: out.reason || "Unknown MiniMax error" }, 502);
+      }
+      return json({ reply: out.text, characterId: respondingCharacter.id, characterIds: [playerCharacter.id, respondingCharacter.id], novelId: null, chapterNo: null, mode, canonMode: false, model: out.model });
+    }
+
+    if (mode === "group") {
       const replies = [];
       for (let i = 0; i < canonicalCharacters.length; i++) {
         const character = canonicalCharacters[i];
