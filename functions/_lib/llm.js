@@ -1,6 +1,9 @@
 // Production model policy: MiniMax only. Never silently route prompts to Cloudflare Workers AI.
 export const MINIMAX_MODEL = "MiniMax-M3";
-export const MINIMAX_URL = "https://api.minimaxi.com/v1/text/chatcompletion_v2";
+// MiniMax M3 is served through the OpenAI-compatible Chat Completions API.
+// The legacy text/chatcompletion_v2 endpoint is documented for MiniMax-Text-01,
+// not the current M3 family.
+export const MINIMAX_URL = "https://api.minimaxi.com/v1/chat/completions";
 
 export function minimaxKey(env) {
   const primary = typeof env?.MINIMAX_API_KEY === "string" ? env.MINIMAX_API_KEY.trim() : "";
@@ -21,20 +24,36 @@ async function callMiniMax(env, messages) {
   const response = await fetch(MINIMAX_URL, {
     method: "POST",
     headers: { "content-type": "application/json", authorization: "Bearer " + minimaxKey(env) },
-    body: JSON.stringify({ model: MINIMAX_MODEL, messages, temperature: 0.8, max_tokens: 2048 })
+    body: JSON.stringify({
+      model: MINIMAX_MODEL,
+      messages,
+      temperature: 1,
+      max_completion_tokens: 2048,
+      stream: false,
+      reasoning_split: true
+    })
   });
+  const raw = await response.text().catch(() => "");
   if (!response.ok) {
-    const detail = await response.text().catch(() => "");
-    console.error("MiniMax HTTP error", response.status, detail.slice(0, 500));
+    console.error("MiniMax HTTP error", response.status, raw.slice(0, 500));
     return null;
   }
-  const data = await response.json();
-  if (data?.base_resp && data.base_resp.status_code !== 0) {
+  let data;
+  try {
+    data = JSON.parse(raw);
+  } catch {
+    console.error("MiniMax returned non-JSON response", raw.slice(0, 300));
+    return null;
+  }
+  if (data?.base_resp && Number(data.base_resp.status_code) !== 0) {
     console.error("MiniMax API error", data.base_resp.status_msg || data.base_resp.status_code);
     return null;
   }
-  const content = data?.choices?.[0]?.message?.content;
-  const text = Array.isArray(content) ? content.map(x => typeof x === "string" ? x : x.text || "").join("") : content;
+  const message = data?.choices?.[0]?.message;
+  const content = message?.content;
+  const text = Array.isArray(content)
+    ? content.map(x => typeof x === "string" ? x : x.text || "").join("")
+    : content;
   return typeof text === "string" && text.trim() ? text.trim() : null;
 }
 
