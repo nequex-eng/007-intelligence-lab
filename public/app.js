@@ -209,19 +209,19 @@ const sceneLabel = $("#sceneNovelLabel");
 if (sceneLabel) sceneLabel.textContent = matchedBook ? (LANGUAGE==="en"?matchedBook.en:matchedBook.zh) + " · " + matchedBook.year + (LANGUAGE==="en"?" (matched to first appearance)":"（按人物首次登场自动匹配）") : (LANGUAGE==="en"?c.firstBookEn:c.firstBook);
 restoreChatHistory();
 renderCharGrid();
-$("#charDetail").innerHTML = `<h3>${esc(c.name)} · ${esc(c.zh)}</h3>
-<p><span class="tag gold">${esc(c.role)}</span> <span class="tag">首次登场：${esc(c.firstBook)}（${c.firstYear}年）</span> <span class="tag red">知识截止：${esc(c.cutoff)}</span></p>
-<p><b>身份背景：</b>${esc(c.intro)}</p>
-<p><b>外貌与行为：</b>${esc(c.appearance)}</p>
-<p><b>性格与价值观：</b>${esc(c.personality)}</p>
-<p><b>语言习惯：</b>${esc(c.speech)}</p>
-<p><b>人际关系：</b>${esc(c.rel)}</p>
-<p><b>参与事件：</b>${esc(c.events)}</p>
-<p><b>知识边界：</b>${esc(c.bounds)}</p>
-<p><b>知识库出处索引：</b></p>
+$("#charDetail").innerHTML = `<h3>${esc(LANGUAGE==="en"?c.name:c.zh)}</h3>
+<p><span class="tag gold">${esc(LANGUAGE==="en"?c.roleEn:c.role)}</span> <span class="tag">${LANGUAGE==="en"?"First appearance: ":"首次登场："}${esc(LANGUAGE==="en"?c.firstBookEn:c.firstBook)} (${c.firstYear})</span> <span class="tag red">${LANGUAGE==="en"?"Knowledge cutoff: ":"知识截止："}${esc(LANGUAGE==="en"?c.cutoffEn:c.cutoff)}</span></p>
+<p><b>${LANGUAGE==="en"?"Background: ":"身份背景："}</b>${esc(LANGUAGE==="en"?c.introEn:c.intro)}</p>
+<p><b>${LANGUAGE==="en"?"Appearance: ":"外貌与行为："}</b>${esc(LANGUAGE==="en"?c.appearanceEn:c.appearance)}</p>
+<p><b>${LANGUAGE==="en"?"Personality: ":"性格与价值观："}</b>${esc(LANGUAGE==="en"?c.personalityEn:c.personality)}</p>
+<p><b>${LANGUAGE==="en"?"Voice and speech: ":"语言习惯："}</b>${esc(LANGUAGE==="en"?(c.speechEn?.tone||"See the English profile."):c.speech)}</p>
+<p><b>${LANGUAGE==="en"?"Relationships: ":"人际关系："}</b>${esc(LANGUAGE==="en"?(c.relationships||[]).map(r=>charById(r.with)?.name||r.with).join(", "):c.rel)}</p>
+<p><b>${LANGUAGE==="en"?"Appearances: ":"参与事件："}</b>${esc(LANGUAGE==="en"?c.eventsEn:c.events)}</p>
+<p><b>${LANGUAGE==="en"?"Knowledge boundaries: ":"知识边界："}</b>${esc(LANGUAGE==="en"?(c.knowledgeBoundariesEn||"The shared timeline and knowledge-scope constraints apply."):c.bounds)}</p>
+<p><b>${LANGUAGE==="en"?"Knowledge sources: ":"知识库出处索引："}</b></p>
 <ul style="font-size:14px;margin:4px 0;padding-left:20px">${c.facts.map((f) => `<li>${esc(f)}</li>`).join("")}</ul>
 <p class="meta">${SAMPLE}</p>
-<button class="btn small" id="talkThis">和${esc(c.zh)}对话</button>`;
+<button class="btn small" id="talkThis">${LANGUAGE==="en"?"Talk to "+esc(c.name):"和"+esc(c.zh)+"对话"}</button>`;
 $("#talkThis").addEventListener("click", () => {
 addChatMsg("sys", "已选择" + c.zh + "。当前对话按人物与小说时间点保存在本地浏览器。");
 addChatMsg("them", c.opener, c.zh);
@@ -229,7 +229,7 @@ $("#chatInput").focus();
 document.querySelector("#characters.card:last-child").scrollIntoView({ behavior: "smooth", block: "nearest"});
 });
 const gs = $("#groupSecond");
-gs.innerHTML = CHARACTERS.filter((x) => x.id!== id).map((x) => `<option value="${x.id}">${esc(x.zh)}（${esc(x.name)}）</option>`).join("");
+gs.innerHTML = CHARACTERS.filter((x) => x.id!== id).map((x) => `<option value="${x.id}">${esc(LANGUAGE==="en"?x.name:x.zh)}</option>`).join("");
 }
 
 function addChatMsg(kind, text, who) {
@@ -276,7 +276,7 @@ body: JSON.stringify({ characterIds: ids, novelId: $("#sceneNovel").value, chapt
 if (r.ok) {
 const d = await r.json();
 clearThinking();
-addChatMsg("them", d.reply, c.zh);
+addChatMsg("them", d.reply, LANGUAGE==="en"?c.name:c.zh);
 chatHistory.push({ role: "assistant", content: d.reply});
 saveChatHistory();
 $("#modelLine").textContent = "模型已接入：" + (d.model || "") + (d.canonMode ? " · " + (d.chapterNo ? "第" + d.chapterNo + "章" : "全书结束") + "章级正典约束已启用" : "");
