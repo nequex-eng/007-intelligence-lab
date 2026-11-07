@@ -632,12 +632,12 @@ async function runDossier(q) {
     }
     box.innerHTML = `<p class="meta">共${results.length}条 · 来源：核验知识库 · 原著事实与推测分别标记。</p>` +
       results.map(h => {
-        const title = h.kind === "facts" ? (h.entity || h.title_zh || "原著事实") : (h.title_zh || h.name_zh || h.name || h.name_en || h.title || h.entity || h.id || "未命名记录");
+        const title = h.kind === "facts" ? (LANGUAGE==="en" ? (h.entity_en || h.entity || h.title_en || h.title_zh || "Canon fact") : (h.entity || h.title_zh || "原著事实")) : (LANGUAGE==="en" ? (h.title_en || h.name_en || h.name || h.title || h.entity || h.id || "Untitled record") : (h.title_zh || h.name_zh || h.name || h.name_en || h.title || h.entity || h.id || "未命名记录"));
         const kind = h.kind || "档案";
-        const source = [h.title_zh && h.novel_id ? h.title_zh : null, h.chapter ? "第"+h.chapter+"章" : null, h.source_novel || h.novel_id || null].filter(Boolean).join(" · ") || (h.sources || []).join("；") || "索引记录";
-        const detail = h.fact || h.summary || h.description || h.story_timeline || h.role || h.note || h.change || h.quote || "该条目没有提供摘要字段。";
+        const sourceBook = LANGUAGE==="en" ? (h.title_en || BOOKS.find(b=>b.id===h.novel_id)?.en || h.novel_id) : (h.title_zh || h.novel_id); const source = [sourceBook && h.novel_id ? sourceBook : null, h.chapter ? (LANGUAGE==="en" ? "Chapter "+h.chapter : "第"+h.chapter+"章") : null, h.source_novel || null].filter(Boolean).join(" · ") || (h.sources || []).join("；") || (LANGUAGE==="en"?"Indexed record":"索引记录");
+        const detail = LANGUAGE==="en" ? (h.fact_en || h.summary_en || h.description_en || h.role_en || h.note_en || h.quote_en || h.fact || h.summary || h.description || h.role || h.note || h.change || h.quote || "No summary is available for this entry.") : (h.fact || h.summary || h.description || h.story_timeline || h.role || h.note || h.change || h.quote || "该条目没有提供摘要字段。");
         const status = h.canon_or_inference === "inference" ? "推测" : h.canon_or_inference === "canon" ? "正典事实" : kind;
-        return `<div class="card" style="margin:8px 0"><h3>${esc(title)} <span class="tag gold">${esc(status)}</span></h3><p class="meta">出处：${esc(source)}</p><p>${esc(detail)}</p>${h.quote ? `<blockquote>${esc(h.quote)}</blockquote>` : ""}</div>`;
+        return `<div class="card" style="margin:8px 0"><h3>${esc(title)} <span class="tag gold">${esc(status)}</span></h3><p class="meta">出处：${esc(source)}</p><p>${esc(detail)}</p>${(LANGUAGE==="en" ? (h.quote_en || h.quote) : h.quote) ? `<blockquote>${esc(LANGUAGE==="en" ? (h.quote_en || h.quote) : h.quote)}</blockquote>` : ""}</div>`;
       }).join("");
   } catch (e) {
     box.innerHTML = `<div class="empty">核验检索暂时不可用：${esc(e.message)}。已禁用旧示例数据回退，避免把未核验内容冒充正典。</div>`;
@@ -653,16 +653,14 @@ async function renderDossierTab(tab) {
     if (!r.ok) throw new Error("档案接口返回 " + r.status);
     const d = await r.json();
     if (tab === "books") {
-      body.innerHTML = `<p class="meta">14部原著 · 章节摘要来自逐部核验知识库</p><table><tr><th>书名</th><th>英文原名</th><th>出版年</th><th>类型</th><th>章节</th><th>故事时间线</th></tr>` +
-        d.books.map(b => `<tr><td><b>${esc(b.titleZh)}</b></td><td>${esc(b.titleEn)}</td><td>${b.year}</td><td>${esc(b.kind)}</td><td>${b.chapters}</td><td>${esc(b.summary)}</td></tr>`).join("") + `</table>`;
+      body.innerHTML = LANGUAGE==="en" ? `<p class="meta">14 original novels · Chapter records from the verified knowledge base</p><table><tr><th>Novel</th><th>Publication year</th><th>Format</th><th>Chapters</th><th>Synopsis</th></tr>` + d.books.map(b => `<tr><td><b>${esc(b.titleEn)}</b></td><td>${b.year}</td><td>${esc(b.kindEn || b.kind)}</td><td>${b.chapters}</td><td>${esc(b.summaryEn || "Synopsis not available in English.")}</td></tr>`).join("") + `</table>` : `<p class="meta">14部原著 · 章节摘要来自逐部核验知识库</p><table><tr><th>书名</th><th>英文原名</th><th>出版年</th><th>类型</th><th>章节</th><th>故事时间线</th></tr>` + d.books.map(b => `<tr><td><b>${esc(b.titleZh)}</b></td><td>${esc(b.titleEn)}</td><td>${b.year}</td><td>${esc(b.kind)}</td><td>${b.chapters}</td><td>${esc(b.summary)}</td></tr>`).join("") + `</table>`;
     } else if (tab === "timeline") {
-      body.innerHTML = `<p class="meta">按出版顺序排列；故事内部年份与出版年份不混为一谈。</p>` +
-        (d.timeline || []).map(t => `<div class="log"><b style="color:var(--gold2)">${esc(t.title_zh || t.novel)}</b>：${esc(t.story_timeline || "")}</div>`).join("");
+      body.innerHTML = LANGUAGE==="en" ? `<p class="meta">Listed by publication order; in-story chronology is distinct from publication dates.</p>` + (d.timeline || []).map(t => `<div class="log"><b style="color:var(--gold2)">${esc(t.title_en || BOOKS.find(b=>b.id===t.novel)?.en || t.title_zh || t.novel)}</b>: ${esc(t.story_timeline_en || t.summary_en || t.story_timeline || "A verified English timeline summary is not available for this entry.")}</div>`).join("") : `<p class="meta">按出版顺序排列；故事内部年份与出版年份不混为一谈。</p>` + (d.timeline || []).map(t => `<div class="log"><b style="color:var(--gold2)">${esc(t.title_zh || t.novel)}</b>：${esc(t.story_timeline || "")}</div>`).join("");
     } else {
       const items = tab === "orgs" ? d.organizations : d.equipment;
-      const title = tab === "orgs" ? "组织档案" : "装备档案";
+      const title = LANGUAGE==="en" ? (tab === "orgs" ? "Organisation dossiers" : "Equipment dossiers") : (tab === "orgs" ? "组织档案" : "装备档案");
       body.innerHTML = `<p class="meta">${title} · ${items.length}条核验索引</p><div class="grid g2">` +
-        items.map(o => `<div class="card"><h3>${esc(o.name_zh || o.name || o.id)}</h3><p class="meta">${esc(o.name_en || "")} · ${esc(o.id)}</p><p>${esc(o.description || o.role || o.note || "原著索引条目")}</p><p class="meta">出场：${esc((o.appearances || []).map(a => a.novel || a).join("、"))}</p></div>`).join("") + `</div>`;
+        items.map(o => `<div class="card"><h3>${esc(LANGUAGE==="en" ? (o.name_en || o.name || o.name_zh || o.id) : (o.name_zh || o.name || o.id))}</h3><p class="meta">${esc(o.name_en || "")} · ${esc(o.id)}</p><p>${esc(LANGUAGE==="en" ? (o.description_en || o.role_en || o.note_en || o.description || o.role || o.note || "Canon index entry") : (o.description || o.role || o.note || "原著索引条目"))}</p><p class="meta">${LANGUAGE==="en"?"Appearances: ":"出场："}${esc((o.appearances || []).map(a => a.title_en || a.novel || a).join(LANGUAGE==="en"?", ":"、"))}</p></div>`).join("") + `</div>`;
     }
   } catch (e) {
     body.innerHTML = `<div class="empty">核验档案加载失败：${esc(e.message)}。不会回退到旧示例数据。</div>`;
