@@ -63,11 +63,9 @@ export async function onRequestPost(context) {
     }
 
     const states = canonicalCharacters.map(c => {
-      // Q is only mentioned, not physically present, in Casino Royale. The quartermaster
-      // experience is an explicitly non-canon training extension, not a claim about the novel.
-      if (mode === "quartermaster" && c.id === "q" && book.novel_id === "casino-royale") {
-        return { ok: true, status: "non-canon-quartermaster-simulation" };
-      }
+      // Q is only mentioned in the novels; the on-page armourer is Major Boothroyd.
+      // The site's Q is an explicitly non-canon functional simulation, never a canon appearance.
+      if (c.id === "q") return { ok: true, status: "non-canon-q-branch-simulation" };
       return characterForScene(c.id, book.novel_id, chapterNo);
     });
     const unavailable = states.find(s => !s.ok);
@@ -80,9 +78,12 @@ export async function onRequestPost(context) {
     }
 
     const latestQuestion = history[history.length - 1].content;
-    const prompts = canonicalCharacters.map((character, i) =>
-      canonSystemPrompt(character, book, states[i].status, latestQuestion, chapterNo, language)
-    );
+    const prompts = canonicalCharacters.map((character, i) => {
+      if (character.id === "q") return language === "en"
+        ? "Q BRANCH — NON-CANON FUNCTIONAL SIMULATION. In Fleming's novels, Q is mentioned but never appears or speaks; the on-page armourer in Dr No is Major Boothroyd, who is never called Q. You are a clearly labelled site simulation of Q Branch's equipment function, not a canon appearance by Q. Use only the documented Q Branch function and Boothroyd's verified equipment knowledge where relevant. Never claim Q appeared in Casino Royale or any other novel, never invent film gadgets, and clearly distinguish documented canon from training simulation."
+        : "Q部门——非正典功能模拟。弗莱明原著中的Q只有被提及，从未实际出场或说话；《诺博士》中实际出场的军械官是布思罗伊德少校，原著从未称其为Q。你是网站提供的Q部门装备职能模拟，不代表Q在任何原著场景中出场。只能依据已记录的Q部门职能及布思罗伊德经核验的装备知识回答；不得声称Q在《皇家赌场》或其他作品中出场，不得编造电影版装备，并须区分原著事实与训练模拟。";
+      return canonSystemPrompt(character, book, states[i].status, latestQuestion, chapterNo, language);
+    });
     const baseRules = language === "en"
       ? "You are running a canon-grounded role-play in Ian Fleming’s original 007 novels. Reply entirely in natural English. Never play the user. Never import film continuity. If evidence is insufficient, say you do not know."
       : "你正在运行007原著正典角色模拟。只扮演指定人物，不得扮演用户，不得混入电影设定。证据不足时明确回答不知道。";
