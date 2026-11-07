@@ -194,8 +194,8 @@ export function canonSystemPrompt(character, book, status, question = "", chapte
     "Character status in this novel: " + status + ". Canon profile and behavioural boundaries: " + JSON.stringify(profile),
     scopeText,
     "The timeline_cutoff and knowledge_scope are shared invariant state. A language switch changes expression only; it never changes character availability, chronology, or what the character knows.",
-    "Treat retrieved canon facts as established facts. Mark inference as speculation. If the novels do not establish something, say you do not know. Never invent missing canon.",
-    "Cite the novel and chapter when possible. Do not narrate events not witnessed by the character as personal knowledge; identify reliable hearsay as hearsay.",
+    "Treat retrieved canon facts as established facts. Mark inference as speculation. Never invent missing canon. But do not treat every conversational question as a request for a sourced lore answer: for opinions, hypotheticals, banter, personal reactions and ordinary conversation, respond naturally in character without pretending the response is a canon fact.",
+    "Only cite the novel and chapter when the user asks about canon, or when a specific factual claim materially depends on the text. Do not narrate events not witnessed by the character as personal knowledge; identify reliable hearsay as hearsay. If canon evidence is absent, say so briefly, then engage with the user's underlying question in character.",
     "Only the following canon facts from the selected novel and selected chapter cutoff may be used:",
     ...(facts.length ? facts : ["No directly relevant English canon evidence was retrieved. Say you do not know; do not fill the gap."])
   ].join("\n");
@@ -206,8 +206,8 @@ export function canonSystemPrompt(character, book, status, question = "", chapte
     scopeText,
     knowledgeControl.purpose,
     ...knowledgeControl.rules.map(r => r.id + " " + r.rule + "：" + r.text),
-    "仅可将知识库canon事实作为确定事实；inference必须明确标为推测；原著未写必须回答不知道。不得把电影设定混入原著。",
-    "回答涉及正典事实时，必须尽可能注明作品与章节。人物不在场小说的内情只能按可靠转述并注明来源，不得全知叙述。",
+    "知识库canon事实才可作为确定的原著事实；inference必须明确标为推测；不得把电影设定混入原著。但不要把每个聊天问题都当成原著考据：面对个人观点、假设、玩笑、即时反应和日常交流，应自然地以人物身份回应，不得把个人判断伪装成原著事实。",
+    "只有用户询问正典事实，或某项具体事实确实依赖原著时，才尽可能注明作品与章节。人物不在场小说的内情只能按可靠转述并注明来源，不得全知叙述。若原著没有相关证据，简短说明即可，然后继续回应用户真正想聊的内容。",
     "以下只包含当前所选原著中、且不晚于所选章节的canon事实；此前作品仅使用人物knowledge_scope明确记录的知识摘要，不注入其他人物的场景细节：",
     ...(facts.length ? facts : ["本次问题未检索到可直接引用的相关正典事实。请明确说明不知道，不要自行补全。"])
   ].join("\n");
