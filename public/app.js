@@ -696,14 +696,34 @@ return "" + a.zh + "（" + a.year + "年）与" + b.zh + "（" + b.year + "年�
 };
 
 function initLiterary() {
-$("#litTopics").innerHTML = LIT_TOPICS.map((x) => `<details><summary>${esc(x.t)}</summary><p style="font-size:14px">${esc(x.d)}</p><p class="meta">${SAMPLE}</p></details>`).join("");
-$("#litAsk").addEventListener("click", () => {
+$("#litTopics").innerHTML = LIT_TOPICS.map((x) => `<details><summary>${esc(x.t)}</summary><p style="font-size:14px">${esc(x.d)}</p><p class="meta">主题卡片为研究导读；事实核验请使用下方检索。</p></details>`).join("");
+$("#litAsk").addEventListener("click", async () => {
 const q = $("#litQ").value.trim();
-if (!q) { $("#litAnswer").innerHTML = `<div class="empty">请先输入问题。</div>`; return;}
-$("#litAnswer").innerHTML = `<p style="font-size:15px">${esc(litAnswer(q))}</p><p class="meta">${SAMPLE}</p>`;
+const box = $("#litAnswer");
+if (!q) { box.innerHTML = `<div class="empty">请先输入问题。</div>`; return; }
+box.innerHTML = `<div class="empty">正在核验14部原著索引……</div>`;
+try {
+const r = await fetch("/api/dossier?q=" + encodeURIComponent(q) + "&limit=12");
+if (!r.ok) throw new Error("正典检索接口返回 " + r.status);
+const d = await r.json();
+const results = d.results || [];
+if (!results.length) {
+box.innerHTML = `<div class="empty">核验知识库没有找到与“${esc(q)}”直接匹配的事实或人物记录。当前不做无出处推断。</div>`;
+return;
+}
+box.innerHTML = `<p class="meta">检索到${results.length}条核验记录；以下为资料依据，不等同于模型生成的文学评论。</p>` + results.map(x => {
+const title = x.title_zh || x.name_zh || x.name || x.entity || x.id || "原著记录";
+const source = [x.title_zh && x.novel_id ? x.title_zh : null, x.chapter ? "第"+x.chapter+"章" : null].filter(Boolean).join(" · ") || x.novel_id || (x.sources || []).join("；") || "索引记录";
+const detail = x.fact || x.description || x.summary || x.role || x.quote || "该条目没有提供摘要。";
+const kind = x.canon_or_inference === "inference" ? "推测" : x.canon_or_inference === "canon" ? "正典事实" : x.kind || "档案";
+return `<div class="card" style="margin:8px 0"><h3>${esc(title)} <span class="tag gold">${esc(kind)}</span></h3><p class="meta">出处：${esc(source)}</p><p>${esc(detail)}</p>${x.quote ? `<blockquote>${esc(x.quote)}</blockquote>` : ""}</div>`;
+}).join("");
+} catch (e) {
+box.innerHTML = `<div class="empty">正典检索失败：${esc(e.message)}。</div>`;
+}
 });
-$$("[data-lab]").forEach((b) => b.addEventListener("click", () => {
-$("#labOut").innerHTML = `<p style="font-size:15px">${esc(LAB_GEN[b.dataset.lab]())}</p>`;
+$("[data-lab]").forEach((b) => b.addEventListener("click", () => {
+$("#labOut").innerHTML = `<p style="font-size:15px">${esc(LAB_GEN[b.dataset.lab]())}</p><p class="meta">原创实验内容，不属于Ian Fleming原著正典。</p>`;
 }));
 }
 
@@ -812,109 +832,30 @@ books.forEach((b) => { const o = document.createElement("option"); o.value = b; 
 renderAtlas();
 }
 
-// ---- TXT导入 ----
-async function sha256Hex(buf) {
-const hash = await crypto.subtle.digest("SHA-256", buf);
-return Array.from(new Uint8Array(hash)).map((b) => b.toString(16).padStart(2, "0")).join("");
-}
-
-function detectChapters(text) {
-const lines = text.split(/\r?\n/);
-const clean = (l) => l.replace(/^\uFEFF/, "").trim();
-// 底本实测标题格式（14本不统一）：CHAPTER 1 - 标题 / CHAPTER ONE / 罗马数字独占一行+次行标题 / 数字加点标题（霹雳弹）
-// 第二阶段补：裸数字独占一行+次行标题（金刚钻、金枪人、女王密使、雷霆谷）/ 词数+冒号标题 One: …（爱我的间谍）
-// 按家族分别收集、只取章数最多的一个家族，避免正文内编号清单（如雷霆谷毒物清单1.-6.）混入。
-const wordNums = ["ONE","TWO","THREE","FOUR","FIVE","SIX","SEVEN","EIGHT","NINE","TEN","ELEVEN","TWELVE","THIRTEEN","FOURTEEN","FIFTEEN","SIXTEEN","SEVENTEEN","EIGHTEEN","NINETEEN","TWENTY","TWENTY-ONE","TWENTY-TWO","TWENTY-THREE","TWENTY-FOUR","TWENTY-FIVE","TWENTY-SIX","TWENTY-SEVEN","TWENTY-EIGHT"];
-const wordVal = {};
-wordNums.forEach((w, i) => { wordVal[w] = i + 1; });
-const nextTitle = (i) => {
-let j = i + 1;
-while (j < lines.length && !clean(lines[j])) j++;
-return j < lines.length ? clean(lines[j]).slice(0, 80) : "";
-};
-const fams = { chapter: [], numdot: [], bare: [], roman: [], wordcolon: [] };
-lines.forEach((line, i) => {
-const t = clean(line);
-if (!t) return;
-if (/^CHAPTER\s+(?:ONE|TWO|THREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE|TEN|ELEVEN|TWELVE|THIRTEEN|FOURTEEN|FIFTEEN|SIXTEEN|SEVENTEEN|EIGHTEEN|NINETEEN|TWENTY|\d+|[IVXL]+)\b/i.test(t)) {
-fams.chapter.push({ n: fams.chapter.length + 1, title: t.slice(0, 80), line: i + 1 });
-} else if (/^\d{1,2}\.\s+\S/.test(t)) {
-const n = parseInt(t, 10);
-fams.numdot.push({ n, title: t.slice(0, 80), line: i + 1 });
-} else if (/^[IVXL]{1,6}$/.test(t)) {
-const title = nextTitle(i);
-if (title) fams.roman.push({ n: fams.roman.length + 1, title: t + " \u00b7 " + title, line: i + 1 });
-} else if (/^(ONE|TWO|THREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE|TEN|ELEVEN|TWELVE|THIRTEEN|FOURTEEN|FIFTEEN):\s+\S/i.test(t)) {
-const w = t.split(":")[0].trim().toUpperCase();
-fams.wordcolon.push({ n: wordVal[w] || 0, title: t.slice(0, 80), line: i + 1 });
-} else if (/^\d{1,2}$/.test(t)) {
-fams.bare.push({ n: parseInt(t, 10), line: i });
-}
-});
-// 裸数字家族：必须从1开始连续递增，标题取次行
-const bareSeq = fams.bare.length >= 2 && fams.bare[0].n === 1 && fams.bare.every((b, k) => b.n === k + 1);
-const bareCh = bareSeq ? fams.bare.map((b, k) => ({ n: k + 1, title: b.n + " \u00b7 " + nextTitle(b.line), line: b.line + 1 })).filter((c) => c.title) : [];
-// 数字加点家族：编号必须恰好是1..N连续
-const nd = fams.numdot;
-const ndOk = nd.length >= 2 && nd.every((c, k) => c.n === k + 1);
-const wc = fams.wordcolon;
-const wcOk = wc.length >= 2 && wc.every((c, k) => c.n === k + 1);
-const cands = [
-{ name: "chapter", list: fams.chapter },
-{ name: "numdot", list: ndOk ? nd : [] },
-{ name: "bare", list: bareCh },
-{ name: "roman", list: fams.roman },
-{ name: "wordcolon", list: wcOk ? wc : [] }
-];
-cands.sort((a, b) => b.list.length - a.list.length);
-const best = cands[0].list;
-return best.map((c, k) => ({ n: k + 1, title: c.title, line: c.line }));
-}
-
-function guessBookByName(name, head) {
-const hay = (name + " " + head).toLowerCase().replace(/[-_]+/g, " ");
-for (const b of BOOKS) {
-if (hay.includes(b.zh) || hay.includes(b.en.toLowerCase())) return b.zh;
-}
-return null;
-}
-
-async function runImport() {
-const files = Array.from($("#txtFiles").files || []);
-const box = $("#importReport");
-if (!files.length) { box.innerHTML = `<div class="empty">请先选择txt或.pages文件。</div>`; return;}
-if (files.length > 20) { box.innerHTML = `<div class="empty">一次最多20个文件，本次选了${files.length}个。</div>`; return;}
-box.innerHTML = `<div class="empty">本地解析中…全文不上传，只计算哈希与章节摘要。</div>`;
-const summaries = [];
-const notes = [];
-for (const f of files) {
-const buf = await f.arrayBuffer();
-const hash = await sha256Hex(buf);
-if (/\.pages$/i.test(f.name)) {
-summaries.push({ name: f.name, hash, size: f.size, charCount: 0, lineCount: 0, chapters: [], head: ""});
-notes.push(f.name + "：Pages格式需经soffice批量转换成本站txt后才能解析，浏览器内无法直接读取正文。工程内转换路线：soffice --headless --convert-to txt，14本已按此路线转换。");
-continue;
-}
-const text = new TextDecoder("utf-8", { fatal: false}).decode(buf);
-const chapters = detectChapters(text);
-const head = text.slice(0, 500);
-summaries.push({ name: f.name, hash, size: f.size, charCount: text.length, lineCount: text.split(/\r?\n/).length, chapters: chapters.map((c) => c.title), head});
-}
-let server = null;
-try {
-const r = await fetch("/api/import", { method: "POST", headers: { "content-type": "application/json"}, body: JSON.stringify({ files: summaries})});
-server = await r.json();
-} catch (e) { server = null;}
-const rows = (server && server.report? server.report: summaries.map((s) => ({ name: s.name, hash: s.hash.slice(0, 16) + "…", size: s.size, charCount: s.charCount, lineCount: s.lineCount, chapterCount: s.chapters.length, bookGuess: { titleZh: guessBookByName(s.name, s.head)}, status: s.chapters.length? "ok": "needs-review", errors: s.chapters.length? []: ["未识别到章节结构"]})));
-box.innerHTML = `<p class="meta">收到${files.length}个文件 · 服务端校验${server? "已完成": "不可用，以下为本地解析结果"} · 全文未上传</p>
-${notes.map((n) => `<div class="log">${esc(n)}</div>`).join("")}
-<table><tr><th>文件</th><th>哈希（前16位）</th><th>大小</th><th>字数</th><th>章节</th><th>识别书名</th><th>状态</th></tr>
-${rows.map((r) => `<tr><td>${esc(r.name)}</td><td>${esc(r.hash)}</td><td>${r.size}</td><td>${r.charCount || "—"}</td><td>${r.chapterCount}</td><td>${esc((r.bookGuess && r.bookGuess.titleZh) || "未识别")}</td><td>${r.status === "ok"? "通过": "待复核：" + (r.errors || []).map(esc).join("；")}</td></tr>`).join("")}</table>
-<p class="meta">导入报告：通过${rows.filter((r) => r.status === "ok").length}个，待复核${rows.filter((r) => r.status!== "ok").length}个。持久化到D1/KV为待扩展项；核验通过后，示例数据逐条替换为带书名、章节、原文位置的记录。</p>`;
-}
-
-function initImport() {
-$("#txtParse").addEventListener("click", runImport);
+// ---- 正典知识库状态 ----
+async function initCanonDataStatus() {
+  const box = $("#canonDataStatus");
+  if (!box) return;
+  try {
+    const r = await fetch("/api/status");
+    if (!r.ok) throw new Error("知识库状态接口返回 " + r.status);
+    const d = await r.json();
+    const x = d.data || {};
+    const stats = [
+      ["原著", x.novels || 0], ["章节/故事单位", x.chapters || 0],
+      ["正典事实", x.canonFacts || 0], ["推测事实", x.inferenceFacts || 0],
+      ["核心人物", x.coreCharacters || 0], ["全部人物", x.characters || 0],
+      ["组织", x.organizations || 0], ["地点", x.locations || 0],
+      ["装备", x.equipment || 0]
+    ];
+    const gaps = Array.isArray(d.knownGaps) ? d.knownGaps : [];
+    box.innerHTML = `<div class="grid g3">${stats.map(([label,value]) => `<div class="state"><span class="lbl">${esc(label)}</span><b>${Number(value).toLocaleString("en-US")}</b></div>`).join("")}</div>
+      <p class="meta" style="margin-top:10px">数据状态：${esc(d.dataState || "unknown")} · 来源：${esc(d.dataSource || "未提供")} · 知识库版本：${esc(d.dataGenerated || "未提供")}</p>
+      <p class="meta">已知缺口：${gaps.length ? gaps.map(g => esc(typeof g === "string" ? g : JSON.stringify(g))).join("；") : "知识库未列出缺口。"}</p>
+      <p class="meta">同步方式：本地开发/构建时从知识库主分支拉取；生成文件不手工编辑、不向网站用户开放正典写入。</p>`;
+  } catch (e) {
+    box.innerHTML = `<div class="empty">知识库状态暂时不可用：${esc(e.message)}</div>`;
+  }
 }
 
 // ---- 状态与启动 ----
@@ -942,6 +883,6 @@ initExperience();
 initBaccarat();
 initLiterary();
 initAtlas();
-initImport();
+initCanonDataStatus();
 initStatus();
 });
