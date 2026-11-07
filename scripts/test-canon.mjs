@@ -1,5 +1,5 @@
 import { canonData } from "../functions/_data/canon-data.js";
-import { novels, characterCore, indexes, searchCanon, resolveEntity, characterForScene } from "../functions/_lib/canon.js";
+import { novels, characterCore, indexes, searchCanon, resolveEntity, characterForScene, canonSystemPrompt, getCharacter, getNovel } from "../functions/_lib/canon.js";
 import assert from "node:assert/strict";
 
 const facts = novels.reduce((n, b) => n + (b.facts || []).length, 0);
@@ -17,5 +17,10 @@ assert.equal(characterForScene("bond", "casino-royale").ok, true, "Bond present 
 assert.equal(characterForScene("le-chiffre", "live-and-let-die").ok, false, "Le Chiffre dead after Casino Royale");
 assert.equal(characterForScene("vesper-lynd", "live-and-let-die").ok, false, "Vesper dead after Casino Royale");
 assert.equal(characterForScene("m", "spy-who-loved-me").ok, false, "M absent from The Spy Who Loved Me");
+assert.equal(characterForScene("m", "casino-royale", 1).ok, false, "M must not appear before first chapter appearance");
+assert.equal(characterForScene("m", "casino-royale", 2).ok, true, "M may appear from first chapter appearance");
+const chapterOnePrompt = canonSystemPrompt(getCharacter("bond"), getNovel("casino-royale"), "present", "勒·希弗", 1);
+assert.ok(chapterOnePrompt.includes("当前时间点：第1章结束"), "prompt states the selected chapter cutoff");
+assert.ok(!chapterOnePrompt.includes("[皇家赌场 / 第27章]"), "chapter one prompt excludes later chapter facts");
 assert.ok(canonData["knowledge/resolution/aliases.json"].aliases.length >= 250, "alias resolution index");
 console.log("PASS: verified canon integration", { novels: novels.length, facts, characters: indexes.characters.characters.length, coreCharacters: characterCore.length });
