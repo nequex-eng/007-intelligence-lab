@@ -11,7 +11,22 @@ export async function onRequestPost(context) {
     const body = await context.request.json();
     const question = String(body.question || "").trim().slice(0, 1200);
     if (!question) return json({ error: "请输入文学研究问题", evidence: [] }, 400);
-    const evidence = searchCanon(question, "all", 12).map(item => ({
+    const compact = question.replace(/如何|为什么|怎样|怎么|是否|以及|通过|推动|分析|研究|比较|请问|请你|帮我|一下|对于|关于|的|了|吗|呢|？|\?/g, "");
+    const terms = Array.from(new Set([
+      ...(question.match(/[A-Za-z0-9-]{2,}/g) || []),
+      ...Array.from({ length: Math.max(0, compact.length - 1) }, (_, i) => compact.slice(i, i + 2)).filter(term => term.length === 2)
+    ])).filter(term => term.length >= 2).slice(0, 18);
+    const hits = [];
+    for (const term of terms) {
+      for (const item of searchCanon(term, "all", 5)) hits.push(item);
+      if (hits.length >= 48) break;
+    }
+    const seen = new Set();
+    const evidence = hits.filter(item => {
+      const key = [item.kind, item.id, item.entity, item.fact, item.title_zh, item.name_zh].join("|");
+      if (seen.has(key)) return false;
+      seen.add(key); return true;
+    }).slice(0, 12).map(item => ({
       title: item.title_zh || item.name_zh || item.name || item.entity || item.id || "原著记录",
       kind: item.canon_or_inference === "inference" ? "推测" : item.canon_or_inference === "canon" ? "正典事实" : item.kind || "档案",
       source: [item.title_zh && item.novel_id ? item.title_zh : null, item.chapter ? "第" + item.chapter + "章" : null].filter(Boolean).join(" · ") || item.novel_id || (item.sources || []).join("；") || "索引记录",
