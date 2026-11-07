@@ -1374,7 +1374,11 @@ $("#modelLine").textContent = "状态接口不可用，无法确认模型状态�
 }
 }
 
-document.addEventListener("DOMContentLoaded", () => {
+let appStarted = false;
+function startApp() {
+  if (appStarted) return;
+  appStarted = true;
+
   initLanguage();
   const tasks = [
     ["人物剧场", initCharacters], ["情报档案馆", initDossier],
@@ -1392,4 +1396,10 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     } catch (e) { console.error(name + "初始化失败", e); }
   }
-});
+}
+// Start reliably whether this script is parsed normally, deferred, or injected after DOMContentLoaded.
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", startApp, { once: true });
+} else {
+  startApp();
+}
