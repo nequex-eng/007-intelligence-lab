@@ -375,10 +375,18 @@ function hasSavedMission(id) {
 function renderMissionList() {
 $("#missionList").innerHTML = MISSIONS.map((m) => {
 const saved = hasSavedMission(m.id);
+let savedStage = "";
+if (saved) {
+try {
+const state = JSON.parse(localStorage.getItem("007-mission:" + m.id)).state;
+savedStage = m.stages.find(x => x.id === state.stage)?.title || "上次进度";
+} catch(e) {}
+}
 return `<div class="card clickable" data-mission="${m.id}" data-resume="${saved}">
 <h3>${esc(m.title)} <span class="tag ${m.kindTag === "原著"? "gold": "red"}">${esc(m.kind)}</span></h3>
 <p>${esc(m.desc)}</p>
 <p class="meta">起始资金${m.start.funds} · 风险${m.start.risk} · 情报可信度${m.start.cred}</p>
+${saved ? `<p class="meta">已保存进度：${esc(savedStage)}</p>` : ""}
 <button class="btn small">${saved ? "继续上次任务" : "开始任务"}</button></div>`;
 }).join("");
 $("#missionList [data-mission]").forEach((el) => el.addEventListener("click", () => {
@@ -389,8 +397,10 @@ else startMission(el.dataset.mission);
 
 function startMission(id) {
 missionDef = missionById(id);
+if (!missionDef) return;
 missionState = { funds: missionDef.start.funds, risk: missionDef.start.risk, cred: missionDef.start.cred, day: missionDef.start.day, clues: [], rels: {}, equip: [], stage: missionDef.stages[0].id, log: []};
 saveMissionState();
+renderMissionList();
 renderMissionStage();
 }
 
