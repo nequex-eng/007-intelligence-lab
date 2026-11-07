@@ -681,7 +681,7 @@ const EN_TEXT = new Map([
   ["勒·希弗：“继续，别停。”","Le Chiffre: “Carry on. Don’t stop.”"],
   ["勒·希弗：“别急，牌桌还长着呢。”","Le Chiffre: “No hurry. The night is still young.”"],
   ["勒·希弗观望中。","Le Chiffre is watching."],
-  ["0胜0负0和","0 wins · 0 losses · 0 ties"]
+  ["0胜0负0和","0 wins · 0 losses · 0 ties"],
   ["数据状态：","Data status: "],
   ["本站已接入14部原著的核验知识库；正典事实、推断与互动改编分别标注，资料缺口以状态卡为准。","The verified knowledge base covers all 14 novels. Canon facts, inferences and interactive adaptations are labelled separately; known gaps are listed in the status panel."],
   ["14本","14 novels"],
