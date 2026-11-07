@@ -11,6 +11,18 @@ export function minimaxKey(env) {
   return primary || alternate;
 }
 
+export function minimaxPayload(messages) {
+  return {
+    model: MINIMAX_MODEL,
+    messages,
+    temperature: 1,
+    max_completion_tokens: 4096,
+    stream: false,
+    reasoning_split: true,
+    thinking: { type: "disabled" }
+  };
+}
+
 export function llmAvailable(env) {
   return Boolean(minimaxKey(env));
 }
@@ -24,15 +36,7 @@ async function callMiniMax(env, messages) {
   const response = await fetch(MINIMAX_URL, {
     method: "POST",
     headers: { "content-type": "application/json", authorization: "Bearer " + minimaxKey(env) },
-    body: JSON.stringify({
-      model: MINIMAX_MODEL,
-      messages,
-      temperature: 1,
-      max_completion_tokens: 4096,
-      stream: false,
-      reasoning_split: true,
-      thinking: { type: "disabled" }
-    })
+    body: JSON.stringify(minimaxPayload(messages))
   });
   const raw = await response.text().catch(() => "");
   if (!response.ok) {
