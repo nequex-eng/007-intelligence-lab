@@ -371,11 +371,13 @@ const EN_TEXT = new Map([
 ]);
 const originalText = new WeakMap();
 const originalAttributes = new WeakMap();
-function translateElementAttributes() {
-  document.querySelectorAll("[placeholder],[title],[aria-label],[alt],[value]").forEach(el => {
+function translateElementAttributes(root = document) {
+  const selector = "[placeholder],[title],[aria-label],[alt],[value],[data-q]";
+  const nodes = root === document ? document.querySelectorAll(selector) : [...(root.matches?.(selector) ? [root] : []), ...(root.querySelectorAll?.(selector) || [])];
+  nodes.forEach(el => {
     let saved = originalAttributes.get(el);
     if (!saved) { saved = {}; originalAttributes.set(el, saved); }
-    ["placeholder","title","aria-label","alt","value"].forEach(name => {
+    ["placeholder","title","aria-label","alt","value","data-q"].forEach(name => {
       if (!el.hasAttribute(name)) return;
       if (!(name in saved)) saved[name] = el.getAttribute(name);
       let value = saved[name];
@@ -409,7 +411,7 @@ function applyLanguage() {
 function initLanguage(){
   const b=document.getElementById("languageToggle");
   if(b)b.addEventListener("click",()=>{LANGUAGE=LANGUAGE==="en"?"zh":"en";try{localStorage.setItem("007-language",LANGUAGE);}catch(_){}applyLanguage();if(CHARACTERS.length){renderCharGrid();if(selectedChar)selectChar(selectedChar);}});
-  const observer=new MutationObserver(records=>records.forEach(r=>{if(r.type==="characterData")translateTextNode(r.target);else r.addedNodes.forEach(n=>{if(n.nodeType===3)translateTextNode(n);else if(n.nodeType===1){const w=document.createTreeWalker(n,NodeFilter.SHOW_TEXT);let t;while((t=w.nextNode()))translateTextNode(t);}});}));
+  const observer=new MutationObserver(records=>records.forEach(r=>{if(r.type==="characterData")translateTextNode(r.target);else r.addedNodes.forEach(n=>{if(n.nodeType===3)translateTextNode(n);else if(n.nodeType===1){const w=document.createTreeWalker(n,NodeFilter.SHOW_TEXT);let t;while((t=w.nextNode()))translateTextNode(t);translateElementAttributes(n);}});}));
   observer.observe(document.body,{subtree:true,childList:true,characterData:true});
   applyLanguage();
 }
@@ -479,7 +481,7 @@ function saveChatHistory() { try { if (selectedChar) localStorage.setItem(chatSt
 function restoreChatHistory() {
   try { const saved = JSON.parse(localStorage.getItem(chatStorageKey()) || "[]"); chatHistory = Array.isArray(saved) ? saved.filter(m => m && ["user","assistant"].includes(m.role) && typeof m.content === "string").slice(-80) : []; } catch(e) { chatHistory = []; }
   const box = document.getElementById("chatLog");
-  if (box) { box.innerHTML = ""; chatHistory.forEach(m => addChatMsg(m.role === "user" ? "me" : "them", m.content, null, m.characterId && m.characterId !== selectedChar)); if (!chatHistory.length) addChatMsg("sys", "新建本地对话。消息会发送至模型服务；当前浏览器保存最近80条对话消息。"); }
+  if (box) { box.innerHTML = ""; chatHistory.forEach(m => { const c = m.characterId ? charById(m.characterId) : null; const speaker = c ? (LANGUAGE === "en" ? c.name : c.zh) : null; addChatMsg(m.role === "user" ? "me" : "them", m.content, speaker, m.characterId && m.characterId !== selectedChar); }); if (!chatHistory.length) addChatMsg("sys", "新建本地对话。消息会发送至模型服务；当前浏览器保存最近80条对话消息。"); }
 }
 
 function charById(id) { return CHARACTERS.find((c) => c.id === id);}
@@ -545,7 +547,15 @@ function addChatMsg(kind, text, who, alternateSpeaker = false) {
 const box = $("#chatLog");
 const div = document.createElement("div");
 div.className = "msg " + kind + (kind === "them" && alternateSpeaker ? " speaker-2" : "");
-div.textContent = text;
+if (kind === "them" && chatMode === "group" && who) {
+  const heading = document.createElement("span");
+  heading.className = "speaker-name";
+  heading.textContent = who;
+  const content = document.createElement("div");
+  content.className = "msg-content";
+  content.textContent = text;
+  div.append(heading, content);
+} else { div.textContent = text; }
 box.appendChild(div);
 box.scrollTop = box.scrollHeight;
 }
@@ -587,7 +597,8 @@ const d = await r.json();
 clearThinking();
 if (chatMode === "group" && Array.isArray(d.replies)) {
   d.replies.forEach((item, index) => {
-    addChatMsg("them", item.content, null, index === 1);
+    const speaker = charById(item.characterId);
+     addChatMsg("them", item.content, speaker ? (LANGUAGE === "en" ? speaker.name : speaker.zh) : item.characterId, index === 1);
     chatHistory.push({ role: "assistant", content: item.content, characterId: item.characterId });
   });
 } else {
