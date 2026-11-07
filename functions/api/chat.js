@@ -106,8 +106,8 @@ export async function onRequestPost(context) {
         const out = await generate(context.env || {}, [
           { role: "system", content: [baseRules, prompts[i], groupRule,
             language === "en"
-              ? "This is a two-character conversation with the user. Only your own character speaks in this response. Do not add speaker headings or labels."
-              : "这是用户与两位人物的三方对话。本次回复只允许你所扮演的人物发言，不要添加说话人抬头或姓名标签。"
+              ? "This is a two-character conversation with the user. Only your own character speaks in this response. Never output meta-context labels such as Previous speaker, speaker identity reminders, bracketed speaker notes, or dialogue headings. The interface identifies each speaker."
+              : "这是用户与两位人物的三方对话。本次回复只允许你所扮演的人物发言。严禁输出“此前发言人物”“上一位说话者”等元信息提醒、方括号人物标签或对话抬头；界面会标明发言人物。"
           ].join("\\n\\n") },
           ...transcript.slice(0, -1),
           ...priorScene,
