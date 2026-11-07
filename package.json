@@ -1,0 +1,1 @@
+{"description":"007 INTELLIGENCE LAB：基于Ian Fleming 14部007原著的互动文学与情报世界实验室（Cloudflare Pages + Pages Functions）。","devDependencies":{"wrangler":"^4.157.0"},"engines":{"node":">=18"},"name":"007-intelligence-lab","private":true,"scripts":{"deploy":"bash deploy.sh","dev":"wrangler pages dev public"},"version":"1.0.0"}

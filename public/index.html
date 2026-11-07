@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>007 INTELLIGENCE LAB·伊恩·弗莱明世界实验室</title>
+<meta name="description" content="进入伊恩·弗莱明笔下的007世界：人物档案、情报档案馆、任务模拟器、邦德体验、文学研究室、世界地图。">
+<style>
+:root{--bg:#070b09;--bg2:#0c1712;--panel:#101c15;--panel2:#132219;--line:#2a3d2f;--gold:#c9a227;--gold2:#e3c766;--ink:#e9e4d4;--muted:#9aa893;--red:#b3271e;--green:#1d3a2a}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Noto Serif SC","Songti SC",Georgia,serif;line-height:1.75}
+body,button,input,select,textarea{font-family:"Noto Serif SC","Songti SC",Georgia,serif}
+.sans{font-family:"PingFang SC","Microsoft YaHei",sans-serif}
+a{color:var(--gold2)}
+button{cursor:pointer}
+.topbar{position:sticky;top:0;z-index:50;background:rgba(7,11,9,.94);border-bottom:1px solid var(--line);backdrop-filter:blur(6px)}
+.topbar-in{max-width:1180px;margin:0 auto;padding:10px 18px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.brand{font-size:19px;letter-spacing:.12em;color:var(--gold2);font-weight:700;white-space:nowrap}
+.brand small{display:block;font-size:10px;letter-spacing:.3em;color:var(--muted)}
+.nav{display:flex;gap:2px;flex-wrap:wrap;margin-left:auto}
+.nav a{color:var(--ink);text-decoration:none;font-size:14px;padding:6px 10px;border-radius:4px}
+.nav a:hover{background:var(--panel);color:var(--gold2)}
+.pill{font-size:12px;border:1px solid var(--gold);color:var(--gold2);border-radius:20px;padding:3px 10px;white-space:nowrap}
+.pill.red{border-color:var(--red);color:#ff8d84}
+.hero{max-width:1180px;margin:0 auto;padding:56px 18px 30px;text-align:center;background:radial-gradient(ellipse at 50% 0%,#1d3a2a 0%,transparent 62%)}
+.hero.kicker{letter-spacing:.45em;font-size:12px;color:var(--gold)}
+.hero h1{font-size:52px;line-height:1.15;margin:14px 0 6px;letter-spacing:.06em}
+.hero h1.n007{color:var(--gold2)}
+.hero.sub{font-size:17px;letter-spacing:.35em;color:var(--muted)}
+.hero.slogan{margin:20px auto 0;max-width:760px;font-size:19px;color:var(--gold2);border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:14px 10px;letter-spacing:.08em}
+.hero p.intro{max-width:760px;margin:18px auto 0;color:var(--ink);font-size:16px}
+.cta-row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:24px}
+.btn{display:inline-block;background:var(--gold);color:#141005;border:none;border-radius:4px;padding:11px 22px;font-size:15px;font-weight:700;text-decoration:none}
+.btn.ghost{background:transparent;color:var(--gold2);border:1px solid var(--gold)}
+.btn.danger{background:var(--red);color:#fff}
+.btn.small{padding:7px 14px;font-size:14px}
+.btn:disabled{opacity:.5;cursor:wait}
+.notice{max-width:1180px;margin:14px auto 0;padding:0 18px}
+.notice-in{border:1px solid var(--gold);background:#1a1503;color:#f0d98c;border-radius:4px;padding:10px 14px;font-size:14px}
+.stats{max-width:1180px;margin:22px auto 0;padding:0 18px;display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.stat{border:1px solid var(--line);background:var(--panel);border-radius:4px;padding:14px;text-align:center}
+.stat b{display:block;font-size:28px;color:var(--gold2)}
+.stat span{font-size:13px;color:var(--muted)}
+main{max-width:1180px;margin:0 auto;padding:10px 18px 60px}
+section.mod{margin-top:44px;border-top:3px double var(--gold);padding-top:18px}
+section.mod h2{font-size:26px;margin:0 0 4px;letter-spacing:.08em}
+section.mod h2.en{display:block;font-size:12px;letter-spacing:.3em;color:var(--gold);margin-bottom:4px}
+.mod-desc{color:var(--muted);font-size:15px;margin:0 0 16px;max-width:860px}
+.grid{display:grid;gap:12px}
+.g3{grid-template-columns:repeat(3,1fr)}
+.g4{grid-template-columns:repeat(4,1fr)}
+.g2{grid-template-columns:repeat(2,1fr)}
+.card{border:1px solid var(--line);background:var(--panel);border-radius:4px;padding:14px 16px}
+.card h3{margin:0 0 6px;font-size:17px;color:var(--gold2)}
+.card p{margin:6px 0;font-size:14px;color:var(--ink)}
+.card.meta{font-size:12px;color:var(--muted)}
+.card.clickable{cursor:pointer}
+.card.clickable:hover,.card.active{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold)}
+.tag{display:inline-block;font-size:12px;border:1px solid var(--line);border-radius:20px;padding:1px 9px;margin:2px 3px 2px 0;color:var(--muted)}
+.tag.gold{border-color:var(--gold);color:var(--gold2)}
+.tag.red{border-color:var(--red);color:#ff8d84}
+.tag.green{border-color:#4a7d5c;color:#9fd4ae}
+input,select,textarea{width:100%;padding:10px;border:1px solid var(--line);border-radius:4px;background:#0a120d;color:var(--ink);font-size:15px}
+input:focus,select:focus,textarea:focus{outline:1px solid var(--gold)}
+label{font-size:13px;color:var(--muted);display:block;margin:10px 0 4px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.row>*{flex:1;min-width:140px}
+.chatbox{border:1px solid var(--line);background:#0a120d;border-radius:4px;padding:14px;min-height:220px;max-height:420px;overflow-y:auto;display:flex;flex-direction:column;gap:10px}
+.msg{max-width:88%;padding:9px 13px;border-radius:6px;font-size:15px;white-space:pre-wrap}
+.msg.me{align-self:flex-end;background:#1e2c22}
+.msg.them{align-self:flex-start;background:var(--panel2);border:1px solid var(--line)}
+.msg.sys{align-self:center;background:transparent;border:1px dashed var(--line);color:var(--muted);font-size:13px;max-width:100%;text-align:center}
+.msg.who{display:block;font-size:12px;color:var(--gold2);margin-bottom:3px}
+.statebar{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:12px 0}
+.state{border:1px solid var(--line);background:#0a120d;border-radius:4px;padding:8px 10px;font-size:13px}
+.state b{display:block;font-size:17px;color:var(--gold2)}
+.state.lbl{color:var(--muted);font-size:12px}
+.choice{display:block;width:100%;text-align:left;background:var(--panel2);border:1px solid var(--line);color:var(--ink);border-radius:4px;padding:11px 14px;margin:7px 0;font-size:15px}
+.choice:hover{border-color:var(--gold)}
+.choice small{display:block;color:var(--muted);font-size:12px}
+.log{font-size:14px;color:var(--muted);border-left:3px solid var(--gold);padding-left:10px;margin:10px 0}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{border-bottom:1px solid var(--line);padding:8px 6px;text-align:left;vertical-align:top}
+th{color:var(--gold2);font-size:13px}
+.mapwrap{position:relative;height:300px;border:1px solid var(--line);border-radius:4px;background:linear-gradient(180deg,#0a1a12,#0c1712);overflow:hidden}
+.mapdot{position:absolute;width:12px;height:12px;border-radius:50%;background:var(--gold);border:2px solid #0a120d;cursor:pointer;transform:translate(-50%,-50%)}
+.mapdot.fictional{background:var(--red)}
+.mapdot:hover{box-shadow:0 0 0 4px rgba(201,162,39,.35)}
+.maplbl{position:absolute;transform:translate(-50%,10px);font-size:11px;color:var(--ink);white-space:nowrap;pointer-events:none}
+.mapwrap.compact .maplbl{display:none}
+.mapwrap.compact .maplbl.show{display:block}
+.empty{border:1px dashed var(--line);border-radius:4px;padding:26px;text-align:center;color:var(--muted)}
+footer{border-top:1px solid var(--line);padding:26px 18px 40px;text-align:center;color:var(--muted);font-size:13px;max-width:1180px;margin:0 auto}
+footer b{color:var(--gold2)}
+details{border:1px solid var(--line);border-radius:4px;background:var(--panel);padding:10px 14px;margin:8px 0}
+details summary{cursor:pointer;color:var(--gold2);font-size:15px}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+.chipbtn{background:var(--panel);border:1px solid var(--line);color:var(--ink);border-radius:20px;padding:5px 13px;font-size:13px}
+.chipbtn:hover,.chipbtn.active{border-color:var(--gold);color:var(--gold2)}
+.bar{height:8px;background:#0a120d;border:1px solid var(--line);border-radius:4px;overflow:hidden}
+.bar>i{display:block;height:100%;background:var(--gold)}
+@media(max-width:860px){
+.hero h1{font-size:34px}
+.g3,.g4,.g2{grid-template-columns:1fr 1fr}
+.stats{grid-template-columns:repeat(2,1fr)}
+.statebar{grid-template-columns:repeat(2,1fr)}
+.nav a{padding:5px 7px;font-size:13px}
+}
+@media(max-width:560px){.g3,.g4,.g2{grid-template-columns:1fr}.hero h1{font-size:28px}}
+</style>
+</head>
+<body>
+<header class="topbar"><div class="topbar-in">
+<div class="brand">007 INTELLIGENCE LAB<small>THE WORLD OF IAN FLEMING</small></div>
+<nav class="nav sans">
+<a href="#characters">人物档案</a><a href="#dossier">情报馆</a><a href="#mission">任务模拟</a><a href="#experience">成为邦德</a><a href="#literary">文学研究室</a><a href="#atlas">世界地图</a><a href="#import">TXT导入</a>
+</nav>
+<span class="pill" id="statusPill">状态检测中…</span>
+</div></header>
+
+<div class="hero">
+<div class="kicker">WORLD LAB · CHARACTER LAB · BOOK LAB</div>
+<h1><span class="n007">007</span> INTELLIGENCE LAB</h1>
+<div class="sub">THE WORLD OF IAN FLEMING</div>
+<div class="slogan">KNOW THE WORLD. READ THE SIGNS. TRUST NO ONE.</div>
+<p class="intro">这不是电子书站，也不是一个聊天框。进入伊恩·弗莱明笔下的007世界：查人物档案、翻情报档案、接M的任务、在赌场牌桌上读懂对手、研究弗莱明的写作方法，再沿着世界地图走完14本书的轨迹。</p>
+<div class="cta-row">
+<a class="btn" href="#mission">接受第一个任务</a>
+<a class="btn ghost" href="#characters">见一见邦德</a>
+<a class="btn ghost" href="#dossier">打开情报馆</a>
+</div>
+</div>
+
+<div class="notice"><div class="notice-in"><b>数据状态：</b>本站当前使用明确标注的示例数据（只含公认基础事实，如《皇家赌场》1953年首版），细节存疑处一律按不知道处理。<b>不是已完成的全系列真实知识库。</b>待全本txt导入核验后，示例数据将逐条替换为带书名、章节、原文位置的记录。</div></div>
+
+<div class="stats">
+<div class="stat"><b>14本</b><span>弗莱明邦德小说</span></div>
+<div class="stat"><b>12人</b><span>核心人物档案</span></div>
+<div class="stat"><b>15处</b><span>世界地图地点</span></div>
+<div class="stat"><b>2个</b><span>可玩任务·原著+原创</span></div>
+</div>
+
+<main>
+<!--1人物-->
+<section class="mod" id="characters">
+<h2><span class="en">CHARACTER FILES</span>人物档案与角色模拟</h2>
+<p class="mod-desc">12人完整档案：身份背景、外貌行为、性格价值观、语言习惯、人际关系、首次登场、参与事件、知识边界。三层约束写进每一次对话：人物核心+原著事实检索+场景与知识控制。邦德不知道自己尚未经历的事，电影版剧情不算原著，自由发挥必标。</p>
+<div class="row"><div><label>搜索人物</label><input id="charSearch" placeholder="输入名字，如邦德、M、Q、布洛菲尔德…"></div>
+<div><label>按首次登场筛选</label><select id="charBookFilter"><option value="">全部作品</option></select></div></div>
+<div class="grid g4" id="charGrid" style="margin-top:14px"></div>
+<div class="grid g2" style="margin-top:14px;align-items:start">
+<div class="card" id="charDetail"><h3>人物档案</h3><p class="meta">点上方任意人物卡片查看完整档案。</p><div class="empty">尚未选择人物</div></div>
+<div class="card">
+<h3>角色模拟</h3>
+<div class="chips" id="chatModes">
+<button class="chipbtn active" data-mode="talk">自由对话</button>
+<button class="chipbtn" data-mode="report">向M汇报</button>
+<button class="chipbtn" data-mode="quartermaster">找Q领装备</button>
+<button class="chipbtn" data-mode="group">多角色同场</button>
+</div>
+<p class="meta" id="chatHint">先选一个人，再开始对话。当前模式：自由对话。</p>
+<div id="groupPick" style="display:none"><label>同场第二人</label><select id="groupSecond"></select></div>
+<div class="chatbox" id="chatLog"><div class="msg sys">对话只保存在你的浏览器里，不上传服务器。模型未接入时显示离线脚本化演示回复，并明确标注。</div></div>
+<div class="row" style="margin-top:10px"><div style="flex:3"><input id="chatInput" placeholder="说点什么…" maxlength="500"></div><button class="btn small" id="chatSend" style="flex:0 0 auto">发送</button></div>
+<p class="meta" id="modelLine">模型状态检测中…</p>
+</div>
+</div>
+</section>
+
+<!--2情报馆-->
+<section class="mod" id="dossier">
+<h2><span class="en">INTELLIGENCE DOSSIER</span>情报档案馆</h2>
+<p class="mod-desc">跨全系列检索：小说、人物、地点、组织、武器装备、事件、反派计划、线索、关系、时间线。结果尽量给出书名与出处，原著事实与模型推断明确区分，推断必标。</p>
+<div class="row"><div style="flex:3"><input id="dossierQ" placeholder="输入关键词，如日本、苏联、莱特、武器、赌场、布洛菲尔德…"></div><button class="btn small" id="dossierGo" style="flex:0 0 auto">检索</button></div>
+<div class="chips">
+<button class="chipbtn" data-q="邦德去过日本的小说">邦德去过日本的小说</button>
+<button class="chipbtn" data-q="与苏联情报机构有关的反派">与苏联有关的反派</button>
+<button class="chipbtn" data-q="莱特">莱特出现作品</button>
+<button class="chipbtn" data-q="武器">邦德用过武器</button>
+<button class="chipbtn" data-q="赌场">涉及赌场的小说</button>
+<button class="chipbtn" data-q="布洛菲尔德">布洛菲尔德</button>
+</div>
+<div id="dossierResults" style="margin-top:12px"><div class="empty">输入关键词或点上方示例问题开始检索。</div></div>
+<div class="chips" id="dossierTabs" style="margin-top:18px">
+<button class="chipbtn active" data-tab="books">小说目录</button>
+<button class="chipbtn" data-tab="timeline">事件时间线</button>
+<button class="chipbtn" data-tab="orgs">组织与机构</button>
+<button class="chipbtn" data-tab="weapons">武器与装备</button>
+</div>
+<div id="dossierTabBody" style="margin-top:12px"></div>
+</section>
+
+<!--3任务模拟-->
+<section class="mod" id="mission">
+<h2><span class="en">MISSION SIMULATOR</span>任务模拟器</h2>
+<p class="mod-desc">你扮演英国秘密情报机构行动人员。每个选择都会改变资金、风险、情报可信度、线索与人物关系，并决定后续分支与最终报告——不是AI自由讲故事，是真实状态机。</p>
+<div class="grid g2" id="missionList"></div>
+<div class="card" id="missionPanel" style="margin-top:14px"><h3>任务控制台</h3><p class="meta">先在上方选一个任务开始。</p><div class="empty">尚未开始任务</div></div>
+</section>
+
+<!--4成为邦德-->
+<section class="mod" id="experience">
+<h2><span class="en">BOND EXPERIENCE</span>成为詹姆斯·邦德</h2>
+<p class="mod-desc">从M办公室领任务，到Q部门领装备，再到酒店、餐厅、酒吧、赌场、俱乐部与豪华汽车。赌场部分是真正可玩的百家乐：有规则、有对手、有筹码输赢。</p>
+<div class="chips" id="expScenes"></div>
+<div class="card" id="expPanel" style="margin-top:12px"><h3>场景</h3><p class="meta">点上方场景进入体验。</p><div class="empty">尚未选择场景</div></div>
+<div class="card" style="margin-top:12px" id="baccaratCard">
+<h3>赌场·百家乐 <span class="tag gold">可玩</span> <span class="tag">规则简化版</span></h3>
+<p class="meta">玩法：押闲家、庄家或和局。牌面点数按个位数计算，A为1点，10、J、Q、K为0点。补牌规则采用简化版：闲家0–5点补牌，6–7点停牌；庄家按简化规则补牌。和局赔8倍，庄赢赔0.95倍（抽水），闲赢赔1倍。对手：勒·希弗坐在对面，他会记住你的下注习惯。</p>
+<div class="statebar">
+<div class="state"><span class="lbl">你的筹码</span><b id="bacChips">1000</b></div>
+<div class="state"><span class="lbl">本局下注</span><b id="bacBet">—</b></div>
+<div class="state"><span class="lbl">战绩</span><b id="bacRecord">0胜0负</b></div>
+<div class="state"><span class="lbl">勒·希弗的评价</span><b id="bacRival" style="font-size:14px">观望中</b></div>
+</div>
+<div class="row">
+<div><label>下注金额</label><input id="bacAmount" type="number" value="100" min="10" max="1000" step="10"></div>
+<div><label>押注方向</label><select id="bacSide"><option value="player">闲家（赔1倍）</option><option value="banker">庄家（赔0.95倍）</option><option value="tie">和局（赔8倍）</option></select></div>
+<div style="flex:0 0 auto"><label>&nbsp;</label><button class="btn small" id="bacDeal">发牌</button></div>
+</div>
+<div id="bacTable" style="margin-top:12px"><div class="empty">尚未开局。筹码1000，用完可点“重新领筹码”恢复。</div></div>
+<div class="row" style="margin-top:10px"><button class="btn ghost small" id="bacReset">重新领筹码</button><span class="meta" id="bacNote"></span></div>
+</div>
+</section>
+
+<!--5文学研究室-->
+<section class="mod" id="literary">
+<h2><span class="en">FLEMING LITERARY LAB</span>文学研究室</h2>
+<p class="mod-desc">研究伊恩·弗莱明的写作方式：人物塑造、悬念、信息控制、节奏、动作、气氛、女性角色、冷战背景、小说与电影改编差异。原创写作实验一律标注非原著，绝不冒充原著内容。</p>
+<div class="grid g2" id="litTopics"></div>
+<div class="grid g2" style="margin-top:14px;align-items:start">
+<div class="card"><h3>提问分析</h3>
+<p class="meta">问一个关于弗莱明写作的问题，系统按示例知识库作答，超出示例范围的一律说不知道。</p>
+<input id="litQ" placeholder="例如：弗莱明怎么写悬念？邦德和反派有什么共同点？">
+<div style="margin-top:10px"><button class="btn small" id="litAsk">分析</button></div>
+<div id="litAnswer" style="margin-top:12px"><div class="empty">尚未提问</div></div></div>
+<div class="card"><h3>原创写作实验 <span class="tag red">非原著</span></h3>
+<p class="meta">以下生成均为原创实验，灵感来自弗莱明式结构，不是原著内容。</p>
+<div class="chips">
+<button class="chipbtn" data-lab="villain">创建一个新反派</button>
+<button class="chipbtn" data-lab="suspense">设计悬念结构</button>
+<button class="chipbtn" data-lab="mission">设计一场秘密行动</button>
+<button class="chipbtn" data-lab="compare">比较两部小说叙事</button>
+</div>
+<div id="labOut" style="margin-top:12px"><div class="empty">点上方任一实验开始。</div></div></div>
+</div>
+</section>
+
+<!--6世界地图-->
+<section class="mod" id="atlas">
+<h2><span class="en">WORLD ATLAS</span>007世界地图</h2>
+<p class="mod-desc">15处地点，全部来自示例知识库。真实城市标注真实坐标，虚构地点（如皇家莱索、蟹礁岛）明确标为虚构，不给假坐标。点地图上的点或下方卡片，进入相关人物、事件与小说。</p>
+<div class="row">
+<div><label>按人物筛选</label><select id="atlasPerson"><option value="">全部人物</option></select></div>
+<div><label>按国家筛选</label><select id="atlasCountry"><option value="">全部国家</option></select></div>
+<div><label>按小说筛选</label><select id="atlasBook"><option value="">全部小说</option></select></div>
+<div><label>按年代筛选</label><select id="atlasEra"><option value="">全部年代</option><option value="1950s">1950年代</option><option value="1960s">1960年代</option></select></div>
+</div>
+<div class="mapwrap" id="mapWrap" style="margin-top:14px"></div>
+<p class="meta">金点为真实地点，红点为小说虚构地点。坐标为城市级示意位置，事件归属以小说为准。</p>
+<div class="grid g3" id="atlasGrid" style="margin-top:12px"></div>
+</section>
+
+<!--7TXT导入-->
+<section class="mod" id="import">
+<h2><span class="en">TXT IMPORT</span>原著TXT导入</h2>
+<p class="mod-desc">全本14本已转txt共926290词，13本章节索引通过、1本待复核，知识库仍标示例数据·待TXT导入核验。导入流程：本地解析txt（计算哈希、识别小说名与章节、统计字数行数）→摘要POST到服务端校验（重复检测、小说识别、错误报告）→核验后按数据结构入库。服务端不接收、不存储原著全文。</p>
+<div class="grid g2" style="align-items:start">
+<div class="card"><h3>批量导入</h3>
+<label>选择txt文件（可多选，每批最多20个）</label>
+<input type="file" id="txtFiles" accept=".txt" multiple>
+<div style="margin-top:10px"><button class="btn small" id="txtParse">解析并校验</button></div>
+<p class="meta">解析在你的浏览器本地完成，全文不上传。只把文件名、哈希、字数、章节摘要发给服务端校验。</p>
+<div id="importReport" style="margin-top:12px"><div class="empty">全本14本已转txt，章节索引13本通过、1本待复核；当前知识库仍为示例数据，待导入核验后替换。</div></div></div>
+<div class="card"><h3>数据结构</h3>
+<p class="meta">轻量结构，十张表，导入后每条记录保留书名、章节、原文位置。</p>
+<table><tr><th>表</th><th>内容</th></tr>
+<tr><td>books</td><td>小说目录与版本信息</td></tr>
+<tr><td>chapters</td><td>章节结构与位置</td></tr>
+<tr><td>characters</td><td>人物档案与知识边界</td></tr>
+<tr><td>locations</td><td>地点与坐标（虚构地点不给假坐标）</td></tr>
+<tr><td>organizations</td><td>情报机构与犯罪组织</td></tr>
+<tr><td>events</td><td>重要事件与时间线</td></tr>
+<tr><td>objects</td><td>武器与装备</td></tr>
+<tr><td>relationships</td><td>人物关系图谱</td></tr>
+<tr><td>timelines</td><td>跨小说事件顺序</td></tr>
+<tr><td>source_references</td><td>每条记录的书名、章节、原文位置</td></tr></table>
+<p class="meta" style="margin-top:10px">当前状态：<span class="tag gold">框架已完成</span> <span class="tag red">待TXT导入</span> <span class="tag">持久化到D1/KV待扩展</span></p></div>
+</div>
+</section>
+</main>
+
+<footer>
+<p><b>007 INTELLIGENCE LAB</b> · THE WORLD OF IAN FLEMING</p>
+<p>KNOW THE WORLD. READ THE SIGNS. TRUST NO ONE.</p>
+<p>本站为粉丝研究模拟，非官方，与伊恩·弗莱明遗产管理方及出版方无关。对话与原创任务由AI生成或按示例脚本演示，不是原著引文。原著引用必要、简短并标注出处，不提供整本小说下载，不做公开阅读网站。</p>
+<p class="sans">数据状态：示例数据·待TXT导入核验 · 模型状态见页顶状态pill · 工程：本机~/workspace/007-intelligence-lab/ · 部署：Cloudflare Pages直传 · GitHub：无需GitHub</p>
+</footer>
+<script src="/app.js"></script>
+</body>
+</html>
