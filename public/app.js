@@ -411,7 +411,7 @@ function saveChatHistory() { try { if (selectedChar) localStorage.setItem(chatSt
 function restoreChatHistory() {
   try { const saved = JSON.parse(localStorage.getItem(chatStorageKey()) || "[]"); chatHistory = Array.isArray(saved) ? saved.filter(m => m && ["user","assistant"].includes(m.role) && typeof m.content === "string").slice(-80) : []; } catch(e) { chatHistory = []; }
   const box = document.getElementById("chatLog");
-  if (box) { box.innerHTML = ""; chatHistory.forEach(m => addChatMsg(m.role === "user" ? "me" : "them", m.content, m.role === "user" ? null : (charById(selectedChar)?.zh || "角色"))); if (!chatHistory.length) addChatMsg("sys", "新建本地对话。消息会发送至模型服务；当前浏览器保存最近80条对话消息。"); }
+  if (box) { box.innerHTML = ""; chatHistory.forEach(m => addChatMsg(m.role === "user" ? "me" : "them", m.content, m.role === "user" ? null : ((LANGUAGE==="en" ? charById(selectedChar)?.name : charById(selectedChar)?.zh) || (LANGUAGE==="en" ? "Character" : "角色")))); if (!chatHistory.length) addChatMsg("sys", "新建本地对话。消息会发送至模型服务；当前浏览器保存最近80条对话消息。"); }
 }
 
 function charById(id) { return CHARACTERS.find((c) => c.id === id);}
@@ -502,7 +502,7 @@ $("#chatInput").disabled = true;
 const thinking = document.createElement("div");
 thinking.className = "msg them";
 thinking.id = "chatThinking";
-thinking.innerHTML = `<span class="who">${esc(c.zh)}</span>对方正在想……`;
+thinking.innerHTML = `<span class="who">${esc(LANGUAGE==="en"?c.name:c.zh)}</span>${LANGUAGE==="en"?"Thinking…":"对方正在想……"}`;
 const chatBox = $("#chatLog");
 chatBox.appendChild(thinking);
 chatBox.scrollTop = chatBox.scrollHeight;
@@ -597,8 +597,8 @@ scene.innerHTML = "";
 CHARACTERS = cd.characters.map(c => ({
 id:c.id, name:c.name, zh:c.nameZh, role:c.role, roleEn:c.roleEn, firstBook:c.firstBook || "未标注", firstBookEn:c.firstBookEn || c.firstBook, firstNovelId:c.firstNovelId || null,
 firstYear:c.firstYear || "", cutoff:c.timelineCutoff || "按知识库边界", cutoffEn:c.timelineCutoffEn || c.timelineCutoff,
-intro:c.intro || "原文未提供完整背景资料。", introEn:c.introEn || "", appearance:c.appearance || "原文未提供。", appearanceEn:c.appearanceEn || "",
-personality:c.personality || "原文未提供。", personalityEn:c.personalityEn || "", speech:c.speech?.tone || "按原著对话与行为边界生成。", speechEn:c.speechEn || "", relationships:c.relationships || [], knowledgeBoundariesEn:(c.knowledgeBoundariesEn||[]).join("; "),
+intro:c.intro || "原文未提供完整背景资料。", introEn:c.introEn || "No detailed background is available in the verified English profile.", appearance:c.appearance || "原文未提供。", appearanceEn:c.appearanceEn || "Not specified in the verified English profile.",
+personality:c.personality || "原文未提供。", personalityEn:c.personalityEn || "Not specified in the verified English profile.", speech:c.speech?.tone || "按原著对话与行为边界生成。", speechEn:c.speechEn || "", relationships:c.relationships || [], knowledgeBoundariesEn:(c.knowledgeBoundariesEn||[]).join("; "),
 rel:Array.isArray(c.relationships)?c.relationships.map(r=>r.type+"："+r.with+"（"+r.change+"）").join("；"):"关系资料待核验。",
 events:Array.isArray(c.knowledgeScope)?c.knowledgeScope.filter(x=>x.status==="present").map(x=>x.title_zh).join("、"):"按知识库出场记录。", eventsEn:Array.isArray(c.knowledgeScope)?c.knowledgeScope.filter(x=>x.status==="present").map(x=>BOOKS.find(b=>b.id===x.novel)?.en || x.novel).join(", "):"",
 bounds:[...(c.knowledgeBoundaries||[]),...(c.behavioralBoundaries||[])].join("；"),
@@ -633,7 +633,7 @@ async function runDossier(q) {
     box.innerHTML = `<p class="meta">共${results.length}条 · 来源：核验知识库 · 原著事实与推测分别标记。</p>` +
       results.map(h => {
         const title = h.kind === "facts" ? (LANGUAGE==="en" ? (h.entity_en || h.entity || h.title_en || h.title_zh || "Canon fact") : (h.entity || h.title_zh || "原著事实")) : (LANGUAGE==="en" ? (h.title_en || h.name_en || h.name || h.title || h.entity || h.id || "Untitled record") : (h.title_zh || h.name_zh || h.name || h.name_en || h.title || h.entity || h.id || "未命名记录"));
-        const kind = h.kind || "档案";
+        const kind = LANGUAGE==="en" ? ({facts:"Facts",characters:"Characters",locations:"Locations",organizations:"Organisations",equipment:"Equipment",events:"Events",timeline:"Timeline",books:"Novels"}[h.kind] || h.kind || "Dossier") : (h.kind || "档案");
         const sourceBook = LANGUAGE==="en" ? (h.title_en || BOOKS.find(b=>b.id===h.novel_id)?.en || h.novel_id) : (h.title_zh || h.novel_id); const source = [sourceBook && h.novel_id ? sourceBook : null, h.chapter ? (LANGUAGE==="en" ? "Chapter "+h.chapter : "第"+h.chapter+"章") : null, h.source_novel || null].filter(Boolean).join(" · ") || (h.sources || []).join("；") || (LANGUAGE==="en"?"Indexed record":"索引记录");
         const detail = LANGUAGE==="en" ? (h.fact_en || h.summary_en || h.description_en || h.role_en || h.note_en || h.quote_en || h.fact || h.summary || h.description || h.role || h.note || h.change || h.quote || "No summary is available for this entry.") : (h.fact || h.summary || h.description || h.story_timeline || h.role || h.note || h.change || h.quote || "该条目没有提供摘要字段。");
         const status = h.canon_or_inference === "inference" ? "推测" : h.canon_or_inference === "canon" ? "正典事实" : kind;
