@@ -818,7 +818,7 @@ function saveChatHistory() { try { if (selectedChar) localStorage.setItem(chatSt
 function restoreChatHistory() {
   try { const saved = JSON.parse(localStorage.getItem(chatStorageKey()) || "[]"); chatHistory = Array.isArray(saved) ? saved.filter(m => m && ["user","assistant"].includes(m.role) && typeof m.content === "string").slice(-80) : []; } catch(e) { chatHistory = []; }
   const box = document.getElementById("chatLog");
-  if (box) { box.innerHTML = ""; chatHistory.forEach(m => { const c = m.characterId ? charById(m.characterId) : null; const speaker = c ? (LANGUAGE === "en" ? c.name : c.zh) : null; addChatMsg(m.role === "user" ? "me" : "them", m.content, speaker, m.characterId && m.characterId !== selectedChar); }); if (!chatHistory.length) addChatMsg("sys", "新建本地对话。消息会发送至模型服务；当前浏览器保存最近80条对话消息。"); }
+  if (box) { box.innerHTML = ""; chatHistory.forEach(m => { const c = m.characterId ? charById(m.characterId) : null; const speaker = c ? (LANGUAGE === "en" ? c.name : c.zh) : null; addChatMsg(m.role === "user" ? "me" : "them", m.content, chatMode === "group" ? speaker : null, m.characterId && m.characterId !== selectedChar); }); if (!chatHistory.length) addChatMsg("sys", LANGUAGE === "en" ? "New local conversation. Messages are sent to the model; the latest 80 messages are stored in this browser." : "新建本地对话。消息会发送至模型服务；当前浏览器保存最近80条对话消息。"); }
 }
 
 function charById(id) { return CHARACTERS.find((c) => c.id === id);}
@@ -897,7 +897,7 @@ box.appendChild(div);
 box.scrollTop = box.scrollHeight;
 }
 
-function clearThinking() {
+function clearChat() {\n  if (!selectedChar) { addChatMsg("sys", LANGUAGE === "en" ? "Select a character before clearing a conversation." : "请先选择人物，再清空对话。"); return; }\n  chatHistory = [];\n  try { localStorage.removeItem(chatStorageKey()); } catch (e) {}\n  const box = $("#chatLog");\n  if (box) { box.innerHTML = ""; addChatMsg("sys", LANGUAGE === "en" ? "Conversation cleared. Start a new exchange." : "对话已清空，可以开始新的交流。"); }\n}\n\nfunction clearThinking() {
 const t = document.getElementById("chatThinking");
 if (t) t.remove();
 $("#chatSend").disabled = false;
@@ -1004,7 +1004,7 @@ modes.forEach((b) => b.addEventListener("click", async () => {
 }));
 $("#charSearch").addEventListener("input", renderCharGrid);
 bf.addEventListener("change", renderCharGrid);
-$("#chatSend").addEventListener("click", (event) => { event.preventDefault(); sendChat(); });
+$("#chatSend").addEventListener("click", (event) => { event.preventDefault(); sendChat(); });\n$("#chatClear").addEventListener("click", (event) => { event.preventDefault(); clearChat(); });
 $("#sceneNovel").addEventListener("change", () => {
   loadSceneChapters($("#sceneNovel").value);
   restoreChatHistory();
