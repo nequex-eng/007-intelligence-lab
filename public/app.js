@@ -1,5 +1,5 @@
-// 007 INTELLIGENCE LAB前端逻辑。示例数据与后端functions/_lib保持一致，
-// 全部标注示例数据·待TXT导入核验。模型未接入时对话走本地脚本化演示并标注。
+// 007 INTELLIGENCE LAB前端逻辑。
+// 正典内容统一来自核验知识库API；静态场景仅用于明确标注的互动体验。
 const SAMPLE = "核验知识库 · Ian Fleming 14部原著";
 const $ = (s) => document.querySelector(s);
 const $$ = (s) => Array.from(document.querySelectorAll(s));
@@ -105,6 +105,7 @@ $$("#charGrid [data-char]").forEach((el) => el.addEventListener("click", () => s
 
 function selectChar(id) {
 selectedChar = id;
+restoreChatHistory();
 const c = charById(id);
 renderCharGrid();
 $("#charDetail").innerHTML = `<h3>${esc(c.name)} · ${esc(c.zh)}</h3>
@@ -121,7 +122,6 @@ $("#charDetail").innerHTML = `<h3>${esc(c.name)} · ${esc(c.zh)}</h3>
 <p class="meta">${SAMPLE}</p>
 <button class="btn small" id="talkThis">和${esc(c.zh)}对话</button>`;
 $("#talkThis").addEventListener("click", () => {
-restoreChatHistory();
 addChatMsg("sys", "已选择" + c.zh + "。当前对话按人物与小说时间点保存在本地浏览器。");
 addChatMsg("them", c.opener, c.zh);
 $("#chatInput").focus();
@@ -449,7 +449,6 @@ if (fx.day) s.day += fx.day;
 if (fx.clue) s.clues.push(fx.clue);
 if (fx.equip) s.equip.push(fx.equip);
 if (fx.rel) s.rels[fx.rel[0]] = (s.rels[fx.rel[0]] || 0) + fx.rel[1];
-saveMissionState();
 }
 
 function stateBarHTML() {
@@ -475,7 +474,7 @@ ${stage.choices.map((ch, i) => `<button class="choice" data-choice="${i}">${esc(
 ${missionState.clues.length? `<p class="meta"><b>已发现线索：</b></p>` + missionState.clues.map((c) => `<div class="log">${esc(c)}</div>`).join(""): ""}
 <div class="row" style="margin-top:10px"><button class="btn ghost small" id="missionQuit">放弃任务</button></div>`;
 $$("#missionPanel [data-choice]").forEach((el) => el.addEventListener("click", () => chooseMission(+el.dataset.choice)));
-$("#missionQuit").addEventListener("click", () => { missionState = null; missionDef = null; $("#missionPanel").innerHTML = `<h3>任务控制台</h3><p class="meta">任务已放弃。选一个任务重新开始。</p><div class="empty">尚未开始任务</div>`;});
+$("#missionQuit").addEventListener("click", () => { if (missionDef) localStorage.removeItem("007-mission:" + missionDef.id); missionState = null; missionDef = null; $("#missionPanel").innerHTML = `<h3>任务控制台</h3><p class="meta">任务已放弃。选一个任务重新开始。</p><div class="empty">尚未开始任务</div>`;});
 }
 
 function chooseMission(i) {
@@ -484,6 +483,7 @@ const ch = stage.choices[i];
 missionState.log.push(stage.title + "：" + ch.text);
 applyFx(ch.fx || {});
 if (ch.next === "end") {
+localStorage.removeItem("007-mission:" + missionDef.id);
 const end = missionDef.ending(missionState);
 const s = missionState;
 $("#missionPanel").innerHTML = `<h3>${esc(missionDef.title)} · 任务结果</h3>${stateBarHTML()}
@@ -496,6 +496,7 @@ $("#missionAgain").addEventListener("click", () => startMission(missionDef.id));
 return;
 }
 missionState.stage = ch.next;
+saveMissionState();
 renderMissionStage();
 }
 
