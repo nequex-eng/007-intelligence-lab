@@ -32,7 +32,7 @@ export async function onRequestPost(context) {
     if (new Set(ids).size !== ids.length) return json({ error: "同一人物不能重复加入场景", code: "DUPLICATE_CHARACTER" }, 400);
 
     const language = body.language === "en" ? "en" : "zh";
-    const mode = ["talk", "roleplay"].includes(body.mode) ? body.mode : "talk";
+    const mode = ["talk", "roleplay", "group"].includes(body.mode) ? body.mode : "talk";
     const novelId = mode === "roleplay" ? null : body.novelId;
     if (mode === "talk" && !novelId) return json({ error: "必须选择小说时间点", code: "SCENE_REQUIRED" }, 400);
     const book = novelId ? getNovel(novelId) : null;
@@ -41,6 +41,7 @@ export async function onRequestPost(context) {
     const chapterNo = mode === "roleplay" ? null : (chapterValue === null || chapterValue === undefined || String(chapterValue).trim() === "" ? null : String(chapterValue).trim());
     if (mode === "talk" && chapterNo !== null && !book.chapters?.some(c => String(c.no).trim().toUpperCase() === chapterNo.toUpperCase())) return json({error:"所选章节不属于这部小说",code:"UNKNOWN_CHAPTER"},400);
     if (mode === "roleplay" && ids.length !== 2) return json({error:"角色扮演需要选择两位人物",code:"TWO_CHARACTERS_REQUIRED"},400);
+    if (mode === "group" && ids.length !== 2) return json({error:"多人同场需要选择两位人物",code:"TWO_CHARACTERS_REQUIRED"},400);
 
     const incoming = Array.isArray(body.messages) ? body.messages : [];
     const history = incoming
@@ -82,7 +83,7 @@ export async function onRequestPost(context) {
       ? "You are a real person living in the 007 world, not a narrator, guide, synopsis or encyclopedia. The user is an independent third party and visitor, NOT James Bond, 007, a secret agent or any character. Never call the user Bond or assume their identity, job, history, relationships or shared experiences. Never mention books, novels, authors, chapters, canon, fiction, adaptations, source material or role-play. Treat this as your lived reality. Speak naturally with emotion, humour, opinions, questions and subtext. Do not recite your profile or turn ordinary conversation into lore exposition."
       : "你是生活在007世界中的真实人物，不是讲解员、导览词、剧情简介或百科全书。用户是独立的第三者和访客，不是詹姆斯·邦德、007、特工或任何系列人物。绝不能称呼用户为邦德，也不得擅自假定用户的身份、职业、经历、人际关系或共同记忆。禁止提及书本、小说、作者、章节、正典、虚构、改编、来源资料或角色扮演。把这个世界当成自己真实生活的现实。使用自然口语、即时情绪反应、幽默、观点、追问和言外之意。不要复述人物档案，不要把日常聊天变成背景知识讲解。";
     const transcript = history.map(m => {
-      if (mode === "roleplay" && m.role === "assistant" && m.characterId) {
+      if (["roleplay","group"].includes(mode) && m.role === "assistant" && m.characterId) {
         const speaker = canonicalCharacters.find(c => c.id === m.characterId);
         const speakerName = speaker ? (language === "en" ? speaker.name_en : speaker.name_zh) : "Character";
         return { role: m.role, content: "[" + speakerName + "]: " + m.content };
@@ -90,14 +91,18 @@ export async function onRequestPost(context) {
       return { role: m.role, content: m.content };
     });
 
-    if (mode === "roleplay") {
+    if (["roleplay","group"].includes(mode)) {
       const replies = [];
       for (let i = 0; i < canonicalCharacters.length; i++) {
         const character = canonicalCharacters[i];
         const characterName = language === "en" ? character.name_en : character.name_zh;
-        const groupRule = language === "en"
-          ? "You are " + characterName + ". Stay fully in character and speak only for yourself. The other selected character may come from another era, place or story; you can meet naturally in this shared scene. React to the user's actual words and the other character's previous reply. Never write the other character's dialogue."
-          : "你现在是" + characterName + "。始终保持人物身份，只替自己发言。另一位人物可以来自不同年代、地点或故事，你们可以在当前场景自然相遇。回应用户真正说的话，也可以接住另一位人物上一轮的发言。不得代写另一位人物的台词。";
+        const groupRule = mode === "roleplay"
+          ? (language === "en"
+            ? "You are " + characterName + ". This is a strict one-to-one conversation: speak only as yourself to the user. The other selected character is the only other person in the scene and may come from another era or story. Never write their dialogue."
+            : "你是" + characterName + "。这是严格的一对一对话：只以自己的身份与用户交谈。另一位选定人物是场景中唯一的其他人物，可以来自不同年代或作品。绝不代写对方台词。")
+          : (language === "en"
+            ? "You are " + characterName + ". This is a group scene with the user and one other selected character. Speak only for yourself, respond naturally to both, and never write the other character's dialogue."
+            : "你是" + characterName + "。这是用户与两位人物的多人同场场景。只替自己发言，自然回应用户和另一位人物，绝不代写对方台词。");
         const priorScene = replies.map(r => {
           const speaker = canonicalCharacters.find(c => c.id === r.characterId);
           const speakerName = speaker ? (language === "en" ? speaker.name_en : speaker.name_zh) : "Character";
@@ -106,8 +111,8 @@ export async function onRequestPost(context) {
         const out = await generate(context.env || {}, [
           { role: "system", content: [baseRules, prompts[i], groupRule,
             language === "en"
-              ? "This is a two-character conversation with the user. Only your own character speaks in this response. Never output meta-context labels such as Previous speaker, speaker identity reminders, bracketed speaker notes, or dialogue headings. The interface identifies each speaker."
-              : "这是用户与两位人物的三方对话。本次回复只允许你所扮演的人物发言。严禁输出“此前发言人物”“上一位说话者”等元信息提醒、方括号人物标签或对话抬头；界面会标明发言人物。"
+              ? (mode === "roleplay" ? "Strict one-to-one role-play: only your character replies to the user." : "Group scene: only your character replies in this turn.") + " Never output the other character's dialogue, bracketed speaker notes or dialogue headings; the interface identifies each speaker."
+              : (mode === "roleplay" ? "严格一对一角色扮演：本轮只有你扮演的人物回应用户。" : "多人同场：本轮只允许你扮演的人物回应。") + "不得输出另一人物的台词、方括号人物标签或对话抬头；界面会标明发言人物。"
           ].join("\\n\\n") },
           ...transcript.slice(0, -1),
           ...priorScene,
@@ -122,7 +127,7 @@ export async function onRequestPost(context) {
       return json({
         replies,
         characterIds: canonicalCharacters.map(c => c.id),
-        novelId: null, chapterNo: null, mode, canonMode: false, model: "multi-character-roleplay"
+        novelId: null, chapterNo: null, mode, canonMode: false, model: mode === "roleplay" ? "one-to-one-roleplay" : "group-scene"
       });
     }
 
