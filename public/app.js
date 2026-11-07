@@ -79,6 +79,13 @@ let selectedChar = null;
 let chatMode = "talk";
 let chatHistory = [];
 let modelAvailable = null;
+function chatStorageKey() { return "007-intel-chat:" + selectedChar + ":" + (document.getElementById("sceneNovel")?.value || "casino-royale"); }
+function saveChatHistory() { try { if (selectedChar) localStorage.setItem(chatStorageKey(), JSON.stringify(chatHistory.slice(-80))); } catch(e) {} }
+function restoreChatHistory() {
+  try { const saved = JSON.parse(localStorage.getItem(chatStorageKey()) || "[]"); chatHistory = Array.isArray(saved) ? saved.filter(m => m && ["user","assistant"].includes(m.role) && typeof m.content === "string").slice(-80) : []; } catch(e) { chatHistory = []; }
+  const box = document.getElementById("chatLog");
+  if (box) { box.innerHTML = ""; chatHistory.forEach(m => addChatMsg(m.role === "user" ? "me" : "them", m.content, m.role === "user" ? "你" : (charById(selectedChar)?.zh || "角色"))); if (!chatHistory.length) addChatMsg("sys", "新建本地对话。消息会发送至模型服务；当前浏览器保存最近80条对话消息。"); }
+}
 
 function charById(id) { return CHARACTERS.find((c) => c.id === id);}
 
@@ -114,8 +121,8 @@ $("#charDetail").innerHTML = `<h3>${esc(c.name)} · ${esc(c.zh)}</h3>
 <p class="meta">${SAMPLE}</p>
 <button class="btn small" id="talkThis">和${esc(c.zh)}对话</button>`;
 $("#talkThis").addEventListener("click", () => {
-chatHistory = [];
-addChatMsg("sys", "已选择" + c.zh + "。开场白如下，直接输入开始对话。");
+restoreChatHistory();
+addChatMsg("sys", "已选择" + c.zh + "。当前对话按人物与小说时间点保存在本地浏览器。");
 addChatMsg("them", c.opener, c.zh);
 $("#chatInput").focus();
 document.querySelector("#characters.card:last-child").scrollIntoView({ behavior: "smooth", block: "nearest"});
@@ -181,6 +188,7 @@ const chatBox = $("#chatLog");
 chatBox.appendChild(thinking);
 chatBox.scrollTop = chatBox.scrollHeight;
 chatHistory.push({ role: "user", content: input});
+saveChatHistory();
 const ids = chatMode === "group"? [selectedChar, $("#groupSecond").value]: [selectedChar];
 const sysNote = chatMode === "report"? "你正在向M汇报，M只听事实。": chatMode === "quartermaster"? "对方是Q，只谈装备。": "";
 if (sysNote) addChatMsg("sys", sysNote);
@@ -192,6 +200,7 @@ const d = await r.json();
 clearThinking();
 addChatMsg("them", d.reply, c.zh);
 chatHistory.push({ role: "assistant", content: d.reply});
+saveChatHistory();
 $("#modelLine").textContent = "模型已接入：" + (d.model || "") + (d.canonMode ? " · 正典时间线约束已启用" : "");
 return;
 }
@@ -250,6 +259,7 @@ if (chatMode === "report") selectChar("m");
 if (chatMode === "quartermaster") selectChar("q");
 }));
 $("#chatSend").addEventListener("click", sendChat);
+$("#sceneNovel").addEventListener("change", restoreChatHistory);
 $("#chatInput").addEventListener("keydown", (e) => { if (e.key === "Enter") sendChat();});
 renderCharGrid();
 }
