@@ -125,7 +125,7 @@ function saveChatHistory() { try { if (selectedChar) localStorage.setItem(chatSt
 function restoreChatHistory() {
   try { const saved = JSON.parse(localStorage.getItem(chatStorageKey()) || "[]"); chatHistory = Array.isArray(saved) ? saved.filter(m => m && ["user","assistant"].includes(m.role) && typeof m.content === "string").slice(-80) : []; } catch(e) { chatHistory = []; }
   const box = document.getElementById("chatLog");
-  if (box) { box.innerHTML = ""; chatHistory.forEach(m => addChatMsg(m.role === "user" ? "me" : "them", m.content, m.role === "user" ? "你" : (charById(selectedChar)?.zh || "角色"))); if (!chatHistory.length) addChatMsg("sys", "新建本地对话。消息会发送至模型服务；当前浏览器保存最近80条对话消息。"); }
+  if (box) { box.innerHTML = ""; chatHistory.forEach(m => addChatMsg(m.role === "user" ? "me" : "them", m.content, m.role === "user" ? null : (charById(selectedChar)?.zh || "角色"))); if (!chatHistory.length) addChatMsg("sys", "新建本地对话。消息会发送至模型服务；当前浏览器保存最近80条对话消息。"); }
 }
 
 function charById(id) { return CHARACTERS.find((c) => c.id === id);}
@@ -208,7 +208,7 @@ if (!selectedChar) { addChatMsg("sys", "请先在上方选一个人，再开始�
 if (chatMode === "group" && !$("#groupSecond").value) { addChatMsg("sys", "多角色同场需要再选择一位人物。"); return; }
 const c = charById(selectedChar);
 $("#chatInput").value = "";
-addChatMsg("me", input, "你");
+addChatMsg("me", input);
 $("#chatSend").disabled = true;
 $("#chatInput").disabled = true;
 const thinking = document.createElement("div");
@@ -301,8 +301,8 @@ $("#charGrid").innerHTML='<div class="empty">核验知识库加载失败：'+esc
 
 $("#charSearch").addEventListener("input", renderCharGrid);
 bf.addEventListener("change", renderCharGrid);
-$$("#chatModes.chipbtn").forEach((b) => b.addEventListener("click", () => {
-$$("#chatModes.chipbtn").forEach((x) => x.classList.remove("active"));
+$("#chatModes .chipbtn").forEach((b) => b.addEventListener("click", () => {
+$("#chatModes .chipbtn").forEach((x) => x.classList.remove("active"));
 b.classList.add("active");
 chatMode = b.dataset.mode;
 $("#groupPick").style.display = chatMode === "group"? "block": "none";
