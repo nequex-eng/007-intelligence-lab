@@ -27,6 +27,14 @@ for (const fn of [
 assert.ok(app.includes('fetch("/api/world")'), "world explorer reads canonical location API");
 assert.ok(app.includes('fetch("/api/canon?action=chapters&novel="'), "character theatre reads canonical chapter index");
 assert.ok(app.includes('chapterNo: $("#sceneChapter").value || null'), "chat request includes selected chapter");
+assert.ok(app.includes("firstNovelId"), "character selection automatically matches first-appearance novel");
+assert.ok(app.includes("mode: chatMode"), "chat mode is sent to server");
+assert.ok(app.includes('$("[data-lab]")'), "all literary experiment buttons are bound");
+assert.ok(!app.includes('$("[data-lab]").forEach'), "single-element forEach initialization crash is fixed");
+assert.ok(app.includes("createShoe()"), "baccarat uses a shuffled physical deck");
+assert.ok(app.includes("bacPushes"), "baccarat tracks push outcomes and settles stakes correctly");
+assert.ok(app.includes("/api/literary"), "literary lab calls model-backed analysis endpoint");
+assert.ok(app.includes('$("#missionList").onclick'), "mission cards use delegated click handling");
 assert.ok(app.includes("function hasSavedMission(id)"), "mission cards detect locally saved progress");
 assert.ok(app.includes("function restoreMissionState(preferredId = null)"), "mission control can resume any saved mission");
 assert.ok(app.includes('"007-mission:last"'), "mission resume pointer is stored locally");
