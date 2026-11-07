@@ -193,7 +193,7 @@ const EN_TEXT = new Map([
 ["地点接口返回","Location API returned"],
 ["核验地点索引加载失败：","Failed to load verified location index: "],
 ["核验知识库 · 数据源与核验状态","Canon database · Sources and verification status"],
-["原著改编互动","Interactive adaptation of the novel"],
+["原著改编互动","Interactive adaptation of the novel"],["现场反馈","Field report"],["赌场·百家乐","Casino · Baccarat"],["你的筹码","Your chips"],["本局下注","Current bet"],["战绩","Record"],["勒·希弗的评价","Le Chiffre’s assessment"],["下注金额","Bet amount"],["押注方向","Bet on"],["闲家（赔1倍）","Player (pays 1:1)"],["庄家（赔0.95倍）","Banker (pays 0.95:1)"],["和局（赔8倍）","Tie (pays 8:1)"],["发牌","Deal"],["重新领筹码","Reset chips"],["尚未开局。筹码1000，用完可点“重新领筹码”恢复。","No hand dealt yet. Start with 1,000 chips; reset when you run out."],["从M办公室领任务，到Q部门领装备，再到酒店、餐厅、酒吧、赌场、俱乐部与豪华汽车。赌场部分是真正可玩的百家乐：有规则、有对手、有筹码输赢。","Collect your assignment at M’s office and equipment from Q Branch, then move through hotels, restaurants, bars, casinos, clubs and luxury cars. The baccarat table is fully playable, with rules, an opponent and chips at stake."],["玩法：押闲家、庄家或和局。牌面点数按个位数计算，A为1点，10、J、Q、K为0点。补牌规则采用简化版：闲家0–5点补牌，6–7点停牌；庄家按简化规则补牌。和局赔8倍，庄赢赔0.95倍（抽水），闲赢赔1倍。对手：勒·希弗坐在对面，他会记住你的下注习惯。","How to play: Bet on Player, Banker or Tie. Card values use the last digit; A counts as 1, while 10, J, Q and K count as 0. This is a simplified variant: Player draws on 0–5 and stands on 6–7; Banker follows simplified drawing rules. Tie pays 8:1, Banker 0.95:1 after commission, and Player 1:1. Le Chiffre will remember your betting habits."],
 ["原创任务","Original mission"],
 ["任务结果","Mission result"],
 ["行动报告","Mission report"],
@@ -1453,6 +1453,7 @@ return { grade: "部分成功", text: "你阻止了图纸交易，但买家身�
 
 let missionState = null;
 let missionDef = null;
+let missionBusy = false;
 
 function missionById(id) { return MISSIONS.find((m) => m.id === id);}
 
@@ -1511,20 +1512,26 @@ if (fx.equip) s.equip.push(fx.equip);
 if (fx.rel) s.rels[fx.rel[0]] = (s.rels[fx.rel[0]] || 0) + fx.rel[1];
 }
 
-function missionChoiceChance(choice) {
- const fx = choice.fx || {}, st = missionState;
- return Math.max(18, Math.min(88, Math.round(62 + st.cred * 0.22 - st.risk * 0.25 + (fx.cred || 0) * 0.25 - Math.max(0, fx.risk || 0) * 0.2 - (st.funds < 1500 ? 10 : 0) - (st.day > 4 ? 5 : 0))));
-}
-function resolveMissionChoice(choice) {
- const chance = missionChoiceChance(choice), roll = Math.floor(Math.random() * 100) + 1;
- missionState.attempts = (missionState.attempts || 0) + 1;
- if (roll <= chance) { applyFx(choice.fx || {}); return { success: true, chance, roll }; }
- const fx = choice.fx || {};
- if (fx.funds < 0) missionState.funds = Math.max(0, missionState.funds + fx.funds);
- missionState.risk = Math.min(100, missionState.risk + 12 + Math.max(0, fx.risk || 0) * 0.25);
- missionState.cred = Math.max(0, missionState.cred - 7);
- missionState.failures = (missionState.failures || 0) + 1;
- return { success: false, chance, roll };
+function missionStage() { return missionDef.stages.find(s => s.id === missionState.stage); }
+async function chooseMission(i) {
+ const stage=missionStage(),ch=stage?.choices?.[i]; if(!ch||missionBusy)return;
+ missionBusy=true; renderMissionStage();
+ const status=document.createElement("p");status.className="meta";status.id="missionThinking";status.textContent=LANGUAGE==="en"?"M is assessing your decision…":"M正在评估你的行动……";$("#missionPanel").appendChild(status);
+ try{
+  const response=await fetch("/api/mission-action",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({language:LANGUAGE,mission:{id:missionDef.id,title:missionDef.title,kind:missionDef.kind,description:missionDef.desc},stage:{id:stage.id,title:stage.title,text:stage.text,choices:stage.choices.map(c=>({text:c.text,hint:c.hint,next:c.next}))},selected:{text:ch.text,hint:ch.hint,next:ch.next},state:missionState,history:missionState.log.slice(-8)})});
+  const data=await response.json();if(!response.ok)throw new Error(data.error||"AI adjudication failed");
+  const d=data.decision||{},delta=d.delta||{};
+  missionState.funds=Math.max(0,missionState.funds+Number(delta.funds||0));missionState.risk=Math.max(0,Math.min(100,missionState.risk+Number(delta.risk||0)));missionState.cred=Math.max(0,Math.min(100,missionState.cred+Number(delta.cred||0)));missionState.day=Math.max(1,missionState.day+Number(delta.day||0));
+  if(Array.isArray(d.clues))missionState.clues.push(...d.clues.filter(x=>typeof x==="string").slice(0,2));
+  if(typeof d.equipment==="string"&&d.equipment)missionState.equip.push(d.equipment);
+  if(d.relationship&&typeof d.relationship.name==="string")missionState.rels[d.relationship.name]=(missionState.rels[d.relationship.name]||0)+Number(d.relationship.change||1);
+  missionState.attempts=(missionState.attempts||0)+1;if(d.outcome==="failure")missionState.failures=(missionState.failures||0)+1;
+  const label=LANGUAGE==="en"?({success:"Success",partial:"Partial success",failure:"Failure"}[d.outcome]||"Outcome"):({success:"成功",partial:"部分成功",failure:"失败"}[d.outcome]||"结果");
+  missionState.log.push(stage.title+" · "+ch.text+" ["+label+"]: "+String(d.narrative||""));
+  if(d.nextStage==="end"||missionState.risk>=95){const end={grade:d.grade||(LANGUAGE==="en"?"Mission concluded":"任务结束"),text:d.debrief||d.narrative||""};missionState.stage="end";missionState.completed=true;missionState.result=end;saveMissionState();renderMissionResult(end);}
+  else{missionState.stage=missionDef.stages.some(x=>x.id===d.nextStage)?d.nextStage:ch.next;saveMissionState();renderMissionStage();}
+ }catch(e){const p=$("#missionThinking");if(p)p.textContent=(LANGUAGE==="en"?"AI adjudication failed; no state was changed. ":"大模型裁定失败，任务状态未改变。")+e.message;missionBusy=false;return;}
+ finally{missionBusy=false;}
 }
 function stateBarHTML() {
 const s = missionState;
@@ -1545,9 +1552,10 @@ const panel = $("#missionPanel");
 const stage = missionDef.stages.find((s) => s.id === missionState.stage);
 panel.innerHTML = `<h3>${esc(missionDef.title)} · ${esc(missionDef.kind)}</h3>${stateBarHTML()}
 <h3 style="margin-top:6px">${esc(stage.title)}</h3><p>${esc(stage.text)}</p>
-${stage.choices.map((ch, i) => `<button class="choice" data-choice="${i}">${esc(ch.text)}<small>${esc(ch.hint)} · ${LANGUAGE === "en" ? "Success chance" : "预计成功率"} ${missionChoiceChance(ch)}%</small></button>`).join("")}
-${missionState.clues.length? `<p class="meta"><b>已发现线索：</b></p>` + missionState.clues.map((c) => `<div class="log">${esc(c)}</div>`).join(""): ""}
-<div class="row" style="margin-top:10px"><button class="btn ghost small" id="missionQuit">放弃任务</button></div>`;
+<p class="meta">${LANGUAGE==="en"?"The AI game master evaluates each decision against the briefing, evidence, resources and prior actions. Outcomes are not predetermined.":"由大模型结合任务简报、证据、资源和此前行动裁定结果；成功并非预设。"}</p>
+${stage.choices.map((ch,i)=>`<button class="choice" data-choice="${i}" ${missionBusy?"disabled":""}>${esc(ch.text)}<small>${esc(ch.hint)}</small></button>`).join("")}
+${missionState.clues.length?`<p class="meta"><b>${LANGUAGE==="en"?"Evidence secured:":"已发现线索："}</b></p>`+missionState.clues.map(c=>`<div class="log">${esc(c)}</div>`).join(""):""}
+<div class="row" style="margin-top:10px"><button class="btn ghost small" id="missionQuit">${LANGUAGE==="en"?"Abandon mission":"放弃任务"}</button></div>`;
 $$("#missionPanel [data-choice]").forEach((el) => el.addEventListener("click", () => chooseMission(+el.dataset.choice)));
 $("#missionQuit").addEventListener("click", () => {
 if (missionDef) {
@@ -1675,7 +1683,7 @@ function showExpScene(id) {
   <p class="meta">${LANGUAGE === "en" ? "Choose an approach or describe any action in your own words. Outcomes are generated dynamically and are not guaranteed." : "你可以选择行动，也可以自由输入任何行动。后果由模型根据情境动态判定，不保证成功。"}</p>
   ${scene.choices.map((choice, i) => `<button class="choice" data-expchoice="${i}">${esc(choice)}</button>`).join("")}
   <div id="expOut">${history.map(m => `<div class="log"><b>${m.role === "user" ? (LANGUAGE === "en" ? "You" : "你") : (LANGUAGE === "en" ? "Field report" : "现场反馈")}：</b>${esc(m.content)}</div>`).join("")}</div>
-  <div class="row" style="margin-top:10px"><div style="flex:3"><input id="expActionInput" maxlength="1000" placeholder="${LANGUAGE === "en" ? "Describe your own action…" : "描述你想采取的行动…"}"></div><button class="btn small" id="expActionSend" style="flex:0 0 auto">${LANGUAGE === "en" ? "Act" : "行动"}</button></div>
+  <div class="row" style="margin-top:10px"><div style="flex:3"><input id="expActionInput" maxlength="1000" placeholder="${LANGUAGE === "en" ? "Describe your own action…" : "描述你想采取的行动…"}"></div><button class="btn small" id="expActionSend" style="flex:0 0 auto">${LANGUAGE === "en" ? "Act" : "行动"}</button></div><div class="row" style="margin-top:8px"><button class="btn ghost small" id="expUndo">${LANGUAGE==="en"?"Undo last action":"撤回上一步"}</button><button class="btn ghost small" id="expClear">${LANGUAGE==="en"?"Clear this scene":"清空本场对话"}</button></div>
   ${id === "casino" ? `<p class="meta">${LANGUAGE === "en" ? "The baccarat table below is also playable." : "下方百家乐桌也可以直接实战。"}</p>` : ""}`;
   $$("#expPanel [data-expchoice]").forEach(el => el.addEventListener("click", () => {
     const choice = scene.choices[Number(el.dataset.expchoice)];
@@ -1699,7 +1707,7 @@ async function sendExperienceAction(action) {
   if (send) send.disabled = true;
   try {
     const response = await fetch("/api/field", { method: "POST", headers: { "content-type": "application/json" },
-      body: JSON.stringify({ scene: scene.title, setting: scene.text, action, language: LANGUAGE, history: history.slice(0, -1).slice(-10) }) });
+      body: JSON.stringify({ scene: LANGUAGE==="en"?(EN_TEXT.get(scene.title)||scene.title):scene.title, setting: LANGUAGE==="en"?(EN_TEXT.get(scene.text)||scene.text):scene.text, action, language: LANGUAGE, history: history.slice(0, -1).slice(-10) }) });
     const data = await response.json();
     const reply = response.ok ? data.reply : (data.error || (LANGUAGE === "en" ? "The simulation is unavailable." : "模拟暂时不可用。"));
     history.push({ role: "assistant", content: reply });
