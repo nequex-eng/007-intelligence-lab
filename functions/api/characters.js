@@ -1,7 +1,7 @@
 import { characterCore, timeline, novels } from "../_lib/canon.js";
 const json = (data) => new Response(JSON.stringify(data), { headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" } });
 export async function onRequest(context) {
-  const language = new URL(context.request.url).searchParams.get("language") === "en" ? "en" : "zh";
+  const language = context?.request ? (new URL(context.request.url).searchParams.get("language") === "en" ? "en" : "zh") : "zh";
   return json({
     characters: characterCore.map(c => {
       const firstNovel = novels.find(n => n.novel_id === c.first_appearance?.novel);
