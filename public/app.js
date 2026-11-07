@@ -312,7 +312,29 @@ const EN_TEXT = new Map([
 ["未配置","Not configured"],
 ["尚未提问","No question asked yet"],
 ["知识库状态","Knowledge-base status"],
-["模型状态","Model status"]
+["模型状态","Model status"],
+["007 INTELLIGENCE LAB·伊恩·弗莱明世界实验室","007 INTELLIGENCE LAB · THE WORLD OF IAN FLEMING"],
+["任务控制","Mission Control"],
+["邦德去过日本的小说","Novels featuring Bond in Japan"],
+["与苏联有关的反派","Villains connected to the Soviet Union"],
+["莱特出现作品","Novels featuring Felix Leiter"],
+["邦德用过武器","Weapons used by Bond"],
+["涉及赌场的小说","Novels involving casinos"],
+["布洛菲尔德","Blofeld"],
+["非原著","Non-canon"],
+["创建一个新反派","Create a new villain"],
+["设计悬念结构","Design a suspense structure"],
+["设计一场秘密行动","Design a covert operation"],
+["比较两部小说叙事","Compare the narratives of two novels"],
+["0胜0负","0 wins · 0 losses"],
+["重新领筹码","Reset chips"],
+["全部年代","All decades"],
+["1950年代","1950s"],
+["1960年代","1960s"],
+["同场第二人","Second character"],
+["对方正在想……","Thinking…"],
+["多角色同场需要再选择一位人物。","Select a second character for the group scene."],
+["你与两位人物共同对话；每次发送后，两位人物分别回应。","You are in a three-way conversation with two characters. Both characters reply separately after each message."]
 ]);
 const originalText = new WeakMap();
 function translateTextNode(n) {
