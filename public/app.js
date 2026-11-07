@@ -818,7 +818,7 @@ function saveChatHistory() { try { if (selectedChar) localStorage.setItem(chatSt
 function restoreChatHistory() {
   try { const saved = JSON.parse(localStorage.getItem(chatStorageKey()) || "[]"); chatHistory = Array.isArray(saved) ? saved.filter(m => m && ["user","assistant"].includes(m.role) && typeof m.content === "string").slice(-80) : []; } catch(e) { chatHistory = []; }
   const box = document.getElementById("chatLog");
-  if (box) { box.innerHTML = ""; chatHistory.forEach(m => { const c = m.characterId ? charById(m.characterId) : null; const speaker = c ? (LANGUAGE === "en" ? c.name : c.zh) : null; addChatMsg(m.role === "user" ? "me" : "them", m.content, chatMode === "group" ? speaker : null, m.characterId && m.characterId !== selectedChar); }); if (!chatHistory.length) addChatMsg("sys", LANGUAGE === "en" ? "New local conversation. Messages are sent to the model; the latest 80 messages are stored in this browser." : "新建本地对话。消息会发送至模型服务；当前浏览器保存最近80条对话消息。"); }
+  if (box) { box.innerHTML = ""; chatHistory.forEach(m => { const c = m.characterId ? charById(m.characterId) : null; const speaker = c ? speakerSurname(c) : null; addChatMsg(m.role === "user" ? "me" : "them", m.content, m.role === "assistant" ? speaker : null, m.characterId && m.characterId !== selectedChar); }); if (!chatHistory.length) addChatMsg("sys", LANGUAGE === "en" ? "New local conversation. Messages are sent to the model; the latest 80 messages are stored in this browser." : "新建本地对话。消息会发送至模型服务；当前浏览器保存最近80条对话消息。"); }
 }
 
 function charById(id) { return CHARACTERS.find((c) => c.id === id);}
@@ -895,11 +895,18 @@ const gs = $("#groupSecond");
 gs.innerHTML = CHARACTERS.filter((x) => x.id!== id).map((x) => `<option value="${x.id}">${esc(LANGUAGE==="en"?x.name:x.zh)}</option>`).join("");
 }
 
+function speakerSurname(character) {
+  if (!character) return "";
+  const name = LANGUAGE === "en" ? (character.name || "") : (character.zh || character.name || "");
+  const parts = name.trim().split(/[·・\\s]+/).filter(Boolean);
+  return parts.length ? parts[parts.length - 1] : name;
+}
+
 function addChatMsg(kind, text, who, alternateSpeaker = false) {
 const box = $("#chatLog");
 const div = document.createElement("div");
 div.className = "msg " + kind + (kind === "them" && alternateSpeaker ? " speaker-2" : "");
-if (kind === "them" && chatMode === "group" && who) {
+if (kind === "them" && who) {
   const heading = document.createElement("span");
   heading.className = "speaker-name";
   heading.textContent = who;
@@ -958,11 +965,11 @@ clearThinking();
 if (chatMode === "group" && Array.isArray(d.replies)) {
   d.replies.forEach((item, index) => {
     const speaker = charById(item.characterId);
-     addChatMsg("them", item.content, speaker ? (LANGUAGE === "en" ? speaker.name : speaker.zh) : item.characterId, index === 1);
+     addChatMsg("them", item.content, speaker ? speakerSurname(speaker) : item.characterId, index === 1);
     chatHistory.push({ role: "assistant", content: item.content, characterId: item.characterId });
   });
 } else {
-  addChatMsg("them", d.reply);
+  addChatMsg("them", d.reply, speakerSurname(c));
   chatHistory.push({ role: "assistant", content: d.reply, characterId: selectedChar });
 }
 saveChatHistory();
