@@ -7,7 +7,7 @@ import { onRequest as mission } from "../functions/api/mission.js";
 import { onRequest as canon } from "../functions/api/canon.js";
 import { onRequestPost as chat } from "../functions/api/chat.js";
 import { onRequestPost as literary } from "../functions/api/literary.js";
-import { llmAvailable, llmStatus, minimaxKey } from "../functions/_lib/llm.js";
+import { llmAvailable, llmStatus, minimaxKey, MINIMAX_URL, MINIMAX_MODEL } from "../functions/_lib/llm.js";
 
 const ctx = (path) => ({ request: new Request("http://localhost" + path), env: {} });
 const postCtx = (path, body) => ({
@@ -22,6 +22,8 @@ const json = async (response) => ({ status: response.status, body: await respons
 assert.equal(llmAvailable({ MINIMAX_API_KEY1: "same-key" }), true, "alternate secret name is accepted");
 assert.equal(minimaxKey({ MINIMAX_API_KEY: "", MINIMAX_API_KEY1: "same-key" }), "same-key");
 assert.equal(llmStatus({ MINIMAX_API_KEY1: "same-key" }).mode, "minimax");
+assert.equal(MINIMAX_URL, "https://api.minimaxi.com/v1/chat/completions", "M3 must use the OpenAI-compatible chat endpoint");
+assert.equal(MINIMAX_MODEL, "MiniMax-M3");
 
 const s = await json(await status(ctx("/api/status")));
 assert.equal(s.status, 200);
