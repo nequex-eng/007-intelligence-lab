@@ -5,8 +5,17 @@ import { onRequest as characters } from "../functions/api/characters.js";
 import { onRequest as world } from "../functions/api/world.js";
 import { onRequest as mission } from "../functions/api/mission.js";
 import { onRequest as canon } from "../functions/api/canon.js";
+import { onRequestPost as chat } from "../functions/api/chat.js";
 
 const ctx = (path) => ({ request: new Request("http://localhost" + path), env: {} });
+const postCtx = (path, body) => ({
+  request: new Request("http://localhost" + path, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(body)
+  }),
+  env: {}
+});
 const json = async (response) => ({ status: response.status, body: await response.json() });
 
 const s = await json(await status(ctx("/api/status")));
@@ -37,6 +46,28 @@ const sceneOk = await json(await canon(ctx("/api/canon?action=scene&character=bo
 assert.equal(sceneOk.status, 200);
 const sceneBlocked = await json(await canon(ctx("/api/canon?action=scene&character=m&novel=spy-who-loved-me")));
 assert.equal(sceneBlocked.status, 409);
+
+const chatWithoutTimeline = await json(await chat(postCtx("/api/chat", {
+  characterIds: ["bond"],
+  messages: [{ role: "user", content: "你是谁？" }]
+})));
+assert.equal(chatWithoutTimeline.status, 400);
+assert.equal(chatWithoutTimeline.body.code, "SCENE_REQUIRED", "chat must require a selected canon timeline");
+
+const chatValidButOffline = await json(await chat(postCtx("/api/chat", {
+  characterIds: ["bond"],
+  novelId: "casino-royale",
+  messages: [{ role: "user", content: "你是谁？" }]
+})));
+assert.equal(chatValidButOffline.status, 503);
+assert.equal(chatValidButOffline.body.code, "MODEL_NOT_CONNECTED", "valid canon chat must stop cleanly when no model is configured");
+
+const chatFutureKnowledgeBlocked = await json(await chat(postCtx("/api/chat", {
+  characterIds: ["vesper-lynd"],
+  novelId: "live-and-let-die",
+  messages: [{ role: "user", content: "你是谁？" }]
+})));
+assert.equal(chatFutureKnowledgeBlocked.status, 409, "dead character must not appear in later novel scenes");
 
 const ambiguous = await json(await canon(ctx("/api/canon?action=resolve&q=Molony&kind=characters")));
 assert.equal(ambiguous.body.result.ambiguous, true);
