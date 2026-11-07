@@ -897,7 +897,15 @@ box.appendChild(div);
 box.scrollTop = box.scrollHeight;
 }
 
-function clearChat() {\n  if (!selectedChar) { addChatMsg("sys", LANGUAGE === "en" ? "Select a character before clearing a conversation." : "请先选择人物，再清空对话。"); return; }\n  chatHistory = [];\n  try { localStorage.removeItem(chatStorageKey()); } catch (e) {}\n  const box = $("#chatLog");\n  if (box) { box.innerHTML = ""; addChatMsg("sys", LANGUAGE === "en" ? "Conversation cleared. Start a new exchange." : "对话已清空，可以开始新的交流。"); }\n}\n\nfunction clearThinking() {
+function clearChat() {
+  if (!selectedChar) { addChatMsg("sys", LANGUAGE === "en" ? "Select a character before clearing a conversation." : "请先选择人物，再清空对话。"); return; }
+  chatHistory = [];
+  try { localStorage.removeItem(chatStorageKey()); } catch (e) {}
+  const box = $("#chatLog");
+  if (box) { box.innerHTML = ""; addChatMsg("sys", LANGUAGE === "en" ? "Conversation cleared. Start a new exchange." : "对话已清空，可以开始新的交流。"); }
+}
+
+function clearThinking() {
 const t = document.getElementById("chatThinking");
 if (t) t.remove();
 $("#chatSend").disabled = false;
@@ -1004,7 +1012,8 @@ modes.forEach((b) => b.addEventListener("click", async () => {
 }));
 $("#charSearch").addEventListener("input", renderCharGrid);
 bf.addEventListener("change", renderCharGrid);
-$("#chatSend").addEventListener("click", (event) => { event.preventDefault(); sendChat(); });\n$("#chatClear").addEventListener("click", (event) => { event.preventDefault(); clearChat(); });
+$("#chatSend").addEventListener("click", (event) => { event.preventDefault(); sendChat(); });
+$("#chatClear").addEventListener("click", (event) => { event.preventDefault(); clearChat(); });
 $("#sceneNovel").addEventListener("change", () => {
   loadSceneChapters($("#sceneNovel").value);
   restoreChatHistory();
