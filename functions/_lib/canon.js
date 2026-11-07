@@ -88,6 +88,29 @@ export function getNovel(id) {
 export function getCharacter(id) {
   return characterCore.find((c) => c.id === id) || null;
 }
+function romanChapterNumber(value) {
+  const text = String(value ?? "").trim().toUpperCase();
+  if (!/^[IVXLCDM]+$/.test(text)) return null;
+  const values = { I: 1, V: 5, X: 10, L: 50, C: 100, D: 500, M: 1000 };
+  let total = 0, previous = 0;
+  for (let i = text.length - 1; i >= 0; i--) {
+    const current = values[text[i]];
+    total += current < previous ? -current : current;
+    previous = Math.max(previous, current);
+  }
+  return total > 0 ? total : null;
+}
+
+function chapterPosition(book, value) {
+  if (value === null || value === undefined || value === "") return null;
+  const key = String(value).trim().toUpperCase();
+  const index = (book.chapters || []).findIndex(c => String(c.no).trim().toUpperCase() === key);
+  if (index >= 0) return index + 1;
+  const numeric = Number(value);
+  if (Number.isInteger(numeric) && numeric > 0) return numeric;
+  return romanChapterNumber(value);
+}
+
 export function characterForScene(id, novelId, chapterNo = null) {
   const character = getCharacter(id);
   if (!character) return { ok: false, error: "UNKNOWN_CHARACTER" };
@@ -100,12 +123,14 @@ export function characterForScene(id, novelId, chapterNo = null) {
     return { ok: false, error: "CHARACTER_UNAVAILABLE_AT_SCENE", status, character, book };
   }
   if (chapterNo !== null && chapterNo !== undefined && character.first_appearance?.novel === book.novel_id) {
-    const firstChapter = Number(character.first_appearance.first_chapter);
-    const lastChapter = Number(character.first_appearance.last_chapter);
-    if (Number.isFinite(firstChapter) && Number(chapterNo) < firstChapter) {
+    const selectedPosition = chapterPosition(book, chapterNo);
+    const firstChapter = chapterPosition(book, character.first_appearance.first_chapter);
+    const lastChapter = chapterPosition(book, character.first_appearance.last_chapter);
+    if (selectedPosition === null) return { ok: false, error: "UNKNOWN_CHAPTER", status: "unknown-chapter", character, book };
+    if (firstChapter !== null && selectedPosition < firstChapter) {
       return { ok: false, error: "CHARACTER_NOT_YET_APPEARED", status: "not-yet-appeared", character, book };
     }
-    if (Number.isFinite(lastChapter) && Number(chapterNo) > lastChapter) {
+    if (lastChapter !== null && selectedPosition > lastChapter) {
       return { ok: false, error: "CHARACTER_NO_LONGER_PRESENT", status: "no-longer-present", character, book };
     }
   }
@@ -134,9 +159,9 @@ export function canonSystemPrompt(character, book, status, question = "", chapte
     for (const fact of novel.facts || []) {
       if (fact.canon_or_inference !== "canon") continue;
       if (novel.novel_no === book.novel_no && chapterNo !== null && chapterNo !== undefined) {
-        const chapterMatch = String(fact.chapter ?? "").match(/\d+/);
-        const factChapter = chapterMatch ? Number(chapterMatch[0]) : NaN;
-        if (!Number.isFinite(factChapter) || factChapter > Number(chapterNo)) continue;
+        const factChapter = chapterPosition(novel, fact.chapter);
+        const selectedPosition = chapterPosition(book, chapterNo);
+        if (factChapter === null || selectedPosition === null || factChapter > selectedPosition) continue;
       }
       const hay = [fact.entity, fact.fact, fact.quote].filter(Boolean).join(" ").toLocaleLowerCase();
       const score = terms.reduce((n, term) => n + (hay.includes(term) ? (term.length > 2 ? 3 : 1) : 0), 0);
