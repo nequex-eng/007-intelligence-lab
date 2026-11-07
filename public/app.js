@@ -367,7 +367,7 @@ const EN_TEXT = new Map([
 ["惨胜","Pyrrhic victory"],
 ["已保存进度：","Saved progress: "],
 ["条核验索引"," verified index entries"],
-["选择人物后自动匹配原著","The original novel is matched automatically when you select a character"]
+["选择人物后自动匹配原著","The original novel is matched automatically when you select a character"],
   ["例如：弗莱明怎么写悬念？邦德和反派有什么共同点？","For example: How does Fleming build suspense? What do Bond and his adversaries have in common?"],
   ["弗莱明用细节堆出邦德：衣着、饮食、牌技、配枪，每一处都服务于“专业人士”形象。邦德不是超人，他会受伤、会输牌、会动情，这正是他可信的原因。","Fleming builds Bond through precise details: clothes, food, card skills and weapons all reinforce the image of a professional. Bond is no superhero. He gets hurt, loses at cards and falls in love; those vulnerabilities make him believable."],
   ["弗莱明式反派都有三件套：肉体特征（钢钳、金色皮肤）、痴迷之物（黄金、科学、权力）、缜密计划。反派越具体，邦德的胜利越有分量。","Fleming’s villains tend to have three defining elements: a striking physical trait, an obsession such as gold, science or power, and an intricate plan. The more distinctive the villain, the more meaningful Bond’s victory."],
@@ -421,7 +421,7 @@ const EN_TEXT = new Map([
   ["你与莱特找到失事飞机残骸，确认两枚核弹与引信已被取走。拉戈准备将核弹运往大巴哈马岛导弹基地。必须在布放前拦截潜水队。","You and Leiter locate the wreck and confirm that both nuclear weapons and their triggers have been removed. Largo plans to move them to a missile base on Grand Bahama. The divers must be intercepted before deployment."],
   ["M交给你一份原创任务简报：一名化名“玻璃匠”的中间人将在威尼斯出售一份伪造的密码机图纸，买家不明。你的任务是查清买家身份，阻止图纸外流。本任务为原创设计，不是原著剧情。","M gives you an original assignment: an intermediary known as “the Glassmaker” will sell forged cipher-machine blueprints in Venice. The buyer is unknown. Identify the buyer and stop the plans from leaving the country. This mission is original and is not part of the novels."],
   ["威尼斯，雨夜。你在圣马可广场附近的咖啡馆与线人接头。线人说：“玻璃匠”今晚会出现在假面舞会，买家也会到场，但舞会宾客名单是假的。","Venice, a rainy night. You meet your contact at a café near St Mark’s Square. The contact says the Glassmaker will attend a masked ball tonight, along with the buyer, but the guest list is fake."],
-  ["舞会灯火辉煌，人人戴着面具。“玻璃匠”出现了，手里提着一个黑色皮箱。你必须在不惊动全场的情况下接近他。","The ballroom glitters, and every guest wears a mask. The Glassmaker arrives carrying a black case. You must get close without alerting the room."]
+  ["舞会灯火辉煌，人人戴着面具。“玻璃匠”出现了，手里提着一个黑色皮箱。你必须在不惊动全场的情况下接近他。","The ballroom glitters, and every guest wears a mask. The Glassmaker arrives carrying a black case. You must get close without alerting the room."],
   ["M办公室·领任务","M’s Office · Mission Briefing"],
   ["Q部门·领装备","Q Branch · Collect Equipment"],
   ["豪华酒店·入住","Luxury Hotel · Check-in"],
@@ -560,7 +560,7 @@ const EN_TEXT = new Map([
   ["线索+1，风险+5","Clue +1 · Risk +5"],
   ["风险-10","Risk −10"],
   ["资金-1500，风险+20","Funds −1,500 · Risk +20"],
-  ["情报可信度+10，风险-5","Intelligence confidence +10 · Risk −5"]
+  ["情报可信度+10，风险-5","Intelligence confidence +10 · Risk −5"],
   ["威尼斯密码","The Venice Cipher"],
   ["非原著·原创","Original · Non-Canon"],
   ["风险+10","Risk +10"],
@@ -571,10 +571,10 @@ const EN_TEXT = new Map([
   ["首次登场未标注","First appearance not specified"],
   ["（选择人物后自动匹配）","(Matched automatically when a character is selected)"],
   ["选择人物后自动匹配","Matched automatically when a character is selected"],
-  ["多角色同场：你与两位人物共同对话；每次发送后，两位人物分别回应。","Group scene: you speak with two characters, and each responds separately after every message."]
+  ["多角色同场：你与两位人物共同对话；每次发送后，两位人物分别回应。","Group scene: you speak with two characters, and each responds separately after every message."],
   ["输入关键词，如日本、苏联、莱特、武器、赌场、布洛菲尔德…","Search the archive, e.g. Japan, the Soviet Union, Leiter, weapons, casinos or Blofeld…"],
   ["搜索地点、国家或小说…","Search locations, countries or novels…"],
-  ["输入名字，如邦德、M、Q、布洛菲尔德…","Search by name, e.g. Bond, M, Q or Blofeld…"]
+  ["输入名字，如邦德、M、Q、布洛菲尔德…","Search by name, e.g. Bond, M, Q or Blofeld…"],
   ["暗藏式手枪","Concealed pistol"],
   ["勒·希弗的保镖共有2人，分守赌场前后门","Le Chiffre has two bodyguards, stationed at the casino’s front and rear entrances."],
   ["薇丝朋·琳德","Vesper Lynd"],
