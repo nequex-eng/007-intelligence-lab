@@ -103,7 +103,7 @@ export async function onRequestPost(context) {
           : "你现在只扮演" + characterName + "。只能使用该人物自己的正典知识。回应用户最新发言，并可针对另一位人物已经说过的话作出反应。不得代写另一位人物的台词。保持人物独立、口吻鲜明。";
         const priorScene = replies.map(r => ({
           role: "assistant",
-          content: (language === "en" ? "[The other character said: " : "[另一位人物刚才说：") + r.content + "]"
+          content: r.content
         }));
         const out = await generate(context.env || {}, [
           { role: "system", content: [baseRules, prompts[i], groupRule,
