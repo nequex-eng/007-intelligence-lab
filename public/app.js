@@ -711,6 +711,22 @@ function applyLanguage() {
   translateElementAttributes();
   const placeholders={charSearch:["输入名字，如邦德、M、Q、布洛菲尔德…","Search by name, e.g. Bond, M, Q or Blofeld…"],chatInput:["说点什么…","Write a message…"],dossierQ:["输入关键词，如日本、苏联、莱特、武器、赌场、布洛菲尔德…","Search the archive…"],canonWorldSearch:["搜索地点、国家或小说…","Search locations, countries or novels…"]};
   for(const [id,v] of Object.entries(placeholders)){const e=document.getElementById(id);if(e)e.placeholder=v[LANGUAGE==="en"?1:0];}
+  document.querySelectorAll("#sceneChapter option[data-title-zh]").forEach(o => {
+    o.textContent = LANGUAGE === "en" ? (o.dataset.titleEn || "Chapter " + o.value) : "第" + o.value + "章 · " + o.dataset.titleZh;
+  });
+  if (Array.isArray(canonWorldLocations) && canonWorldLocations.length) {
+    const countrySelect = document.getElementById("atlasCountry");
+    if (countrySelect) [...countrySelect.options].slice(1).forEach(o => {
+      const place = canonWorldLocations.find(p => p.country === o.value);
+      o.textContent = LANGUAGE === "en" ? (place?.countryEn || "Country not specified") : o.value;
+    });
+    const bookSelect = document.getElementById("atlasBook");
+    if (bookSelect) [...bookSelect.options].slice(1).forEach(o => {
+      const book = BOOKS.find(b => b.id === o.value);
+      if (book) o.textContent = (LANGUAGE === "en" ? book.en : book.zh) + " · " + book.year;
+    });
+    renderAtlas();
+  }
 }
 function initLanguage(){
   const b=document.getElementById("languageToggle");
@@ -941,7 +957,9 @@ async function loadSceneChapters(novelId) {
     (d.chapters || []).forEach(c => {
       const option = document.createElement("option");
       option.value = String(c.no);
-      option.textContent = "第" + c.no + "章 · " + c.title;
+      option.dataset.titleZh = c.title || "";
+      option.dataset.titleEn = c.titleEn || "";
+      option.textContent = LANGUAGE === "en" ? (c.titleEn ? "Chapter " + c.no + " · " + c.titleEn : "Chapter " + c.no) : "第" + c.no + "章 · " + c.title;
       select.appendChild(option);
     });
   } catch(e) { console.error("chapter index unavailable", e); }
@@ -1579,6 +1597,10 @@ $("#labOut").innerHTML = `<p class="meta">无法读取核验原著目录：${esc
 // ---- 世界地图 ----
 let canonWorldLocations = [];
 
+function locationName(p) { return LANGUAGE === "en" ? (p.nameEn || "Unnamed location") : p.name; }
+function locationCountry(p) { return LANGUAGE === "en" ? (p.countryEn || "Country not specified") : (p.country || "国家未标注"); }
+function locationAppearance(a) { return LANGUAGE === "en" ? ((a.titleEn || a.novel) + " — " + (a.roleEn || "Appearance details not available in English.")) : (a.title + "：" + a.role); }
+
 function filteredCanonLocations() {
   const country = $("#atlasCountry").value;
   const book = $("#atlasBook").value;
@@ -1612,7 +1634,7 @@ function renderAtlas() {
       const marker = window.L.circleMarker(d.coords, {
         radius: 6, color: "#80631c", weight: 2, fillColor: "#d2ad43", fillOpacity: 0.92
       });
-      marker.bindPopup(`<strong>${esc(d.p.name)}</strong><br>${esc(d.p.country)}<br>${d.p.appearances.length}部作品`);
+      marker.bindPopup(`<strong>${esc(locationName(d.p))}</strong><br>${esc(locationCountry(d.p))}<br>${d.p.appearances.length} ${LANGUAGE === "en" ? "novels" : "部作品"}`);
       marker.on("click", () => showLocation(d.p.id));
       marker.addTo(leafletMarkers);
     });
@@ -1624,7 +1646,7 @@ function renderAtlas() {
       if (!empty) {
         empty = document.createElement("div");
         empty.className = "map-empty-overlay";
-        empty.textContent = "当前筛选没有可核验坐标的真实地点；虚构或区域级地点请查看下方档案。";
+        empty.textContent = LANGUAGE === "en" ? "No verified real locations with coordinates match these filters. See the dossiers below for fictional or regional locations." : "当前筛选没有可核验坐标的真实地点；虚构或区域级地点请查看下方档案。";
         empty.style.cssText = "position:absolute;z-index:500;top:12px;left:12px;max-width:70%;padding:8px 10px;background:rgba(244,240,228,.94);color:#1b241d;border-radius:4px;font-size:12px";
         wrap.appendChild(empty);
       }
@@ -1641,7 +1663,7 @@ function renderAtlas() {
       d.yPx = d.yPct / 100 * mapH;
     });
     dots.slice().sort((a,b) => a.yPx - b.yPx || a.xPx - b.xPx).forEach(d => {
-      const w = d.p.name.length * 11 + 4, h = 14;
+      const w = locationName(d.p).length * 11 + 4, h = 14;
       let box = null;
       for (const lane of [0,1,2,3,4,5,6,7]) {
         const top = lane === 0 ? d.yPx + 10 : lane === 1 ? d.yPx - 10 - h : lane === 2 ? d.yPx + 26 : lane === 3 ? d.yPx - 26 - h : lane === 4 ? d.yPx + 42 : lane === 5 ? d.yPx - 42 - h : lane === 6 ? d.yPx + 58 : d.yPx - 58 - h;
@@ -1654,15 +1676,15 @@ function renderAtlas() {
       placedBoxes.push(d.lbl);
     });
     wrap.innerHTML = dots.length ? dots.map(d =>
-      `<div class="mapdot" style="left:${d.xPct.toFixed(1)}%;top:${d.yPct.toFixed(1)}%" data-loc="${d.p.id}" title="${esc(d.p.name)}"></div><div class="maplbl" data-loc="${d.p.id}" style="left:${d.lbl.left.toFixed(0)}px;top:${d.lbl.top.toFixed(0)}px;transform:none">${esc(d.p.name)}</div>`
-    ).join("") : `<div style="position:absolute;left:10px;right:10px;top:45%;text-align:center;font-size:13px;color:var(--muted)">当前筛选没有可核验坐标的真实地点；请查看下方完整档案。</div>`;
+      `<div class="mapdot" style="left:${d.xPct.toFixed(1)}%;top:${d.yPct.toFixed(1)}%" data-loc="${d.p.id}" title="${esc(locationName(d.p))}"></div><div class="maplbl" data-loc="${d.p.id}" style="left:${d.lbl.left.toFixed(0)}px;top:${d.lbl.top.toFixed(0)}px;transform:none">${esc(locationName(d.p))}</div>`
+    ).join("") : `<div style="position:absolute;left:10px;right:10px;top:45%;text-align:center;font-size:13px;color:var(--muted)">${LANGUAGE === "en" ? "No verified real locations with coordinates match these filters. See the complete archive below." : "当前筛选没有可核验坐标的真实地点；请查看下方完整档案。"}</div>`;
     $$("#mapWrap .mapdot").forEach(el => el.addEventListener("click", () => showLocation(el.dataset.loc)));
   }
   const mapped = list.filter(p => !p.fictional && MAP_COORDINATES[p.id]);
   const unlocated = list.length - mapped.length;
   $("#atlasGrid").innerHTML = mapped.map(p =>
-    `<div class="card clickable" data-loc="${p.id}"><h3>${esc(p.name)} <span class="tag gold">真实地点</span></h3><p class="meta">${esc(p.country)} · 城市级地图点 · ${p.appearances.length}部作品</p><p>${esc(p.appearances.map(a=>a.title+"："+a.role).join("；"))}</p></div>`
-  ).join("") + `<div class="card"><h3>档案中的其他地点</h3><p>${unlocated}处地点没有可核验的单点坐标，或属于小说虚构地点。它们仍完整保留在下方170处地点目录中。</p></div>`;
+    `<div class="card clickable" data-loc="${p.id}"><h3>${esc(locationName(p))} <span class="tag gold">${LANGUAGE === "en" ? "Real location" : "真实地点"}</span></h3><p class="meta">${esc(locationCountry(p))} · ${LANGUAGE === "en" ? "City-level map marker" : "城市级地图点"} · ${p.appearances.length} ${LANGUAGE === "en" ? "novels" : "部作品"}</p><p>${esc(p.appearances.map(locationAppearance).join(" · "))}</p></div>`
+  ).join("") + `<div class="card"><h3>${LANGUAGE === "en" ? "Other locations in the archive" : "档案中的其他地点"}</h3><p>${LANGUAGE === "en" ? unlocated + " locations have no verified point coordinates or are fictional. They remain in the full directory of 170 locations below." : unlocated + "处地点没有可核验的单点坐标，或属于小说虚构地点。它们仍完整保留在下方170处地点目录中。"}</p></div>`;
   $$("#atlasGrid [data-loc]").forEach(el => el.addEventListener("click", () => showLocation(el.dataset.loc)));
   renderCanonWorldDirectory();
 }
@@ -1671,11 +1693,11 @@ function showLocation(id) {
   const p = canonWorldLocations.find(x => x.id === id);
   if (!p) return;
   const coords = MAP_COORDINATES[p.id];
-  $("#atlasGrid").innerHTML = `<div class="card" style="grid-column:1/-1"><h3>${esc(p.name)} <span class="tag ${p.fictional?"red":"gold"}">${p.fictional?"小说虚构地点":"真实地点"}</span></h3>
-    <p class="meta">${esc(p.nameEn || "")} · ${esc(p.country || "国家未标注")} · ${coords ? "城市级地图坐标已核对" : "没有可核验的单点坐标"}</p>
-    <p><b>出现作品与原著语境：</b></p>${p.appearances.map(a=>`<div class="log"><b>${esc(a.title)}</b>（${esc(a.year || "年代未标注")}）：${esc(a.role)}</div>`).join("")}
-    <p class="meta">地点名称、虚构属性和作品出处来自核验知识库；地图坐标仅来自独立坐标登记。</p>
-    <div class="row"><button class="btn small" id="locBack">返回地点探索</button><button class="btn ghost small" id="locDossier">去情报馆检索此地点</button></div></div>`;
+  $("#atlasGrid").innerHTML = `<div class="card" style="grid-column:1/-1"><h3>${esc(locationName(p))} <span class="tag ${p.fictional?"red":"gold"}">${p.fictional ? (LANGUAGE === "en" ? "Fictional location" : "小说虚构地点") : (LANGUAGE === "en" ? "Real location" : "真实地点")}</span></h3>
+    <p class="meta">${esc(locationCountry(p))} · ${coords ? (LANGUAGE === "en" ? "City-level coordinates verified" : "城市级地图坐标已核对") : (LANGUAGE === "en" ? "No verifiable point coordinates" : "没有可核验的单点坐标")}</p>
+    <p><b>${LANGUAGE === "en" ? "Appearances and original-novel context:" : "出现作品与原著语境："}</b></p>${p.appearances.map(a=>`<div class="log"><b>${esc(LANGUAGE === "en" ? (a.titleEn || a.novel) : a.title)}</b> (${esc(a.year || (LANGUAGE === "en" ? "Year not specified" : "年代未标注"))}): ${esc(LANGUAGE === "en" ? (a.roleEn || "Appearance details not available in English.") : a.role)}</div>`).join("")}
+    <p class="meta">${LANGUAGE === "en" ? "Location names, fictional status and novel references come from the verified canon database; map coordinates are independently registered." : "地点名称、虚构属性和作品出处来自核验知识库；地图坐标仅来自独立坐标登记。"}</p>
+    <div class="row"><button class="btn small" id="locBack">${LANGUAGE === "en" ? "Back to World Explorer" : "返回地点探索"}</button><button class="btn ghost small" id="locDossier">${LANGUAGE === "en" ? "Search this location in the archive" : "去情报馆检索此地点"}</button></div></div>`;
   $("#locBack").addEventListener("click", renderAtlas);
   $("#locDossier").addEventListener("click", () => {
     $("#dossierQ").value = p.name;
@@ -1687,12 +1709,12 @@ function showLocation(id) {
 function renderCanonWorldDirectory() {
   const q = ($("#canonWorldSearch")?.value || "").trim().toLowerCase();
   const list = filteredCanonLocations().filter(p =>
-    [p.name,p.nameEn,p.country,...p.appearances.map(a=>a.title)].join(" ").toLowerCase().includes(q)
+    [LANGUAGE === "en" ? p.nameEn : p.name, p.nameEn, LANGUAGE === "en" ? p.countryEn : p.country, ...p.appearances.map(a=>LANGUAGE === "en" ? (a.titleEn + " " + a.roleEn) : a.title)].join(" ").toLowerCase().includes(q)
   );
   const box = $("#canonWorldDirectory");
   if (!box) return;
   box.innerHTML = list.map(p =>
-    `<div class="card clickable" data-canon-loc="${p.id}"><h3>${esc(p.name)} <span class="tag ${p.fictional?"red":"gold"}">${p.fictional?"小说虚构地点":"真实地点"}</span></h3><p class="meta">${esc(p.nameEn || "")} · ${esc(p.country || "国家未标注")} · ${p.appearances.length}部作品</p><p>${esc(p.appearances.map(a=>a.title+"："+a.role).join("；"))}</p></div>`
+    `<div class="card clickable" data-canon-loc="${p.id}"><h3>${esc(locationName(p))} <span class="tag ${p.fictional?"red":"gold"}">${p.fictional ? (LANGUAGE === "en" ? "Fictional location" : "小说虚构地点") : (LANGUAGE === "en" ? "Real location" : "真实地点")}</span></h3><p class="meta">${esc(locationCountry(p))} · ${p.appearances.length} ${LANGUAGE === "en" ? "novels" : "部作品"}</p><p>${esc(p.appearances.map(locationAppearance).join(" · "))}</p></div>`
   ).join("") || '<div class="empty">没有匹配地点。</div>';
   $$("#canonWorldDirectory [data-canon-loc]").forEach(el => el.addEventListener("click", () => showLocation(el.dataset.canonLoc)));
 }
@@ -1718,12 +1740,13 @@ async function initAtlas() {
   await loadCanonWorldDirectory();
   const countries = [...new Set(canonWorldLocations.map(p => p.country).filter(Boolean))].sort();
   countries.forEach(c => {
-    const o = document.createElement("option"); o.value = c; o.textContent = c;
+    const place = canonWorldLocations.find(p => p.country === c);
+    const o = document.createElement("option"); o.value = c; o.textContent = LANGUAGE === "en" ? (place?.countryEn || "Country not specified") : c;
     $("#atlasCountry").appendChild(o);
   });
   const books = await ensureCanonBooks().catch(() => []);
   books.forEach(b => {
-    const o = document.createElement("option"); o.value = b.id; o.textContent = b.zh + " · " + b.year;
+    const o = document.createElement("option"); o.value = b.id; o.textContent = (LANGUAGE === "en" ? b.en : b.zh) + " · " + b.year;
     $("#atlasBook").appendChild(o);
   });
   ["atlasCountry","atlasBook","atlasEra"].forEach(id => document.getElementById(id).addEventListener("change", renderAtlas));
