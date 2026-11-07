@@ -17,6 +17,8 @@ jobs:
       - run: npm run test:canon
       - name: API handler integration tests (no Cloudflare credentials)
         run: npm run test:api
+      - name: UI structure and browser script syntax checks
+        run: npm run test:ui
       - name: Local Pages runtime smoke test (no production bindings)
         shell: bash
         run: |
