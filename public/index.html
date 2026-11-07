@@ -84,6 +84,9 @@ table{width:100%;border-collapse:collapse;font-size:14px}
 th,td{border-bottom:1px solid var(--line);padding:8px 6px;text-align:left;vertical-align:top}
 th{color:var(--gold2);font-size:13px}
 .mapwrap{position:relative;height:300px;border:1px solid var(--line);border-radius:4px;background:linear-gradient(180deg,#0a1a12,#0c1712);overflow:hidden}
+.mapwrap.leaflet-container{background:#dce2d8}
+.mapwrap .leaflet-popup-content-wrapper,.mapwrap .leaflet-popup-tip{background:#f4f0e4;color:#1b241d}
+.mapwrap .leaflet-control-attribution{font-size:10px}
 .mapdot{position:absolute;width:12px;height:12px;border-radius:50%;background:var(--gold);border:2px solid #0a120d;cursor:pointer;transform:translate(-50%,-50%)}
 .mapdot.fictional{background:var(--red)}
 .mapdot:hover{box-shadow:0 0 0 4px rgba(201,162,39,.35)}
@@ -112,6 +115,7 @@ details summary{cursor:pointer;color:var(--gold2);font-size:15px}
 .submod{margin-top:20px;padding-top:16px;border-top:1px solid var(--line)}
 .submod>h3{margin:0 0 8px;color:var(--gold2);font-family:Georgia,serif;font-size:21px;letter-spacing:.04em}
 </style>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 </head>
 <body>
 <header class="topbar"><div class="topbar-in">
@@ -281,6 +285,7 @@ details summary{cursor:pointer;color:var(--gold2);font-size:15px}
 <p>本站为粉丝研究模拟，非官方，与伊恩·弗莱明遗产管理方及出版方无关。对话与原创任务由AI生成或按示例脚本演示，不是原著引文。原著引用必要、简短并标注出处，不提供整本小说下载，不做公开阅读网站。</p>
 <p class="sans">数据状态：核验知识库已接入 · 版本与数据规模见情报档案馆状态卡 · 源码与知识库由GitHub版本管理 · 生产部署须经用户授权</p>
 </footer>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="/app.js"></script>
 </body>
 </html>
