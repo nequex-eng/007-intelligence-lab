@@ -28,10 +28,10 @@ async function callMiniMax(env, messages) {
       model: MINIMAX_MODEL,
       messages,
       temperature: 1,
-      max_completion_tokens: 8192,
+      max_completion_tokens: 4096,
       stream: false,
       reasoning_split: true,
-      reasoning_effort: "low"
+      thinking: { type: "disabled" }
     })
   });
   const raw = await response.text().catch(() => "");
