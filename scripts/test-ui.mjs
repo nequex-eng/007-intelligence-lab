@@ -27,6 +27,10 @@ for (const fn of [
 assert.ok(app.includes('fetch("/api/world")'), "world explorer reads canonical location API");
 assert.ok(app.includes('fetch("/api/canon?action=chapters&novel="'), "character theatre reads canonical chapter index");
 assert.ok(app.includes('chapterNo: $("#sceneChapter").value || null'), "chat request includes selected chapter");
+assert.ok(app.includes("function hasSavedMission(id)"), "mission cards detect locally saved progress");
+assert.ok(app.includes("function restoreMissionState(preferredId = null)"), "mission control can resume any saved mission");
+assert.ok(app.includes('"007-mission:last"'), "mission resume pointer is stored locally");
+assert.ok(!app.includes("离线演示中"), "offline model status does not promise scripted demo replies");
 assert.ok(app.includes("const MAP_COORDINATES = {"), "map coordinates are a separate verified registry");
 assert.ok(!app.includes("const LOCATIONS = ["), "legacy duplicate location catalog is removed");
 
