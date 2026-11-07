@@ -102,30 +102,45 @@ export function characterForScene(id, novelId) {
   return { ok: true, character, book, status };
 }
 
-export function canonSystemPrompt(character, book, status) {
-  const facts = [];
+function questionTerms(question) {
+  const q = normalize(question);
+  const english = q.match(/[a-z0-9][a-z0-9'-]{1,}/g) || [];
+  const chinese = [...q.matchAll(/[\\u4e00-\\u9fff]{2,}/g)].flatMap(m => {
+    const word = m[0], out = [word];
+    for (let i = 0; i < word.length - 1; i++) out.push(word.slice(i, i + 2));
+    return out;
+  });
+  return [...new Set([...english, ...chinese])];
+}
+
+export function canonSystemPrompt(character, book, status, question = "") {
+  const allowedNovelNos = new Set((character.knowledge_scope || [])
+    .filter(x => x.status === "present" && x.novel_no <= book.novel_no)
+    .map(x => x.novel_no));
+  const terms = questionTerms(question);
+  const candidates = [];
   for (const novel of novels) {
-    if (novel.novel_no > book.novel_no) break;
+    if (novel.novel_no > book.novel_no || !allowedNovelNos.has(novel.novel_no)) continue;
     for (const fact of novel.facts || []) {
       if (fact.canon_or_inference !== "canon") continue;
-      const entity = String(fact.entity || "").toLowerCase();
-      const id = character.id.toLowerCase();
-      if (entity.includes(id) || (character.name_en && entity.includes(character.name_en.toLowerCase())) || (character.name_zh && entity.includes(character.name_zh.toLowerCase()))) {
-        facts.push(`[${novel.title_zh} / ${fact.chapter}] ${fact.fact}`);
-      }
-      if (facts.length >= 20) break;
+      const hay = [fact.entity, fact.fact, fact.quote].filter(Boolean).join(" ").toLocaleLowerCase();
+      const score = terms.reduce((n, term) => n + (hay.includes(term) ? (term.length > 2 ? 3 : 1) : 0), 0);
+      if (score > 0) candidates.push({ score, text: `[${novel.title_zh} / 第${fact.chapter}章] ${fact.fact}` });
     }
-    if (facts.length >= 20) break;
   }
+  candidates.sort((a, b) => b.score - a.score);
+  const facts = candidates.slice(0, 16).map(x => x.text);
+  const sceneScope = (character.knowledge_scope || []).find(x => x.novel === book.novel_id);
   return [
     "你是Ian Fleming的007原著世界角色。必须严格遵守以下正典约束。",
     `当前场景：${book.title_zh}（${book.title_en}），出版年${book.publication_year}。人物：${character.name_zh || character.name_en}。`,
-    `该人物在本书状态：${status}。人物身份：${JSON.stringify(character)}`,
+    `该人物在本书状态：${status}。人物身份与行为边界：${JSON.stringify({ appearance: character.appearance, age_clues: character.age_clues, personality: character.personality, habits: character.habits, background: character.background, relationships: character.relationships, voice_style: character.voice_style, behavioral_boundaries: character.behavioral_boundaries, knowledge_boundaries: character.knowledge_boundaries, timeline_cutoff: character.timeline_cutoff })}`,
+    `本书知识范围：已知：${JSON.stringify(sceneScope?.known || [])}；未知：${JSON.stringify(sceneScope?.unknown || [])}`,
     knowledgeControl.purpose,
-    ...knowledgeControl.rules.map((r) => `${r.id} ${r.rule}：${r.text}`),
+    ...knowledgeControl.rules.map(r => `${r.id} ${r.rule}：${r.text}`),
     "仅可将知识库canon事实作为确定事实；inference必须明确标为推测；原著未写必须回答不知道。不得把电影设定混入原著。",
-    "回答涉及正典事实时，尽可能注明作品与章节。不得声称以下提示中没有的事实已被检索确认。",
-    "相关人物事实摘录（仅供辅助，必须服从人物knowledge_scope）：",
-    ...facts
-  ].join("\n");
+    "回答涉及正典事实时，必须尽可能注明作品与章节。人物不在场小说的内情只能按可靠转述并注明来源，不得全知叙述。",
+    "以下是按当前人物已出场作品范围及用户问题检索出的canon事实；不代表人物亲历了所有事件：",
+    ...(facts.length ? facts : ["本次问题未检索到可直接引用的相关正典事实。请明确说明不知道，不要自行补全。"])
+  ].join("\\n");
 }
