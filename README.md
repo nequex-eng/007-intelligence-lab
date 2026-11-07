@@ -68,6 +68,8 @@ npm run test:canon
 - `GET /api/canon?action=manifest|books|character|scene|resolve`：知识库元数据、作品目录、人物、场景校验和别名解析。
 - `GET /api/mission?id=casino-royale`：返回正典任务资料、章节、事件与事实。
 - `GET /api/world`：返回170处核验地点，不包含虚构或未核验坐标。
+- `GET /api/canon?action=relationships&id=bond`：按规范人物ID查询关系。
+- `GET /api/canon?action=timeline`：返回14部故事时间线。
 
 ## 部署（仅用户另行授权后）
 
