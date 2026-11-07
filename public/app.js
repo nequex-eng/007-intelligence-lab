@@ -673,6 +673,15 @@ const EN_TEXT = new Map([
   ["地图在下方世界地图模块，170处核验地点，点任意地点进入相关档案。","The map is in the World Explorer below, with 170 verified locations. Select any location to open its dossier."],
   ["皇家莱索：牌桌、薇丝朋、勒·希弗。一切从那里开始。","Royale-les-Eaux: the table, Vesper and Le Chiffre. It all began there."],
   ["下一站由你决定——任务模拟器里还有一场威尼斯原创任务等着你。","You choose the next destination. An original Venice mission is waiting in Mission Control."]
+,
+  ["原著","Novels"],
+  ["和局！你押中和局，净赢","Tie! You called it correctly. Net win: "],
+  ["勒·希弗眯起眼睛：“你今晚手气不错，邦德先生。”","Le Chiffre narrows his eyes. “You are having a good evening, Mr Bond.”"],
+  ["勒·希弗冷笑：“筹码会自己长脚走到我这边来。”","Le Chiffre smiles coldly. “The chips have a way of walking over to my side.”"],
+  ["勒·希弗：“继续，别停。”","Le Chiffre: “Carry on. Don’t stop.”"],
+  ["勒·希弗：“别急，牌桌还长着呢。”","Le Chiffre: “No hurry. The night is still young.”"],
+  ["勒·希弗观望中。","Le Chiffre is watching."],
+  ["0胜0负0和","0 wins · 0 losses · 0 ties"]
 ]); 
 const originalText = new WeakMap();
 const originalAttributes = new WeakMap();
@@ -862,7 +871,7 @@ $("#charDetail").innerHTML = `<h3>${esc(LANGUAGE==="en"?c.name:c.zh)}</h3>
 <p class="meta">${SAMPLE}</p>
 <button class="btn small" id="talkThis">${LANGUAGE==="en"?"Talk to "+esc(c.name):"和"+esc(c.zh)+"对话"}</button>`;
 $("#talkThis").addEventListener("click", () => {
-addChatMsg("sys", "已选择" + c.zh + "。当前对话按人物与小说时间点保存在本地浏览器。");
+addChatMsg("sys", (LANGUAGE === "en" ? "Selected: " + c.name + ". This conversation is saved locally in this browser by character and novel timeline." : "已选择" + c.zh + "。当前对话按人物与小说时间点保存在本地浏览器。"));
 addChatMsg("them", c.opener, c.zh);
 $("#chatInput").focus();
 document.querySelector("#characters.card:last-child").scrollIntoView({ behavior: "smooth", block: "nearest"});
@@ -1026,7 +1035,7 @@ facts:[...(c.sources||[])].map(x=>"出处索引："+x), factsEn:[...(c.sources||
  bd.books.forEach(b => { const so=document.createElement("option");so.value=b.id;so.textContent=(LANGUAGE==="en"?b.titleEn:b.titleZh)+" · "+b.year;scene.appendChild(so); });
 scene.value="casino-royale";
 const initialBook = BOOKS.find(b => b.id === scene.value);
-if ($("#sceneNovelLabel")) $("#sceneNovelLabel").textContent = initialBook ? initialBook.zh + " · " + initialBook.year + "（选择人物后自动匹配）" : "选择人物后自动匹配";
+if ($("#sceneNovelLabel")) $("#sceneNovelLabel").textContent = initialBook ? (LANGUAGE === "en" ? initialBook.en + " · " + initialBook.year + " (matched to character debut)" : initialBook.zh + " · " + initialBook.year + "（选择人物后自动匹配）") : (LANGUAGE === "en" ? "Matched automatically when a character is selected" : "选择人物后自动匹配");
 // Render character cards immediately; chapter data is loaded in the background.
 renderCharGrid();
 loadSceneChapters(scene.value);
