@@ -61,7 +61,14 @@ export async function onRequestPost(context) {
       return json({ error: "知识库中没有该人物", code: "UNKNOWN_CHARACTER" }, 404);
     }
 
-    const states = canonicalCharacters.map(c => characterForScene(c.id, book.novel_id, chapterNo));
+    const states = canonicalCharacters.map(c => {
+      // Q is only mentioned, not physically present, in Casino Royale. The quartermaster
+      // experience is an explicitly non-canon training extension, not a claim about the novel.
+      if (mode === "quartermaster" && c.id === "q" && book.novel_id === "casino-royale") {
+        return { ok: true, status: "non-canon-quartermaster-simulation" };
+      }
+      return characterForScene(c.id, book.novel_id, chapterNo);
+    });
     const unavailable = states.find(s => !s.ok);
     if (unavailable) {
       return json({
@@ -81,7 +88,7 @@ export async function onRequestPost(context) {
       "多人场景规则：每次发言必须以对应人物姓名开头；每个人物只能使用自己的知识范围及场景中明确获知的信息；不得把一个人物的私有知识转移给另一个人物；不得共享彼此未获知的信息。",
       "如果检索事实不足，明确说不知道；不得以电影设定、其他小说的未来事件或常识补写原著空白。",
       mode === "report" ? "当前是向M汇报模式：M是接收汇报的上级。以情报主管口吻听取行动结果，追问时间、地点、人物、证据和风险；区分已证实事实与推测，不要把M扮演成邦德。" : "",
-      mode === "quartermaster" ? "当前是Q部门装备领取模式：Q负责装备与技术说明。根据任务目的询问必要条件，说明可领装备、用途、限制和归还要求；不要跳出Q的职责。" : "",
+      mode === "quartermaster" ? "当前是Q部门装备领取模式：Q负责装备与技术说明。注意：Q在《皇家赌场》中仅被M提及，并未正式出场；本次是明确标注的非正典训练扩展，不得声称这是原著情节，也不得照搬电影版Q的发明或口吻。仅根据知识库可证实的职责提供谨慎的装备建议，区分原著事实与模拟建议；根据任务目的询问必要条件，说明用途、限制和归还要求。" : "",
       mode === "group" ? "当前是多角色同场模式：所有被选人物都必须参与；每轮至少让每位人物各发言一次，姓名置于发言开头；人物之间不得共享未获知的私有知识。" : ""
     ].filter(Boolean).join("\n\n--- 人物边界 ---\n\n");
 
