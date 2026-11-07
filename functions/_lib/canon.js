@@ -148,7 +148,7 @@ function questionTerms(question) {
   return [...new Set([...english, ...chinese])];
 }
 
-export function canonSystemPrompt(character, book, status, question = "", chapterNo = null) {
+export function canonSystemPrompt(character, book, status, question = "", chapterNo = null, language = "zh") {
   const terms = questionTerms(question);
   const candidates = [];
   // 检索只注入当前所选原著的事实；此前作品仅通过人物knowledge_scope中的已知摘要提供背景，避免把其他人物/场景的细节误当作角色亲历。
@@ -170,7 +170,7 @@ export function canonSystemPrompt(character, book, status, question = "", chapte
   const facts = candidates.slice(0, 16).map(x => x.text);
   const sceneScope = (character.knowledge_scope || []).find(x => x.novel === book.novel_id);
   const priorScope = (character.knowledge_scope || []).filter(x => x.status === "present" && x.novel_no < book.novel_no);
-  const priorKnowledge = priorScope.map(x => `${x.title_zh || x.novel}：已知${(x.known || []).join("；") || "未提供"}；未知${(x.unknown || []).join("；") || "未提供"}`);
+  const priorKnowledge = language === "en" ? priorScope.map(x => { const title = novels.find(n => n.novel_id === x.novel)?.title_en || x.novel; return `${title}: the character appears in this novel. Apply the shared knowledge_scope status; do not infer unrecorded knowledge.`; }) : priorScope.map(x => `${x.title_zh || x.novel}：已知${(x.known || []).join("；") || "未提供"}；未知${(x.unknown || []).join("；") || "未提供"}`);
   const chapterLabel = chapterNo === null || chapterNo === undefined
     ? "全书结束（可使用本书全篇已发生事实）"
     : `第${chapterNo}章结束（严禁引用本章之后的事实）`;
