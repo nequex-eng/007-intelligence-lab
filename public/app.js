@@ -198,26 +198,18 @@ return;
 if (r.status === 503) {
 const d = await r.json().catch(() => ({}));
 clearThinking();
-addChatMsg("sys", "模型尚未接入（" + (d.code || "MODEL_NOT_CONNECTED") + "），以下为离线脚本化演示回复，已标注。");
-const reply = scriptedReply(c, input);
-addChatMsg("them", reply, c.zh + "·离线演示");
-chatHistory.push({ role: "assistant", content: reply});
-if (chatMode === "group") {
-const c2 = charById($("#groupSecond").value);
-const r2 = scriptedReply(c2, input);
-addChatMsg("them", r2, c2.zh + "·离线演示");
-}
-$("#modelLine").textContent = "模型状态：未接入，当前为离线演示。接入MiniMax-M3后自动切换实时对话。";
+addChatMsg("sys", "模型尚未接入（" + (d.code || "MODEL_NOT_CONNECTED") + "）。正典角色模式不会使用无时间线约束的脚本回复，请配置模型后再试。");
+$("#modelLine").textContent = "模型状态：未接入；正典模式已停止生成，避免越界回答。";
 return;
+}
+if (r.status === 409 || r.status === 400 || r.status === 404) {
+const d = await r.json().catch(() => ({})); clearThinking(); addChatMsg("sys", d.error || "所选人物与小说时间点不匹配。"); return;
 }
 throw new Error("chat failed " + r.status);
 } catch (e) {
 clearThinking();
-addChatMsg("sys", "对话接口暂时不可用，以下为离线脚本化演示回复，已标注。");
-const reply = scriptedReply(c, input);
-addChatMsg("them", reply, c.zh + "·离线演示");
-chatHistory.push({ role: "assistant", content: reply});
-$("#modelLine").textContent = "模型状态：接口不可用，当前为离线演示。";
+addChatMsg("sys", "对话接口暂时不可用。正典角色模式不会回退到无时间线约束的脚本回复，请稍后重试。");
+$("#modelLine").textContent = "模型状态：接口不可用；已阻止无约束回退。";
 }
 }
 
@@ -228,6 +220,7 @@ try {
 const [cr, br] = await Promise.all([fetch("/api/characters"), fetch("/api/canon?action=books")]);
 if (!cr.ok || !br.ok) throw new Error("canonical data unavailable");
 const cd = await cr.json(), bd = await br.json();
+scene.innerHTML = "";
 CHARACTERS = cd.characters.map(c => ({
 id:c.id, name:c.name, zh:c.nameZh, role:c.role, firstBook:c.firstBook || "未标注",
 firstYear:c.firstYear || "", cutoff:c.timelineCutoff || "按知识库边界",
