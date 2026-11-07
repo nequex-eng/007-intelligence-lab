@@ -1,0 +1,54 @@
+name: verify-canon-integration
+on:
+  push:
+    branches: [main, feature/canon-four-labs]
+  pull_request:
+    branches: [main]
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install
+      - run: npm run sync:knowledge
+      - run: npm run test:canon
+      - name: API handler integration tests (no Cloudflare credentials)
+        run: npm run test:api
+      - name: UI structure and browser script syntax checks
+        run: npm run test:ui
+      - name: Local Pages runtime smoke test (no production bindings)
+        shell: bash
+        run: |
+          PORT=8788 node scripts/dev-local.mjs > /tmp/wrangler.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill $SERVER_PID 2>/dev/null || true' EXIT
+          for i in {1..30}; do
+            if curl -fsS http://127.0.0.1:8788/api/status > /tmp/status.json; then break; fi
+            sleep 2
+          done
+          if [ ! -s /tmp/status.json ]; then cat /tmp/wrangler.log; exit 1; fi
+          node -e 'const s=require("/tmp/status.json"); if(!s.ok || s.dataState!=="verified-canon" || s.data.facts!==773 || s.data.coreCharacters!==32) process.exit(1); console.log("Local Pages status passed")'
+          curl -fsS 'http://127.0.0.1:8788/api/dossier?q=Bond' > /tmp/dossier.json
+          curl -fsS http://127.0.0.1:8788/api/world > /tmp/world.json
+          node -e 'const d=require("/tmp/dossier.json"),w=require("/tmp/world.json"); if(!Array.isArray(d.results)||!Array.isArray(w.locations)||w.locations.length!==170) process.exit(1); console.log("Local Pages dossier and world endpoints passed")'
+  deploy-production:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && contains(github.event.head_commit.message, '[deploy-production]')
+    needs: verify
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install
+      - name: Verify Cloudflare deployment credential
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: test -n "$CLOUDFLARE_API_TOKEN"
+      - name: Deploy production Pages project
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: npm run deploy

@@ -1,21 +1,29 @@
 import { llmStatus } from "../_lib/llm.js";
-
-function json(data, status = 200) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: { "content-type": "application/json; charset=utf-8" }
-  });
-}
-
+import { manifest, novels, characterCore, indexes } from "../_lib/canon.js";
+const json = (data) => new Response(JSON.stringify(data), { headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" } });
 export async function onRequest(context) {
   const env = context.env || {};
   return json({
     ok: true,
     project: "007-intelligence-lab",
     llm: llmStatus(env),
-    modules: ["characters", "dossier", "mission", "experience", "literary", "atlas", "import"],
-    dataState: "sample",
-    dataNotice: "示例数据·待TXT导入核验",
+    modules: ["intelligence-archive", "character-theatre", "mission-control", "world-explorer"],
+    dataState: "verified-canon",
+    dataSource: "nequex-eng/007-intelligence-lab-knowledge",
+    dataGenerated: manifest.generated,
+    data: {
+      novels: manifest.novel_count,
+      chapters: manifest.novels.reduce((n, b) => n + (b.chapters || 0), 0),
+      facts: novels.reduce((n, b) => n + (b.facts || []).length, 0),
+      canonFacts: novels.reduce((n, b) => n + (b.facts || []).filter(f => f.canon_or_inference === "canon").length, 0),
+      inferenceFacts: novels.reduce((n, b) => n + (b.facts || []).filter(f => f.canon_or_inference === "inference").length, 0),
+      coreCharacters: characterCore.length,
+      characters: indexes.characters.characters.length,
+      organizations: indexes.organizations.organizations.length,
+      locations: indexes.locations.locations.length,
+      equipment: indexes.equipment.equipment.length
+    },
+    knownGaps: manifest.known_gaps || [],
     time: new Date().toISOString()
   });
 }

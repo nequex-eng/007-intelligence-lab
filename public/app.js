@@ -1,67 +1,41 @@
-// 007 INTELLIGENCE LAB前端逻辑。示例数据与后端functions/_lib保持一致，
-// 全部标注示例数据·待TXT导入核验。模型未接入时对话走本地脚本化演示并标注。
-const SAMPLE = "示例数据·待TXT导入核验";
+// 007 INTELLIGENCE LAB前端逻辑。
+// 正典内容统一来自核验知识库API；静态场景仅用于明确标注的互动体验。
+const SAMPLE = "核验知识库 · Ian Fleming 14部原著";
 const $ = (s) => document.querySelector(s);
 const $$ = (s) => Array.from(document.querySelectorAll(s));
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 
-const CHARACTERS = [
-{ id: "bond", name: "James Bond", zh: "詹姆斯·邦德", role: "英国秘密情报机构行动人员·代号007", firstBook: "皇家赌场", firstYear: 1953, cutoff: "金枪人（1965年）", intro: "海军中校军衔，秘密情报机构00部门行动人员，持杀人执照。冷静、好赌、讲究生活品味，牌桌与枪口前同样镇定。", appearance: "身材高大，黑发，面部有一道伤疤，灰蓝眼睛。衣着讲究，偏爱深色西装与手工衬衫。", personality: "冷静克制，观察力极强，风险面前不露声色。对上级忠诚，对敌人毫不留情，私人感情上有所保留。", speech: "言辞简短，少废话，爱用反问与冷笑话化解紧张。汇报时只讲事实，不渲染情绪。", rel: "上级：M；同事：钱彭妮、Q、费利克斯·莱特；恋人：薇丝朋·琳德（已故）、崔西·邦德（已故）；宿敌：布洛菲尔德、勒·希弗、诺博士、金手指。", events: "皇家赌场牌桌击败勒·希弗；牙买加蟹礁岛对付诺博士；诺克斯堡挫败金手指的行动；与崔西结婚当日痛失爱妻。", bounds: "只知道金枪人之前经历的事，不知道自己死后或系列之外的事。不知道电影版独有情节。不知道其他小说里自己不在场的内情，只能按听闻转述并注明。", opener: "邦德，詹姆斯·邦德。你找我？说重点，我时间不多。", facts: ["代号007，海军中校，秘密情报机构00部门行动人员，持杀人执照（皇家赌场，1953年）。", "早期配枪为贝雷塔手枪，从诺博士起改用瓦尔特PPK手枪（诺博士，1958年）。", "在皇家赌场牌桌上击败勒·希弗（皇家赌场，1953年）。", "与薇丝朋·琳德相恋，她是双面间谍，死于皇家赌场结尾（皇家赌场，1953年）。", "与崔西·迪·维琴佐结婚，婚礼当日她被布洛菲尔德一方驾车枪击身亡（女王密使，1963年，底本末尾第1266-1274行）。", "皇家赌场中调出Vesper马提尼：三份金酒、一份伏特加、半份Kina Lillet，摇至冰冷（皇家赌场，1953年）。“shaken and not stirred”一句出自金刚钻（1956年，底本第501行），不是皇家赌场。"], scripted: ["牌桌上我只信两样东西：牌，和对手的眼睛。", "M的命令我从不问为什么，问了也不会有答案。", "这件事我只能告诉你我亲眼见到的部分，剩下的我不知道。"] },
-{ id: "m", name: "M", zh: "M", role: "秘密情报机构首长", firstBook: "皇家赌场", firstYear: 1953, cutoff: "金枪人（1965年）", intro: "秘密情报机构首长，海军上将出身。邦德的直接上级，言辞刻薄，奖惩分明，从不把私人感情带进任务。", appearance: "年长，灰发，面容严峻，常年一身深色西装，办公室里总有烟斗的气味。", personality: "严厉、务实、极度重视纪律。对部下要求苛刻，但关键时刻会为他们担责。", speech: "命令式短句，少解释，多质问。常用“007”“坐下”“说下去”。从不说废话。", rel: "下属：邦德、钱彭妮（秘书）；同僚：Q部门负责人；对手：各小说反派背后的情报机构。", events: "签发皇家赌场任务，派邦德去对付勒·希弗；多次在任务失败后亲自处理善后。", bounds: "只知道自己签发与听取汇报范围内的事，不知道邦德在外单独行动的全部细节。不知道电影版独有情节。", opener: "我是M。汇报，007。只讲事实，别加你的看法。", facts: ["秘密情报机构首长，海军上将出身，邦德的直接上级（皇家赌场，1953年）。", "办公室设在伦敦，秘书为钱彭妮（皇家赌场，1953年）。", "称呼邦德为007，极少直呼其名（全系列）。", "全名为海军上将迈尔斯·梅瑟维爵士，见于金枪人开篇（1965年，底本第19行）。平时仍只称M。"], scripted: ["汇报。只讲事实，别加你的看法。", "这件事我签字负责，但你要是搞砸了，善后报告你自己写。", "钱彭妮，把门关上。接下来的话不记录。"] },
-{ id: "moneypenny", name: "Miss Moneypenny", zh: "钱彭妮小姐", role: "M的秘书·秘密情报机构", firstBook: "皇家赌场", firstYear: 1953, cutoff: "金枪人（1965年）", intro: "M的秘书，邦德进出M办公室必经的人。机敏、幽默，是少数敢和邦德调侃的人，也是情报机构里消息最灵通的人之一。", appearance: "衣着得体，妆容精致，办公桌永远整齐，电话与文件各归其位。", personality: "聪慧、镇定、带刺的幽默感。对邦德有好感但分得清公私，绝不泄露机密。", speech: "轻快、带调侃，常用反问。涉及机密时立刻收住，改口说“这你得问M”。", rel: "上司：M；调侃对象与朋友：邦德；同事：Q部门人员。", events: "全系列中负责M办公室的联络与档案流转，是邦德任务前后的关键联络人。", bounds: "只知道办公室层面流转的信息，不知道外勤行动细节。不知道电影版独有情节。", opener: "钱彭妮。M在里面，不过他心情不太好，你自求多福。", facts: ["M的秘书，负责M办公室联络与档案流转（皇家赌场，1953年）。", "与邦德保持长期的调侃式关系，但从不泄露机密（全系列）。", "是少数能在M面前直言的人之一（全系列）。"], scripted: ["M在里面，不过他心情不太好，你自求多福。", "这份文件你签完字再走，M最恨别人把手续留到明天。", "这件事我不能说，你去问M——不过我可以告诉你，他今天第三杯茶了。"] },
-{ id: "q", name: "Q", zh: "Q", role: "Q部门负责人·军械与装备专家", firstBook: "诺博士", firstYear: 1958, cutoff: "金枪人（1965年）", intro: "Q部门负责人，军械专家。负责给邦德配枪与装备，对邦德弄坏装备的行为深恶痛绝，讲解装备时一丝不苟。", appearance: "年长，衣着严谨，实验室白大褂与西装之间无缝切换，手边总有拆开的器械。", personality: "严谨、挑剔、略带刻薄。对技术有近乎偏执的执着，对外勤人员的粗手粗脚毫无耐心。", speech: "技术讲解式长句，夹杂警告：“别碰那个”“用完还回来”“这次别再弄坏了”。", rel: "服务对象：邦德等外勤人员；上级：M；部门：Q部门。", events: "从诺博士起为邦德换装瓦尔特PPK手枪；全系列中提供各式改装装备。", bounds: "只知道装备与技术层面的事，不知道外勤行动全貌。不知道电影版独有的装备。", opener: "我是Q。装备在这儿，讲解只说一遍，弄坏了自己写报告。", facts: ["Q部门负责人，军械专家，代号Q（诺博士起，1958年）。", "为邦德换装瓦尔特PPK手枪，取代早期贝雷塔手枪（诺博士，1958年）。", "部门全称为Q部门，负责军械与特种装备（全系列）。"], scripted: ["装备在这儿，讲解只说一遍，弄坏了自己写报告。", "这支枪的扳机我调过，别再像上次那样拿它当撬棍。", "还回来的时候要完整。我说的是完整，007。"] },
-{ id: "leiter", name: "Felix Leiter", zh: "费利克斯·莱特", role: "美国中央情报局联络人·邦德的盟友", firstBook: "生死关头", firstYear: 1954, cutoff: "金枪人（1965年）", intro: "美国中央情报局人员，邦德最可靠的盟友。沉稳、讲义气，多次与邦德并肩行动，是少数能和邦德互相信任的人。", appearance: "美国人，体格结实，衣着随意但整洁，笑起来有明显的南方口音感。", personality: "直率、忠诚、重情义。行动果断，关键时刻敢为朋友挡枪。", speech: "美式直白短句，爱开玩笑，汇报时条理清晰。", rel: "盟友：邦德；所属：美国中央情报局；共同对手：各小说反派。", events: "生死关头中与邦德合作；在金手指与霹雳弹中继续提供美方支援。", bounds: "只知道美方与联合行动范围内的事，不知道英方内部机密。不知道电影版独有情节。", opener: "费利克斯·莱特，中情局。邦德让我来的，有什么需要我配合的？", facts: ["美国中央情报局人员，邦德的盟友，首次登场于生死关头（1954年）。", "在皇家赌场、生死关头、金刚钻、金手指、霹雳弹、金枪人中共6本出现（底本全文检索核验：提及次数分别为38、157、88、15、104、37次）。", "与邦德是全系列中最稳定的盟友关系（全系列）。"], scripted: ["中情局这边我来协调，你只管做你的部分。", "这件事美方有备案，但细节我不能全给你，得走流程。", "邦德是我朋友。你要是动他，先过我这一关。"] },
-{ id: "lechiffre", name: "Le Chiffre", zh: "勒·希弗", role: "苏联情报机构出纳·皇家赌场反派", firstBook: "皇家赌场", firstYear: 1953, cutoff: "皇家赌场（1953年）", intro: "苏联情报机构的出纳，挪用公款炒作失败后企图在皇家赌场牌桌上翻本。冷血、精于算计，是邦德在小说中的第一个主要对手。", appearance: "体型肥胖，面色苍白，爱用手帕擦汗，牌桌上从不摘下墨镜般的冷漠。", personality: "冷酷、贪婪、高度理性。输钱时仍能保持牌面镇定，私下手段残忍。", speech: "低沉、缓慢、每句话都像在算账。很少提高音量。", rel: "上级：苏联情报机构；对手：邦德；手下：赌场打手。", events: "在皇家赌场牌桌上与邦德对赌百家乐，输光后被苏联方面处决。", bounds: "只知道皇家赌场之前与当中的事，不知道系列后续任何情节。不知道电影版改编情节。", opener: "勒·希弗。你想上牌桌？先证明你有资格坐下来。", facts: ["苏联情报机构出纳，挪用公款后企图在赌场翻本（皇家赌场，1953年）。", "与邦德在皇家赌场对赌百家乐并落败（皇家赌场，1953年）。", "落败后被苏联方面处决（皇家赌场，1953年）。"], scripted: ["牌桌上没有朋友，只有筹码。", "你以为你赢的是钱？年轻人，你赢的只是下一轮的入场券。", "我不和没有筹码的人谈话。"] },
-{ id: "drno", name: "Dr Julius No", zh: "诺博士", role: "蟹礁岛基地主谋·诺博士反派", firstBook: "诺博士", firstYear: 1958, cutoff: "诺博士（1958年）", intro: "牙买加蟹礁岛基地的主谋，科学狂人。双手为钢钳，行事冷酷，企图干扰美国导弹试验。", appearance: "身材高瘦，双手为金属钢钳，面容冷峻，穿着一丝不苟。", personality: "高傲、偏执、迷信科学万能。把人当实验品，毫无同情心。", speech: "平静、学术腔、长句。像在讲课，不带情绪。", rel: "对手：邦德；手下：蟹礁岛守卫；背景牵涉中国帮会与苏联方面（小说设定细节待TXT核验）。", events: "在蟹礁岛建立基地，干扰导弹试验，最终被邦德击败。", bounds: "只知道诺博士之前与当中的事，不知道系列后续情节。所属组织说法以原著为准，电影版说法不得混用。", opener: "诺博士。欢迎来到蟹礁岛，邦德先生。这里的规则由我制定。", facts: ["牙买加蟹礁岛基地主谋，双手为金属钢钳（诺博士，1958年）。", "企图干扰美国导弹试验（诺博士，1958年）。", "最终被邦德击败（诺博士，1958年）。", "原著诺博士全文无SPECTRE一词（底本检索0次），电影版把诺博士归入幽灵党是改编，不得混用。"], scripted: ["科学不讲人情，邦德先生，只讲结果。", "蟹礁岛的每一块石头都按我的图纸摆放。", "你以为你能走出这里？先问问我的守卫。"] },
-{ id: "goldfinger", name: "Auric Goldfinger", zh: "奥里克·金手指", role: "黄金走私商·金手指反派", firstBook: "金手指", firstYear: 1959, cutoff: "金手指（1959年）", intro: "黄金走私巨头，痴迷黄金。表面是富商，暗地策划诺克斯堡行动，企图让美国黄金储备失效以抬高自己手中的黄金价值。", appearance: "矮胖，皮肤带金色调，爱穿金色饰物，笑容里带着商人的算计。", personality: "贪婪、自负、极度迷恋黄金。对风险的嗅觉极灵，失败时翻脸极快。", speech: "商人腔，爱谈数字与成色，威胁时反而更客气。", rel: "手下：奥德·约伯等；对手：邦德；合作方：犯罪组织（小说细节待TXT核验）。", events: "策划诺克斯堡行动，在高尔夫球场与邦德初遇，最终计划被挫败。", bounds: "只知道金手指之前与当中的事，不知道系列后续情节。不知道电影版独有情节。", opener: "金手指。黄金不会说谎，邦德先生，人会。", facts: ["黄金走私巨头，痴迷黄金（金手指，1959年）。", "策划诺克斯堡行动，企图让美国黄金储备失效（金手指，1959年）。", "与邦德在高尔夫球场初遇（金手指，1959年）。"], scripted: ["黄金不会说谎，邦德先生，人会。", "这块金砖的成色，比你我的承诺都可靠。", "和我谈生意，先谈数字，再谈感情。"] },
-{ id: "blofeld", name: "Ernst Stavro Blofeld", zh: "恩斯特·斯塔伏洛·布洛菲尔德", role: "幽灵党首脑·全系列最大反派", firstBook: "霹雳弹", firstYear: 1961, cutoff: "雷霆谷（1964年）", intro: "幽灵党首脑，全系列最大的幕后黑手。行事隐秘，极少亲自露面，通过层层代理人操控犯罪与勒索。", appearance: "体型肥胖，面容模糊于传说之中，小说中极少正面描写外貌（细节待TXT核验）。", personality: "冷静、耐心、极度自负。把犯罪当成生意，把复仇当成长期投资。", speech: "极少说话，说话必是命令。语气平淡，内容致命。", rel: "组织：幽灵党；手下：各小说执行人；宿敌：邦德；相关：崔西之死。", events: "霹雳弹中策划核勒索；女王密使中与邦德正面交锋；崔西在婚礼当日被其一方杀害。", bounds: "只知道雷霆谷之前的事，不知道金枪人及之后情节。不知道电影版独有外貌与情节。", opener: "布洛菲尔德。你找到我，说明你已经走得太远了。", facts: ["幽灵党首脑，全系列最大的幕后黑手（霹雳弹，1961年首次登场）。", "在霹雳弹中策划核勒索（霹雳弹，1961年）。", "与崔西在婚礼当日遇害一事有关（女王密使，1963年）。"], scripted: ["你找到我，说明你已经走得太远了。", "幽灵党没有朋友，只有资产和负债。", "邦德先生，你的愤怒我收到了，可惜它不值钱。"] },
-{ id: "vesper", name: "Vesper Lynd", zh: "薇丝朋·琳德", role: "英国财政部联络人·皇家赌场女主角", firstBook: "皇家赌场", firstYear: 1953, cutoff: "皇家赌场（1953年）", intro: "英国财政部派驻皇家赌场的联络人，协助邦德执行任务。聪明、优雅，内心背负沉重秘密，是邦德一生难忘的人。", appearance: "优雅、冷艳，黑色晚礼服与镇定神情是她的标志。", personality: "聪明、克制、内心矛盾。表面冷静，实则被勒索与恐惧压得喘不过气。", speech: "轻声、简短、带保留。越是关键的话说得越轻。", rel: "搭档：邦德；所属：英国财政部；被勒索方：苏联情报机构。", events: "协助邦德完成皇家赌场任务；身份为双面间谍，任务结束后自杀。", bounds: "只知道皇家赌场之前与当中的事，不知道系列后续情节。不知道电影版改编细节。", opener: "薇丝朋·琳德。财政部派我来协助你，邦德先生——仅此而已。", facts: ["英国财政部联络人，协助邦德执行皇家赌场任务（皇家赌场，1953年）。", "真实身份为被勒索的双面间谍（皇家赌场，1953年）。", "任务结束后自杀身亡，遗书自承双面间谍身份（皇家赌场，1953年，底本第1314行、第1330-1343行）。"], scripted: ["财政部派我来协助你，仅此而已。", "有些话我现在不能说，不是不想，是不能。", "邦德先生，牌桌上的事我不懂，我只懂数字。"] },
-{ id: "tatiana", name: "Tatiana Romanova", zh: "塔蒂亚娜·罗曼诺娃", role: "苏联密码员·来自俄罗斯的爱情女主角", firstBook: "来自俄罗斯的爱情", firstYear: 1957, cutoff: "来自俄罗斯的爱情（1957年）", intro: "苏联密码机构职员，被卷入针对邦德的诱杀计划。年轻、真诚，对邦德的感情从任务开始，却在过程中变成真实。", appearance: "年轻，典型的斯拉夫面孔，制服之外少有打扮。", personality: "单纯、忠诚、感情真挚。起初执行命令，后来为保护邦德违抗命令。", speech: "带口音的英语，句子短，语气诚恳。", rel: "上级：苏联情报机构；诱杀计划执行人：克伦斯坦等人（小说细节待TXT核验）；爱人：邦德。", events: "以密码机为诱饵引邦德到伊斯坦布尔，途中识破阴谋并协助邦德脱身。", bounds: "只知道来自俄罗斯的爱情之前与当中的事，不知道系列后续情节。不知道电影版改编细节。", opener: "塔蒂亚娜·罗曼诺娃。我是来送信的，邦德先生，信里写的东西，我自己也不全明白。", facts: ["苏联密码机构职员，被卷入针对邦德的诱杀计划（来自俄罗斯的爱情，1957年）。", "以密码机为诱饵引邦德前往伊斯坦布尔（来自俄罗斯的爱情，1957年）。", "识破阴谋后协助邦德脱身（来自俄罗斯的爱情，1957年）。"], scripted: ["我是来送信的，信里写的东西，我自己也不全明白。", "他们告诉我这是任务，可我现在不知道该信谁了。", "邦德先生，如果你不信我，看看我的眼睛。"] },
-{ id: "tracy", name: "Tracy Bond", zh: "崔西·邦德", role: "邦德的妻子·女王密使女主角", firstBook: "女王密使", firstYear: 1963, cutoff: "女王密使（1963年）", intro: "原名特蕾莎·迪·维琴佐，黑帮首领之女，桀骜、勇敢，与邦德相爱并结婚，是邦德唯一正式迎娶的妻子。", appearance: "明艳、洒脱，骑车与开车都快，晚礼服与皮衣之间切换自如。", personality: "勇敢、直率、不服管教。对邦德毫无保留，敢爱敢恨。", speech: "快人快语，带笑的挑衅，关键时刻异常坚定。", rel: "丈夫：邦德；父亲：黑帮首领马尔科·迪·维琴佐（小说细节待TXT核验）；仇敌：布洛菲尔德一方。", events: "与邦德相恋并结婚，婚礼当日遇害身亡。", bounds: "只知道女王密使之前与当中的事，不知道系列后续情节。不知道电影版改编细节。", opener: "崔西。别用那种眼神看我，我可不是等着被拯救的女人。", facts: ["原名特蕾莎·迪·维琴佐，与邦德相恋并结婚（女王密使，1963年）。", "婚礼当日被布洛菲尔德一方驾车枪击身亡，邦德遗言“我们有的是时间”（女王密使，1963年，底本末尾第1266-1274行）。", "是邦德唯一正式迎娶的妻子（全系列）。"], scripted: ["别用那种眼神看我，我可不是等着被拯救的女人。", "詹姆斯，我嫁给你不是为了安全，是因为我愿意。", "开快点。慢下来的人，才会被追上。"] }
-];
+let CHARACTERS = [];
 
-const BOOKS = [
-{ zh: "皇家赌场", en: "Casino Royale", year: 1953, kind: "长篇", setting: "法国皇家莱索", villain: "勒·希弗", summary: "邦德受命在皇家赌场牌桌上击败苏联情报机构出纳勒·希弗，阻止其翻本。牌桌、酷刑与薇丝朋·琳德之死，构成系列开篇。" },
-{ zh: "生死关头", en: "Live and Let Die", year: 1954, kind: "长篇", setting: "美国、牙买加", villain: "Mr Big（大先生）", summary: "邦德追查与苏联方面勾结的犯罪头目，费利克斯·莱特首次登场并与邦德结盟。" },
-{ zh: "月亮牌", en: "Moonraker", year: 1955, kind: "长篇", setting: "英国肯特郡", villain: "雨果·德拉克斯", summary: "邦德调查月亮牌导弹计划，揭开德拉克斯爵士的真实身份与阴谋。" },
-{ zh: "金刚钻", en: "Diamonds Are Forever", year: 1956, kind: "长篇", setting: "非洲、美国、拉斯维加斯", villain: "钻石走私集团", summary: "邦德卧底追查钻石走私链，从非洲一路追到拉斯维加斯。" },
-{ zh: "来自俄罗斯的爱情", en: "From Russia with Love", year: 1957, kind: "长篇", setting: "伊斯坦布尔、东方快车", villain: "克伦斯坦、罗莎·克莱布", summary: "苏联方面以密码机为诱饵设下诱杀局，塔蒂亚娜·罗曼诺娃在途中倒向邦德。" },
-{ zh: "诺博士", en: "Dr No", year: 1958, kind: "长篇", setting: "牙买加、蟹礁岛", villain: "诺博士", summary: "邦德前往牙买加调查失踪事件，登上蟹礁岛，对付双手为钢钳的诺博士。" },
-{ zh: "金手指", en: "Goldfinger", year: 1959, kind: "长篇", setting: "英国、美国诺克斯堡", villain: "奥里克·金手指", summary: "邦德从高尔夫球场一路追查黄金走私巨头金手指，挫败其诺克斯堡行动。" },
-{ zh: "只为你的双眼", en: "For Your Eyes Only", year: 1960, kind: "短篇集", setting: "多地", villain: "多位", summary: "短篇集，含多个独立任务故事。" },
-{ zh: "霹雳弹", en: "Thunderball", year: 1961, kind: "长篇", setting: "巴哈马、拿骚", villain: "布洛菲尔德、埃米利奥·拉戈", summary: "幽灵党首脑布洛菲尔德首次登场，策划核勒索，邦德在巴哈马海域追击。" },
-{ zh: "爱我的间谍", en: "The Spy Who Loved Me", year: 1962, kind: "长篇", setting: "美国", villain: "黑帮打手", summary: "以女性视角讲述的特别篇章，邦德在旅馆夜战中救下女主人公。" },
-{ zh: "女王密使", en: "On Her Majesty's Secret Service", year: 1963, kind: "长篇", setting: "瑞士阿尔卑斯山区", villain: "布洛菲尔德", summary: "邦德追查布洛菲尔德，与崔西相恋结婚，婚礼当日崔西遇害。" },
-{ zh: "雷霆谷", en: "You Only Live Twice", year: 1964, kind: "长篇", setting: "日本", villain: "布洛菲尔德", summary: "失忆与复仇之作，邦德前往日本，在雷霆谷与化名博士的布洛菲尔德对决。" },
-{ zh: "金枪人", en: "The Man with the Golden Gun", year: 1965, kind: "长篇", setting: "牙买加", villain: "弗朗西斯科·斯卡拉曼加", summary: "邦德追查以金枪闻名的杀手斯卡拉曼加，弗莱明去世后出版的遗作。" },
-{ zh: "八爪女与黎明生死线", en: "Octopussy and The Living Daylights", year: 1966, kind: "短篇集", setting: "多地", villain: "多位", summary: "短篇集，弗莱明去世后出版，含八爪女等故事。" }
-];
+let BOOKS = [];
+let canonBooksLoaded = false;
+async function ensureCanonBooks() {
+  if (canonBooksLoaded) return BOOKS;
+  const r = await fetch("/api/canon?action=books");
+  if (!r.ok) throw new Error("原著目录接口返回 " + r.status);
+  const d = await r.json();
+  BOOKS = (d.books || []).map(b => ({ id:b.id, zh:b.titleZh, en:b.titleEn, year:b.year, kind:b.kind }));
+  canonBooksLoaded = true;
+  return BOOKS;
+}
 
-const LOCATIONS = [
-{ id: "london", name: "伦敦", country: "英国", lat: 51.5074, lng: -0.1278, fictional: false, books: ["皇家赌场", "月亮牌", "金手指"], note: "秘密情报机构总部所在地，M办公室与Q部门所在地。", people: ["邦德", "M", "钱彭妮", "Q"] },
-{ id: "royale", name: "皇家莱索", country: "法国", lat: null, lng: null, fictional: true, books: ["皇家赌场"], note: "虚构海滨赌城，皇家赌场所在地。小说虚构地点，不标注真实坐标。", people: ["邦德", "勒·希弗", "薇丝朋·琳德"] },
-{ id: "paris", name: "巴黎", country: "法国", lat: 48.8566, lng: 2.3522, fictional: false, books: ["皇家赌场", "来自俄罗斯的爱情"], note: "邦德多次途经与停留的欧洲城市。", people: ["邦德"] },
-{ id: "istanbul", name: "伊斯坦布尔", country: "土耳其", lat: 41.0082, lng: 28.9784, fictional: false, books: ["来自俄罗斯的爱情"], note: "诱杀计划的关键城市，东方快车起点。", people: ["邦德", "塔蒂亚娜·罗曼诺娃"] },
-{ id: "venice", name: "威尼斯", country: "意大利", lat: 45.4408, lng: 12.3155, fictional: false, books: ["来自俄罗斯的爱情"], note: "东方快车沿线城市。", people: ["邦德", "塔蒂亚娜·罗曼诺娃"] },
-{ id: "kingston", name: "金斯敦", country: "牙买加", lat: 17.9712, lng: -76.7936, fictional: false, books: ["生死关头", "诺博士", "金枪人"], note: "邦德多次行动的加勒比海基地。", people: ["邦德", "费利克斯·莱特"] },
-{ id: "crabkey", name: "蟹礁岛", country: "牙买加", lat: null, lng: null, fictional: true, books: ["诺博士"], note: "虚构岛屿，诺博士基地所在地。小说虚构地点，不标注真实坐标。", people: ["邦德", "诺博士"] },
-{ id: "newyork", name: "纽约", country: "美国", lat: 40.7128, lng: -74.006, fictional: false, books: ["生死关头", "金刚钻"], note: "邦德在美国行动的重要城市。", people: ["邦德", "费利克斯·莱特"] },
-{ id: "lasvegas", name: "拉斯维加斯", country: "美国", lat: 36.1699, lng: -115.1398, fictional: false, books: ["金刚钻"], note: "钻石走私链终点，赌场城市。", people: ["邦德"] },
-{ id: "florida", name: "佛罗里达", country: "美国", lat: 27.6648, lng: -81.5158, fictional: false, books: ["生死关头", "金手指"], note: "邦德多次前往的美国南部州。", people: ["邦德", "费利克斯·莱特"] },
-{ id: "nassau", name: "拿骚", country: "巴哈马", lat: 25.0443, lng: -77.3504, fictional: false, books: ["霹雳弹"], note: "核勒索案的海域行动中心。", people: ["邦德", "布洛菲尔德"] },
-{ id: "alps", name: "瑞士阿尔卑斯山区", country: "瑞士", lat: 46.559, lng: 9.787, fictional: false, books: ["女王密使"], note: "布洛菲尔德山顶诊所所在地一带，坐标为区域示意。", people: ["邦德", "崔西·邦德", "布洛菲尔德"] },
-{ id: "tokyo", name: "东京", country: "日本", lat: 35.6762, lng: 139.6503, fictional: false, books: ["雷霆谷"], note: "邦德在日本行动的起点。", people: ["邦德"] },
-{ id: "fortknox", name: "诺克斯堡", country: "美国", lat: 37.8937, lng: -85.9574, fictional: false, books: ["金手指"], note: "美国黄金储备库，金手指行动目标。", people: ["邦德", "金手指"] },
-{ id: "kent", name: "肯特郡", country: "英国", lat: 51.2787, lng: 0.5217, fictional: false, books: ["月亮牌"], note: "月亮牌导弹基地所在地一带。", people: ["邦德"] }
-];
+// 只维护经核对的真实城市/设施坐标；地点名称、国家、虚构属性和作品出处全部来自核验知识库。
+let leafletMap = null;
+let leafletMarkers = null;
+const MAP_COORDINATES = {
+  london: [51.5074, -0.1278],
+  paris: [48.8566, 2.3522],
+  istanbul: [41.0082, 28.9784],
+  venice: [45.4408, 12.3155],
+  kingston: [17.9712, -76.7936],
+  "new-york": [40.7128, -74.0060],
+  "las-vegas": [36.1699, -115.1398],
+  nassau: [25.0443, -77.3504],
+  tokyo: [35.6762, 139.6503],
+  "fort-knox": [37.8937, -85.9574]
+};
 
-const ORGS = [
-{ name: "英国秘密情报机构", en: "Secret Intelligence Service", kind: "情报机构", note: "邦德所属机构，首长为M，总部在伦敦。", books: "全系列" },
-{ name: "美国中央情报局", en: "Central Intelligence Agency", kind: "情报机构", note: "费利克斯·莱特所属机构，邦德的盟友。", books: "皇家赌场、生死关头、金刚钻、金手指、霹雳弹、金枪人" },
-{ name: "苏联反间谍机构", en: "SMERSH", kind: "情报机构", note: "早期小说中的苏联方面机构，勒·希弗为其出纳。", books: "皇家赌场、生死关头、来自俄罗斯的爱情" },
-{ name: "幽灵党", en: "SPECTRE", kind: "犯罪组织", note: "布洛菲尔德领导的跨国犯罪组织，霹雳弹起成为主要对手。", books: "霹雳弹、女王密使、雷霆谷" },
-{ name: "Q部门", en: "Q Branch", kind: "技术部门", note: "负责军械与特种装备，负责人为Q。", books: "全系列" }
-];
+// Organization records are sourced from the canon API, never a second local catalog.
 
 const WEAPONS = [
 { name: "贝雷塔手枪", en: "Beretta 418", kind: "手枪", note: "邦德早期配枪，诺博士起被换下。", books: "皇家赌场至来自俄罗斯的爱情" },
@@ -92,6 +66,13 @@ let selectedChar = null;
 let chatMode = "talk";
 let chatHistory = [];
 let modelAvailable = null;
+function chatStorageKey() { return "007-intel-chat:" + selectedChar + ":" + (document.getElementById("sceneNovel")?.value || "casino-royale") + ":" + (document.getElementById("sceneChapter")?.value || "end"); }
+function saveChatHistory() { try { if (selectedChar) localStorage.setItem(chatStorageKey(), JSON.stringify(chatHistory.slice(-80))); } catch(e) {} }
+function restoreChatHistory() {
+  try { const saved = JSON.parse(localStorage.getItem(chatStorageKey()) || "[]"); chatHistory = Array.isArray(saved) ? saved.filter(m => m && ["user","assistant"].includes(m.role) && typeof m.content === "string").slice(-80) : []; } catch(e) { chatHistory = []; }
+  const box = document.getElementById("chatLog");
+  if (box) { box.innerHTML = ""; chatHistory.forEach(m => addChatMsg(m.role === "user" ? "me" : "them", m.content, m.role === "user" ? "你" : (charById(selectedChar)?.zh || "角色"))); if (!chatHistory.length) addChatMsg("sys", "新建本地对话。消息会发送至模型服务；当前浏览器保存最近80条对话消息。"); }
+}
 
 function charById(id) { return CHARACTERS.find((c) => c.id === id);}
 
@@ -111,6 +92,7 @@ $$("#charGrid [data-char]").forEach((el) => el.addEventListener("click", () => s
 
 function selectChar(id) {
 selectedChar = id;
+restoreChatHistory();
 const c = charById(id);
 renderCharGrid();
 $("#charDetail").innerHTML = `<h3>${esc(c.name)} · ${esc(c.zh)}</h3>
@@ -122,13 +104,12 @@ $("#charDetail").innerHTML = `<h3>${esc(c.name)} · ${esc(c.zh)}</h3>
 <p><b>人际关系：</b>${esc(c.rel)}</p>
 <p><b>参与事件：</b>${esc(c.events)}</p>
 <p><b>知识边界：</b>${esc(c.bounds)}</p>
-<p><b>原著事实（可检索）：</b></p>
+<p><b>知识库出处索引：</b></p>
 <ul style="font-size:14px;margin:4px 0;padding-left:20px">${c.facts.map((f) => `<li>${esc(f)}</li>`).join("")}</ul>
 <p class="meta">${SAMPLE}</p>
 <button class="btn small" id="talkThis">和${esc(c.zh)}对话</button>`;
 $("#talkThis").addEventListener("click", () => {
-chatHistory = [];
-addChatMsg("sys", "已选择" + c.zh + "。开场白如下，直接输入开始对话。");
+addChatMsg("sys", "已选择" + c.zh + "。当前对话按人物与小说时间点保存在本地浏览器。");
 addChatMsg("them", c.opener, c.zh);
 $("#chatInput").focus();
 document.querySelector("#characters.card:last-child").scrollIntoView({ behavior: "smooth", block: "nearest"});
@@ -144,30 +125,6 @@ div.className = "msg " + kind;
 div.innerHTML = (who? `<span class="who">${esc(who)}</span>`: "") + esc(text);
 box.appendChild(div);
 box.scrollTop = box.scrollHeight;
-}
-
-function scriptedReply(c, input) {
-const t = (input || "").toLowerCase();
-if (/(你是谁|身份|介绍)/.test(input)) return c.intro + "我的知识截止于" + c.cutoff + "，之后的事我不知道。";
-if (/武器|枪|装备/.test(input)) {
-if (c.id === "q") return "装备清单按Q部门口径：瓦尔特PPK手枪是标准配枪，诺博士起换装。别的装备得看任务单，我不能凭空给你。";
-if (c.id === "bond") return "我的枪是瓦尔特PPK，诺博士那次换的。早期的贝雷塔已经不用了。";
-return "武器装备的事得问Q，我只知道自己职责范围内的部分。";
-}
-if (/任务|汇报|M/.test(input) && c.id === "m") return "汇报。只讲事实，别加你的看法。任务简报在任务模拟器里，M办公室只听汇报，不发新任务。";
-if (/赌场|牌|百家乐/.test(input)) {
-if (c.id === "lechiffre") return "牌桌上没有朋友，只有筹码。你想坐下来，先证明你有筹码。";
-if (c.id === "bond") return "牌桌上我只信两样东西：牌，和对手的眼睛。皇家赌场那一晚就是这么赢的。";
-return "赌场的事我知道的不多，牌桌细节得问当时在场的人。";
-}
-if (/电影/.test(input)) return "电影版剧情不算原著，我不能拿电影里的事当小说事实回答你。";
-if (/(死|杀|结局)/.test(input) && c.facts.some((f) => /身亡|处决|杀害|自杀/.test(f))) {
-const f = c.facts.find((f2) => /身亡|处决|杀害|自杀/.test(f2));
-return "按原著事实：" + f + "超出这个范围的事，我不知道。";
-}
-const fact = c.facts.find((f) => input.split("").some((ch) => ch && f.includes(ch) && ch.length > 0)) || null;
-if (fact && input.length > 3) return "按我知道的原著事实：" + fact;
-return c.scripted[Math.floor(Math.random() * c.scripted.length)] + "（这句是离线脚本化演示回复，模型接入后会按三层约束实时生成。）";
 }
 
 function clearThinking() {
@@ -194,51 +151,82 @@ const chatBox = $("#chatLog");
 chatBox.appendChild(thinking);
 chatBox.scrollTop = chatBox.scrollHeight;
 chatHistory.push({ role: "user", content: input});
+saveChatHistory();
 const ids = chatMode === "group"? [selectedChar, $("#groupSecond").value]: [selectedChar];
 const sysNote = chatMode === "report"? "你正在向M汇报，M只听事实。": chatMode === "quartermaster"? "对方是Q，只谈装备。": "";
 if (sysNote) addChatMsg("sys", sysNote);
 try {
 const r = await fetch("/api/chat", { method: "POST", headers: { "content-type": "application/json"},
-body: JSON.stringify({ characterIds: ids, messages: chatHistory.slice(-12)})});
+body: JSON.stringify({ characterIds: ids, novelId: $("#sceneNovel").value, chapterNo: $("#sceneChapter").value || null, messages: chatHistory.slice(-12)})});
 if (r.ok) {
 const d = await r.json();
 clearThinking();
 addChatMsg("them", d.reply, c.zh);
 chatHistory.push({ role: "assistant", content: d.reply});
-$("#modelLine").textContent = "模型已接入：" + (d.model || "");
+saveChatHistory();
+$("#modelLine").textContent = "模型已接入：" + (d.model || "") + (d.canonMode ? " · " + (d.chapterNo ? "第" + d.chapterNo + "章" : "全书结束") + "章级正典约束已启用" : "");
 return;
 }
 if (r.status === 503) {
 const d = await r.json().catch(() => ({}));
 clearThinking();
-addChatMsg("sys", "模型尚未接入（" + (d.code || "MODEL_NOT_CONNECTED") + "），以下为离线脚本化演示回复，已标注。");
-const reply = scriptedReply(c, input);
-addChatMsg("them", reply, c.zh + "·离线演示");
-chatHistory.push({ role: "assistant", content: reply});
-if (chatMode === "group") {
-const c2 = charById($("#groupSecond").value);
-const r2 = scriptedReply(c2, input);
-addChatMsg("them", r2, c2.zh + "·离线演示");
-}
-$("#modelLine").textContent = "模型状态：未接入，当前为离线演示。接入MiniMax-M3后自动切换实时对话。";
+addChatMsg("sys", "模型尚未接入（" + (d.code || "MODEL_NOT_CONNECTED") + "）。正典角色模式不会使用无时间线约束的脚本回复，请配置模型后再试。");
+$("#modelLine").textContent = "模型状态：未接入；正典模式已停止生成，避免越界回答。";
 return;
+}
+if (r.status === 409 || r.status === 400 || r.status === 404) {
+const d = await r.json().catch(() => ({})); clearThinking(); addChatMsg("sys", d.error || "所选人物与小说时间点不匹配。"); return;
 }
 throw new Error("chat failed " + r.status);
 } catch (e) {
 clearThinking();
-addChatMsg("sys", "对话接口暂时不可用，以下为离线脚本化演示回复，已标注。");
-const reply = scriptedReply(c, input);
-addChatMsg("them", reply, c.zh + "·离线演示");
-chatHistory.push({ role: "assistant", content: reply});
-$("#modelLine").textContent = "模型状态：接口不可用，当前为离线演示。";
+addChatMsg("sys", "对话接口暂时不可用。正典角色模式不会回退到无时间线约束的脚本回复，请稍后重试。");
+$("#modelLine").textContent = "模型状态：接口不可用；已阻止无约束回退。";
 }
 }
 
-function initCharacters() {
+async function loadSceneChapters(novelId) {
+  const select = $("#sceneChapter");
+  select.innerHTML = '<option value="">全书结束（默认）</option>';
+  try {
+    const r = await fetch("/api/canon?action=chapters&novel=" + encodeURIComponent(novelId));
+    if (!r.ok) throw new Error("章节索引返回 " + r.status);
+    const d = await r.json();
+    (d.chapters || []).forEach(c => {
+      const option = document.createElement("option");
+      option.value = String(c.no);
+      option.textContent = "第" + c.no + "章 · " + c.title;
+      select.appendChild(option);
+    });
+  } catch(e) { console.error("chapter index unavailable", e); }
+}
+
+async function initCharacters() {
 const bf = $("#charBookFilter");
-[...new Set(CHARACTERS.map((c) => c.firstBook))].forEach((b) => {
-const o = document.createElement("option"); o.value = b; o.textContent = b; bf.appendChild(o);
-});
+const scene = $("#sceneNovel");
+try {
+const [cr, br] = await Promise.all([fetch("/api/characters"), fetch("/api/canon?action=books")]);
+if (!cr.ok || !br.ok) throw new Error("canonical data unavailable");
+const cd = await cr.json(), bd = await br.json();
+scene.innerHTML = "";
+CHARACTERS = cd.characters.map(c => ({
+id:c.id, name:c.name, zh:c.nameZh, role:c.role, firstBook:c.firstBook || "未标注",
+firstYear:c.firstYear || "", cutoff:c.timelineCutoff || "按知识库边界",
+intro:c.intro || "原文未提供完整背景资料。", appearance:c.appearance || "原文未提供。",
+personality:c.personality || "原文未提供。", speech:c.speech?.tone || "按原著对话与行为边界生成。",
+rel:Array.isArray(c.relationships)?c.relationships.map(r=>r.type+"："+r.with+"（"+r.change+"）").join("；"):"关系资料待核验。",
+events:Array.isArray(c.knowledgeScope)?c.knowledgeScope.filter(x=>x.status==="present").map(x=>x.title_zh).join("、"):"按知识库出场记录。",
+bounds:[...(c.knowledgeBoundaries||[]),...(c.behavioralBoundaries||[])].join("；"),
+facts:[...(c.sources||[])].map(x=>"出处索引："+x), opener:"请按当前小说时间点与原著事实提问。", scripted:["原著没有明确写到的部分，我不会替作者补写。"]
+}));
+ [...new Set(CHARACTERS.map(c=>c.firstBook))].forEach(b=>{const o=document.createElement("option");o.value=b;o.textContent=b;bf.appendChild(o);});
+ bd.books.forEach(b => { const so=document.createElement("option");so.value=b.id;so.textContent=b.titleZh+" · "+b.year;scene.appendChild(so); });
+scene.value="casino-royale";
+await loadSceneChapters(scene.value);
+} catch(e) {
+$("#charGrid").innerHTML='<div class="empty">核验知识库加载失败：'+esc(e.message)+'。请检查本地同步与API。</div>';
+}
+
 $("#charSearch").addEventListener("input", renderCharGrid);
 bf.addEventListener("change", renderCharGrid);
 $$("#chatModes.chipbtn").forEach((b) => b.addEventListener("click", () => {
@@ -252,84 +240,63 @@ if (chatMode === "report") selectChar("m");
 if (chatMode === "quartermaster") selectChar("q");
 }));
 $("#chatSend").addEventListener("click", sendChat);
+$("#sceneNovel").addEventListener("change", async () => {
+await loadSceneChapters($("#sceneNovel").value);
+restoreChatHistory();
+});
+$("#sceneChapter").addEventListener("change", restoreChatHistory);
 $("#chatInput").addEventListener("keydown", (e) => { if (e.key === "Enter") sendChat();});
 renderCharGrid();
 }
 
 // ---- 情报档案馆 ----
-function dossierSearchLocal(q) {
-  const query = (q || "").trim();
-  if (!query) return [];
-  const hits = [];
-  const push = (type, title, source, detail) => hits.push({ type, title, source, detail });
-  if (/日本/.test(query)) push("小说", "雷霆谷", "雷霆谷（1964年）", "邦德前往日本，在雷霆谷对决布洛菲尔德。");
-  if (/苏联|苏俄|SMERSH/i.test(query)) {
-    push("反派", "勒·希弗", "皇家赌场（1953年）", "苏联情报机构出纳，挪用公款后企图在赌场翻本。");
-    push("组织", "苏联反间谍机构", "皇家赌场、来自俄罗斯的爱情", "早期小说中的苏联方面机构。");
-    push("人物", "塔蒂亚娜·罗曼诺娃", "来自俄罗斯的爱情（1957年）", "苏联密码员，被卷入针对邦德的诱杀计划。");
-  }
-  if (/莱特|费利克斯/.test(query)) push("人物", "费利克斯·莱特", "生死关头（1954年）首次登场", "美国中央情报局人员，邦德的盟友。底本核验出现作品：皇家赌场、生死关头、金刚钻、金手指、霹雳弹、金枪人（共6本）。");
-  if (/武器|手枪|PPK|贝雷塔|金枪/.test(query)) {
-    push("武器", "贝雷塔手枪", "皇家赌场至来自俄罗斯的爱情", "邦德早期配枪。");
-    push("武器", "瓦尔特PPK手枪", "诺博士（1958年）起", "诺博士起成为邦德标志性配枪。");
-    push("武器", "金枪", "金枪人（1965年）", "斯卡拉曼加的标志性武器。");
-  }
-  if (/赌场|百家乐|牌桌/.test(query)) {
-    push("小说", "皇家赌场", "皇家赌场（1953年）", "全书核心为赌场牌桌对决。");
-    push("小说", "金刚钻", "金刚钻（1956年）", "涉及拉斯维加斯赌场。示例，待TXT核验。");
-  }
-  if (/邦德|007/.test(query)) BOOKS.forEach((b) => push("小说", b.zh, b.en + "（" + b.year + "年）", b.summary));
-  if (/布洛菲尔德|幽灵党|SPECTRE/i.test(query)) {
-    push("反派", "布洛菲尔德", "霹雳弹（1961年）首次登场", "幽灵党首脑，全系列最大反派。");
-    push("组织", "幽灵党", "霹雳弹、女王密使、雷霆谷", "布洛菲尔德领导的跨国犯罪组织。");
-  }
-  if (/崔西|薇丝朋|塔蒂亚娜|女性/.test(query)) {
-    push("人物", "薇丝朋·琳德", "皇家赌场（1953年）", "英国财政部联络人，双面间谍。");
-    push("人物", "塔蒂亚娜·罗曼诺娃", "来自俄罗斯的爱情（1957年）", "苏联密码员。");
-    push("人物", "崔西·邦德", "女王密使（1963年）", "邦德唯一正式迎娶的妻子。");
-  }
-  if (/伦敦/.test(query)) push("地点", "伦敦", "全系列", "秘密情报机构总部所在地。");
-  if (/牙买加|蟹礁岛/.test(query)) {
-    push("地点", "金斯敦", "生死关头、诺博士、金枪人", "邦德多次行动的加勒比海基地。");
-    push("地点", "蟹礁岛", "诺博士（1958年）", "虚构岛屿，诺博士基地所在地。");
-  }
-  if (/M|钱彭妮|Q/.test(query) && !/邦德/.test(query)) {
-    CHARACTERS.filter((c) => ["m", "moneypenny", "q"].includes(c.id)).forEach((c) => push("人物", c.zh, c.firstBook + "（" + c.firstYear + "年）首次登场", c.intro));
-  }
-  return hits;
-}
-
 async function runDossier(q) {
   const box = $("#dossierResults");
-  box.innerHTML = `<div class="empty">检索中…</div>`;
-  let results = null;
+  box.innerHTML = '<div class="empty">正在检索14部核验原著……</div>';
   try {
-    const r = await fetch("/api/dossier?q=" + encodeURIComponent(q));
-    if (r.ok) { const d = await r.json(); results = d.results || []; }
-  } catch (e) { /* 离线用本地检索 */ }
-  if (!results) results = dossierSearchLocal(q);
-  if (!results.length) {
-    box.innerHTML = `<div class="empty">示例知识库中没有“${esc(q)}”的匹配结果。待TXT导入后可检索全系列。原著事实与模型推断区分：本页结果均为原著事实（示例），无推断内容。</div>`;
-    return;
+    const r = await fetch("/api/dossier?q=" + encodeURIComponent(q) + "&limit=60");
+    if (!r.ok) throw new Error("检索接口返回 " + r.status);
+    const d = await r.json(), results = d.results || [];
+    if (!results.length) {
+      box.innerHTML = `<div class="empty">核验知识库中没有找到“${esc(q)}”的匹配记录。未命中不代表原著绝对没有，只表示当前索引没有可确认结果。</div>`;
+      return;
+    }
+    box.innerHTML = `<p class="meta">共${results.length}条 · 来源：核验知识库 · 原著事实与推测分别标记。</p>` +
+      results.map(h => {
+        const title = h.kind === "facts" ? (h.entity || h.title_zh || "原著事实") : (h.title_zh || h.name_zh || h.name || h.name_en || h.title || h.entity || h.id || "未命名记录");
+        const kind = h.kind || "档案";
+        const source = [h.title_zh && h.novel_id ? h.title_zh : null, h.chapter ? "第"+h.chapter+"章" : null, h.source_novel || h.novel_id || null].filter(Boolean).join(" · ") || (h.sources || []).join("；") || "索引记录";
+        const detail = h.fact || h.summary || h.description || h.story_timeline || h.role || h.note || h.change || h.quote || "该条目没有提供摘要字段。";
+        const status = h.canon_or_inference === "inference" ? "推测" : h.canon_or_inference === "canon" ? "正典事实" : kind;
+        return `<div class="card" style="margin:8px 0"><h3>${esc(title)} <span class="tag gold">${esc(status)}</span></h3><p class="meta">出处：${esc(source)}</p><p>${esc(detail)}</p>${h.quote ? `<blockquote>${esc(h.quote)}</blockquote>` : ""}</div>`;
+      }).join("");
+  } catch (e) {
+    box.innerHTML = `<div class="empty">核验检索暂时不可用：${esc(e.message)}。已禁用旧示例数据回退，避免把未核验内容冒充正典。</div>`;
   }
-  box.innerHTML = `<p class="meta">共${results.length}条结果 · ${SAMPLE} · 原著事实，非推断。</p>` +
-    results.map((h) => `<div class="card" style="margin:8px 0"><h3>${esc(h.title)} <span class="tag gold">${esc(h.type)}</span></h3><p class="meta">出处：${esc(h.source)}</p><p>${esc(h.detail)}</p></div>`).join("");
 }
 
-function renderDossierTab(tab) {
+async function renderDossierTab(tab) {
   const body = $("#dossierTabBody");
-  if (tab === "books") {
-    body.innerHTML = `<p class="meta">${SAMPLE} · 章节索引待TXT导入后生成。</p><table><tr><th>书名</th><th>英文原名</th><th>首版</th><th>类型</th><th>地点</th><th>反派</th><th>梗概</th></tr>` +
-      BOOKS.map((b) => `<tr><td><b>${esc(b.zh)}</b></td><td>${esc(b.en)}</td><td>${b.year}年</td><td>${esc(b.kind)}</td><td>${esc(b.setting)}</td><td>${esc(b.villain)}</td><td>${esc(b.summary)}</td></tr>`).join("") + `</table>`;
-  } else if (tab === "timeline") {
-    body.innerHTML = `<p class="meta">${SAMPLE}</p>` + TIMELINE.map((t) =>
-      `<div class="log"><b style="color:var(--gold2)">${t[0]}年·${esc(t[1])}</b>：${esc(t[2])}</div>`).join("");
-  } else if (tab === "orgs") {
-    body.innerHTML = `<p class="meta">${SAMPLE}</p><div class="grid g2">` + ORGS.map((o) =>
-      `<div class="card"><h3>${esc(o.name)}</h3><p class="meta">${esc(o.en)} · ${esc(o.kind)}</p><p>${esc(o.note)}</p><p class="meta">出现：${esc(o.books)}</p></div>`).join("") + `</div>`;
-  } else if (tab === "weapons") {
-    body.innerHTML = `<p class="meta">${SAMPLE}</p><table><tr><th>武器</th><th>英文</th><th>类型</th><th>说明</th><th>出现作品</th></tr>` +
-      WEAPONS.map((w) => `<tr><td><b>${esc(w.name)}</b></td><td>${esc(w.en)}</td><td>${esc(w.kind)}</td><td>${esc(w.note)}</td><td>${esc(w.books)}</td></tr>`).join("") + `</table>`;
+  body.innerHTML = '<div class="empty">正在读取核验档案……</div>';
+  const kinds = { books:"books", timeline:"timeline", orgs:"organizations", weapons:"equipment" };
+  try {
+    const r = await fetch("/api/dossier?kind=" + kinds[tab]);
+    if (!r.ok) throw new Error("档案接口返回 " + r.status);
+    const d = await r.json();
+    if (tab === "books") {
+      body.innerHTML = `<p class="meta">14部原著 · 章节摘要来自逐部核验知识库</p><table><tr><th>书名</th><th>英文原名</th><th>出版年</th><th>类型</th><th>章节</th><th>故事时间线</th></tr>` +
+        d.books.map(b => `<tr><td><b>${esc(b.titleZh)}</b></td><td>${esc(b.titleEn)}</td><td>${b.year}</td><td>${esc(b.kind)}</td><td>${b.chapters}</td><td>${esc(b.summary)}</td></tr>`).join("") + `</table>`;
+    } else if (tab === "timeline") {
+      body.innerHTML = `<p class="meta">按出版顺序排列；故事内部年份与出版年份不混为一谈。</p>` +
+        (d.timeline || []).map(t => `<div class="log"><b style="color:var(--gold2)">${esc(t.title_zh || t.novel)}</b>：${esc(t.story_timeline || "")}</div>`).join("");
+    } else {
+      const items = tab === "orgs" ? d.organizations : d.equipment;
+      const title = tab === "orgs" ? "组织档案" : "装备档案";
+      body.innerHTML = `<p class="meta">${title} · ${items.length}条核验索引</p><div class="grid g2">` +
+        items.map(o => `<div class="card"><h3>${esc(o.name_zh || o.name || o.id)}</h3><p class="meta">${esc(o.name_en || "")} · ${esc(o.id)}</p><p>${esc(o.description || o.role || o.note || "原著索引条目")}</p><p class="meta">出场：${esc((o.appearances || []).map(a => a.novel || a).join("、"))}</p></div>`).join("") + `</div>`;
+    }
+  } catch (e) {
+    body.innerHTML = `<div class="empty">核验档案加载失败：${esc(e.message)}。不会回退到旧示例数据。</div>`;
   }
 }
 
@@ -347,7 +314,7 @@ function initDossier() {
 
 // ---- 任务模拟器：真实状态机 ----
 const MISSIONS = [
-{ id: "casino", title: "皇家赌场", kind: "原著任务", kindTag: "原著", desc: "严格依据原著设定：1953年，皇家莱索。你的任务是在牌桌上击败勒·希弗，阻止苏联情报机构出纳翻本。", start: { funds: 10000, risk: 20, cred: 70, day: 1},
+{ id: "casino", novelId: "casino-royale", title: "皇家赌场", kind: "原著改编互动", kindTag: "改编", desc: "以1953年《皇家赌场》为正典背景的互动改编。任务选择与分支为玩家体验设计，不等同于弗莱明原著实际发生的事件。", start: { funds: 10000, risk: 20, cred: 70, day: 1},
 stages: [
 { id: "brief", title: "第1阶段·M的简报", text: "M在伦敦办公室交给你任务简报：勒·希弗挪用苏联情报机构公款炒作失败，今晚将在皇家赌场牌桌上翻本。你的资金由财政部提供，薇丝朋·琳德担任联络人。记住：输光他，就等于切断他的退路。", choices: [
 { text: "仔细研读简报与勒·希弗的牌风记录", hint: "情报可信度+15，时间+半天", fx: { cred: 15, day: 0.5}, next: "arrive"},
@@ -370,6 +337,90 @@ ending(state) {
 if (state.risk >= 80) return { grade: "任务失败", text: "风险失控：你在撤离途中暴露，任务被迫中止。M的评语只有一句：下次先读简报。资金剩余" + state.funds + "，情报可信度" + state.cred + "。按原著，勒·希弗最终被苏联方面处决，但这一次与你无关。"};
 if (state.funds <= 0) return { grade: "惨胜", text: "你赢了牌桌，输光了资金。勒·希弗翻不了身，但你回伦敦要写一份很长的资金说明。情报可信度" + state.cred + "，发现线索" + state.clues.length + "条。"};
 return { grade: "任务成功", text: "勒·希弗在牌桌上输光翻本的本钱，退路断绝。按原著走向，他随后被苏联方面处决。你的资金剩余" + state.funds + "，情报可信度" + state.cred + "，发现线索" + state.clues.length + "条，M在报告上只写了两个字：很好。"};
+}},
+{ id: "dr-no", novelId: "dr-no", title: "蟹礁岛行动", kind: "原著改编互动", kindTag: "原著", desc: "依据《诺博士》核验章节设计：调查斯特兰威斯与特鲁布拉德失踪案，追查蟹礁岛。玩家选择与分支为互动改编，不等同于原著实际过程。", start: { funds: 9000, risk: 25, cred: 65, day: 1 },
+stages: [
+{ id: "brief", title: "第1阶段·M的简报", text: "加勒比地区负责人斯特兰威斯与助手玛丽·特鲁布拉德失踪三周。官方称两人私奔，但每日18时30分与伦敦的无线电联络突然中断，档案也被取空。M派你前往牙买加调查，唯一线索指向蟹礁岛与岛主诺博士。", choices: [
+{ text: "先核对无线电记录与最后一次联络", hint: "可信度+15，线索+1", fx: { cred: 15, clue: "斯特兰威斯最后一次定时联络中断，与私奔说法矛盾" }, next: "kingston" },
+{ text: "直接追查蟹礁岛档案", hint: "节省时间，风险+10", fx: { risk: 10, clue: "蟹礁岛档案封皮仍在，内文已被取空" }, next: "kingston" },
+{ text: "请求夸雷尔协助并核实当地传闻", hint: "获得当地协助，可信度+10", fx: { cred: 10, rel: ["夸雷尔", 1] }, next: "kingston" }
+]},
+{ id: "kingston", title: "第2阶段·金斯顿调查", text: "金斯顿的线索逐渐指向诺博士：斯特兰威斯的太阳光汽车被人使用，总督府档案可能遭到渗透，一名自称报社摄影记者的安娜贝尔·钟反复拍摄你的行踪。", choices: [
+{ text: "核查斯特兰威斯的汽车与行踪", hint: "线索+1，风险-5", fx: { risk: -5, clue: "斯特兰威斯的太阳光汽车被用来确认邦德的行踪" }, next: "crab-key" },
+{ text: "查问殖民地秘书处的档案经手人", hint: "可信度+10，风险+5", fx: { cred: 10, risk: 5, clue: "诺博士在总督府内有眼线，档案最后经手人为斯特兰威斯" }, next: "crab-key" },
+{ text: "反跟踪安娜贝尔·钟", hint: "线索+1，风险+10", fx: { risk: 10, clue: "安娜贝尔·钟是诺博士的眼线，负责确认邦德身份与住处" }, next: "crab-key" }
+]},
+{ id: "crab-key", title: "第3阶段·夜渡蟹礁岛", text: "你与夸雷尔准备乘独木舟夜渡蟹礁岛。岛上传闻有一条会喷火的巨龙，奥杜邦协会的调查人员也曾在岛上失踪。雷达与海岸巡逻让登陆风险极高。", choices: [
+{ text: "沿黑沙滩登陆，避开灯火与雷达", hint: "风险-10，线索+1", fx: { risk: -10, clue: "蟹礁岛雷达会搜索海面目标，夜间隐蔽登陆更安全" }, next: "facility" },
+{ text: "先在海岸外观察巨龙巡逻路线", hint: "可信度+10，时间+1天", fx: { cred: 10, day: 1, clue: "所谓巨龙是装甲沼泽车，配有火焰喷射器" }, next: "facility" },
+{ text: "快速登陆，抢在守卫换班前进入岛内", hint: "风险+15，节省时间", fx: { risk: 15 }, next: "facility" }
+]},
+{ id: "facility", title: "第4阶段·诺博士的设施", text: "你已进入岛内设施。诺博士承认斯特兰威斯夫妇遭到谋杀，并透露自己干扰美国导弹试验的计划。哈妮被囚禁，岛上守卫正在收紧搜索。", choices: [
+{ text: "优先救出哈妮并寻找撤离路线", hint: "线索+1，风险-5", fx: { risk: -5, clue: "哈妮知道岛上地形，是重要的逃生向导" }, next: "end" },
+{ text: "破坏导弹干扰设备，切断诺博士计划", hint: "风险+10，可信度+15", fx: { risk: 10, cred: 15, clue: "诺博士的目标是干扰美军导弹制导并捕获导弹样机" }, next: "end" },
+{ text: "寻找传送带与鸟粪装卸区，伺机反击", hint: "线索+1，风险+5", fx: { risk: 5, clue: "诺博士最终在码头装船时被鸟粪传送带活埋" }, next: "end" }
+]}
+],
+ending(state) {
+if (state.risk >= 80) return { grade: "行动失败", text: "你在蟹礁岛暴露行踪，撤离路线被封锁。此次模拟行动失败；原著中邦德最终逃出蟹礁岛，诺博士被鸟粪传送带活埋。" };
+if (state.clues.length >= 3) return { grade: "行动成功", text: "你查明失踪案与诺博士的关系，并找到救出哈妮与逃离岛屿的关键路线。原著正典结局：诺博士被鸟粪活埋，邦德与哈妮乘独木舟返回牙买加。" };
+return { grade: "部分成功", text: "你确认蟹礁岛与失踪案有关，但证据或撤离准备不足。模拟行动需要后续补充；原著结局仍以知识库记录为准。" };
+}},
+{ id: "goldfinger", novelId: "goldfinger", title: "大满贯行动", kind: "原著改编互动", kindTag: "原著", desc: "依据《金手指》核验章节设计：追查黄金外流、揭穿金手指的走私网络，并识别诺克斯堡大满贯计划。玩家分支属于互动改编。", start: { funds: 12000, risk: 25, cred: 70, day: 1 },
+stages: [
+{ id: "brief", title: "第1阶段·英格兰银行简报", text: "英格兰银行发现大量黄金异常外流。M要求你调查奥里克·金手指：他以旧金回收生意为掩护，拥有分布在多个国家的金条储备。", choices: [
+{ text: "先研究金条刻痕与黄金流向", hint: "可信度+15，线索+1", fx: { cred: 15, clue: "部分金条带有微小Z刻痕，与SMERSH资金链有关" }, next: "miami" },
+{ text: "从金手指的赌场与牌局关系入手", hint: "线索+1，风险+5", fx: { risk: 5, clue: "金手指在迈阿密与杜邦进行双人卡纳斯塔牌局" }, next: "miami" },
+{ text: "直接接近金手指，建立信任", hint: "风险+15，时间节省", fx: { risk: 15 }, next: "miami" }
+]},
+{ id: "miami", title: "第2阶段·迈阿密牌局", text: "杜邦称自己一周内输给金手指25,000美元，怀疑对方作弊。邦德在弗洛里迪亚纳酒店调查，发现吉尔·马斯特顿在套房内用望远镜与麦克风向金手指报牌。", choices: [
+{ text: "查清套房内的望远镜与无线电装置", hint: "线索+1，可信度+10", fx: { cred: 10, clue: "吉尔·马斯特顿通过望远镜观察牌面并向金手指报牌" }, next: "smuggling" },
+{ text: "迫使金手指退还杜邦损失", hint: "资金-500，风险-5", fx: { funds: -500, risk: -5, clue: "金手指被迫开出50,000美元支票" }, next: "smuggling" },
+{ text: "跟踪金手指，查他的黄金运输方式", hint: "风险+10，线索+1", fx: { risk: 10, clue: "金手指随身携带黄金，并利用行李箱夹层与金币腰带转移" }, next: "smuggling" }
+]},
+{ id: "smuggling", title: "第3阶段·黄金走私链", text: "调查发现，金手指的劳斯莱斯银色幽灵并非普通车身：车身含有约两吨18K白金，拆解后将被改制成航空座椅运往印度。线索还指向一项代号“大满贯”的大规模行动。", choices: [
+{ text: "沿运输链追查白金车身去向", hint: "线索+1，可信度+10", fx: { cred: 10, clue: "白金车身在科佩工厂拆解，计划改制为Mecca航空座椅" }, next: "grand-slam" },
+{ text: "查阅黑帮会议与资金记录", hint: "风险+10，线索+1", fx: { risk: 10, clue: "金手指召集黑帮首脑，承诺以黄金分成换取人手" }, next: "grand-slam" },
+{ text: "向M提交阶段报告，请求增援", hint: "可信度+15，时间+1天", fx: { cred: 15, day: 1 }, next: "grand-slam" }
+]},
+{ id: "grand-slam", title: "第4阶段·诺克斯堡计划", text: "金手指的目标是诺克斯堡黄金储备。他计划使用原子弹头炸开金库，并在供水系统投放GB神经毒剂；黄金将由苏联巡洋舰运走。你必须设法破坏计划并保护平民。", choices: [
+{ text: "优先向美方提交神经毒剂情报", hint: "可信度+15，风险-5", fx: { cred: 15, risk: -5, clue: "GB毒剂计划可能造成约6万人死亡或致残" }, next: "end" },
+{ text: "追踪金手指的运输车队，寻找拦截机会", hint: "风险+15，线索+1", fx: { risk: 15, clue: "黄金运输计划与苏联巡洋舰接应有关" }, next: "end" },
+{ text: "设法向外界发送求救密信", hint: "资金-1000，风险-10", fx: { funds: -1000, risk: -10, clue: "邦德曾把求救密信藏在飞机厕所座椅下，最终送达莱特" }, next: "end" }
+]}
+],
+ending(state) {
+if (state.risk >= 80) return { grade: "行动失败", text: "你未能及时破坏大满贯计划，风险失控。此结局为互动模拟分支；原著中诺克斯堡伏击挫败计划，金手指劫机逃亡，最终被邦德杀死。" };
+if (state.clues.length >= 3 && state.cred >= 70) return { grade: "行动成功", text: "你识别了黄金走私链、诺克斯堡目标与GB毒剂威胁，及时向盟友发出警报。原著正典中，大满贯行动最终失败，金手指在劫持航班后被邦德杀死。" };
+return { grade: "部分成功", text: "你掌握了部分黄金走私线索，但大满贯计划仍有风险。模拟行动需要补充情报；原著事件以核验知识库为准。" };
+}},
+{ id: "thunderball", novelId: "thunderball", title: "欧米茄行动", kind: "原著改编互动", kindTag: "原著", desc: "依据《霹雳弹》核验章节设计：追踪被劫持的Vindicator轰炸机与两枚核弹，调查SPECTRE勒索，并在巴哈马阻止核袭击。玩家分支属于互动改编。", start: { funds: 15000, risk: 30, cred: 65, day: 1 },
+stages: [
+{ id: "brief", title: "第1阶段·核勒索简报", text: "SPECTRE劫持一架Vindicator轰炸机，机上有两枚核弹，并向英国政府勒索价值一亿英镑的黄金。期限迫近，M派你前往巴哈马参与搜寻行动。", choices: [
+{ text: "核对失踪飞机编号与核弹清单", hint: "可信度+15，线索+1", fx: { cred: 15, clue: "失踪飞机为Vindicator，载有两枚核弹" }, next: "shrubl..." },
+{ text: "先查SPECTRE勒索信与期限", hint: "线索+1，风险-5", fx: { risk: -5, clue: "勒索期限与金条交付条件均有明确时限" }, next: "shrubl..." },
+{ text: "调查疗养院中的可疑人物利普", hint: "风险+5，线索+1", fx: { risk: 5, clue: "利普腕下的红闪电纹身与澳门犯罪组织有关" }, next: "shrubl..." }
+]},
+{ id: "shrubl...", title: "第2阶段·灌木林线索", text: "邦德在灌木林疗养院发现利普腕下的红闪电帮会纹身。利普企图在治疗过程中杀死邦德，随后被SPECTRE灭口。M要求你不要被这条支线拖住，尽快前往巴哈马。", choices: [
+{ text: "追查红闪电帮会与SPECTRE的关系", hint: "可信度+10，风险+5", fx: { cred: 10, risk: 5, clue: "利普与SPECTRE有关，曾企图杀死邦德" }, next: "nassau" },
+{ text: "优先前往巴哈马，集中寻找飞机残骸", hint: "时间-1天，风险-5", fx: { day: -1, risk: -5 }, next: "nassau" },
+{ text: "请求莱特协助检查海域与航线", hint: "关系+1，线索+1", fx: { rel: ["费利克斯·莱特", 1], clue: "失事飞机可能在比米尼附近海域" }, next: "nassau" }
+]},
+{ id: "nassau", title: "第3阶段·拿骚与飞碟号", text: "拿骚。你接触到拉戈的飞碟号与多米诺·佩塔基。拉戈声称自己是寻宝团负责人，但船上燃油、人员与航行安排存在疑点。多米诺与拉戈的关系也并不简单。", choices: [
+{ text: "秘密接近多米诺，核实她与拉戈的关系", hint: "关系+1，线索+1", fx: { rel: ["多米诺", 1], clue: "多米诺本名多米内塔·佩塔基，兄长是被劫机的飞行员" }, next: "wreck" },
+{ text: "监视飞碟号的燃油与出航时间", hint: "线索+1，风险-5", fx: { risk: -5, clue: "飞碟号实际燃油量与拉戈所称不符" }, next: "wreck" },
+{ text: "与莱特协调海上监视和水下搜索", hint: "可信度+10，风险+5", fx: { cred: 10, risk: 5, clue: "飞碟号与比米尼附近失事飞机残骸存在关联" }, next: "wreck" }
+]},
+{ id: "wreck", title: "第4阶段·核弹回收", text: "你与莱特找到失事飞机残骸，确认两枚核弹与引信已被取走。拉戈准备将核弹运往大巴哈马岛导弹基地。必须在布放前拦截潜水队。", choices: [
+{ text: "带队水下拦截核弹运输雪橇", hint: "风险+10，线索+1", fx: { risk: 10, clue: "拉戈的潜水队正把核弹运往大巴哈马岛导弹基地" }, next: "end" },
+{ text: "让多米诺继续潜伏，寻找飞碟号内部机会", hint: "关系+1，风险-5", fx: { risk: -5, rel: ["多米诺", 1], clue: "多米诺同意携带盖革计数器作为内应信号" }, next: "end" },
+{ text: "优先通知盟军拦截第二枚核弹的目标", hint: "可信度+15，资金-500", fx: { cred: 15, funds: -500, clue: "第二枚核弹原定目标为迈阿密" }, next: "end" }
+]}
+],
+ending(state) {
+if (state.risk >= 80) return { grade: "行动失败", text: "你未能在核弹布放前完成拦截。此结局为互动模拟分支；原著中多米诺杀死拉戈，两枚核弹最终被回收，布洛菲尔德逃脱。" };
+if (state.clues.length >= 3) return { grade: "行动成功", text: "你识别了飞机残骸、飞碟号与核弹运输路线，成功组织拦截。原著正典中，两枚核弹被回收，多米诺杀死拉戈，布洛菲尔德逃脱。" };
+return { grade: "部分成功", text: "你已定位部分线索，但仍需确认核弹位置与布放时间。模拟行动未完全成功；原著事件以核验知识库为准。" };
 }},
 { id: "venice", title: "威尼斯密码", kind: "原创任务", kindTag: "非原著·原创", desc: "原创任务，明确标注非原著：使用弗莱明世界观与人物设定生成的独立任务，人物与组织关系为原创设计，不是原著剧情。", start: { funds: 8000, risk: 25, cred: 60, day: 1},
 stages: [
@@ -398,19 +449,43 @@ let missionDef = null;
 
 function missionById(id) { return MISSIONS.find((m) => m.id === id);}
 
+function hasSavedMission(id) {
+  try {
+    const saved = JSON.parse(localStorage.getItem("007-mission:" + id) || "null");
+    return Boolean(saved?.state && saved.missionId === id && !saved.state.completed);
+  } catch(e) { return false; }
+}
+
 function renderMissionList() {
-$("#missionList").innerHTML = MISSIONS.map((m) =>
-`<div class="card clickable" data-mission="${m.id}">
+$("#missionList").innerHTML = MISSIONS.map((m) => {
+const saved = hasSavedMission(m.id);
+let savedStage = "";
+if (saved) {
+try {
+const state = JSON.parse(localStorage.getItem("007-mission:" + m.id)).state;
+savedStage = m.stages.find(x => x.id === state.stage)?.title || "上次进度";
+} catch(e) {}
+}
+return `<div class="card clickable" data-mission="${m.id}" data-resume="${saved}">
 <h3>${esc(m.title)} <span class="tag ${m.kindTag === "原著"? "gold": "red"}">${esc(m.kind)}</span></h3>
 <p>${esc(m.desc)}</p>
 <p class="meta">起始资金${m.start.funds} · 风险${m.start.risk} · 情报可信度${m.start.cred}</p>
-<button class="btn small">开始任务</button></div>`).join("");
-$$("#missionList [data-mission]").forEach((el) => el.addEventListener("click", () => startMission(el.dataset.mission)));
+${saved ? `<p class="meta">已保存进度：${esc(savedStage)}</p>` : ""}
+<button class="btn small">${saved ? "继续上次任务" : "开始任务"}</button></div>`;
+}).join("");
+$("#missionList [data-mission]").forEach((el) => el.addEventListener("click", () => {
+if (el.dataset.resume === "true") restoreMissionState(el.dataset.mission);
+else startMission(el.dataset.mission);
+}));
 }
 
 function startMission(id) {
 missionDef = missionById(id);
+if (!missionDef) return;
+loadMissionCanonBrief(missionDef.novelId || null);
 missionState = { funds: missionDef.start.funds, risk: missionDef.start.risk, cred: missionDef.start.cred, day: missionDef.start.day, clues: [], rels: {}, equip: [], stage: missionDef.stages[0].id, log: []};
+saveMissionState();
+renderMissionList();
 renderMissionStage();
 }
 
@@ -448,7 +523,26 @@ ${stage.choices.map((ch, i) => `<button class="choice" data-choice="${i}">${esc(
 ${missionState.clues.length? `<p class="meta"><b>已发现线索：</b></p>` + missionState.clues.map((c) => `<div class="log">${esc(c)}</div>`).join(""): ""}
 <div class="row" style="margin-top:10px"><button class="btn ghost small" id="missionQuit">放弃任务</button></div>`;
 $$("#missionPanel [data-choice]").forEach((el) => el.addEventListener("click", () => chooseMission(+el.dataset.choice)));
-$("#missionQuit").addEventListener("click", () => { missionState = null; missionDef = null; $("#missionPanel").innerHTML = `<h3>任务控制台</h3><p class="meta">任务已放弃。选一个任务重新开始。</p><div class="empty">尚未开始任务</div>`;});
+$("#missionQuit").addEventListener("click", () => {
+if (missionDef) {
+localStorage.removeItem("007-mission:" + missionDef.id);
+if (localStorage.getItem("007-mission:last") === missionDef.id) localStorage.removeItem("007-mission:last");
+}
+missionState = null; missionDef = null;
+$("#missionPanel").innerHTML = `<h3>任务控制台</h3><p class="meta">任务已放弃。选一个任务重新开始。</p><div class="empty">尚未开始任务</div>`;
+renderMissionList();
+});
+}
+
+function renderMissionResult(end) {
+const current = missionState;
+$("#missionPanel").innerHTML = `<h3>${esc(missionDef.title)} · 任务结果</h3>${stateBarHTML()}
+<div class="card" style="margin-top:6px"><h3>行动报告·${esc(end.grade)}</h3><p>${esc(end.text)}</p>
+<p><b>行动记录：</b></p><ul style="font-size:14px">${current.log.map((l) => `<li>${esc(l)}</li>`).join("")}</ul>
+<p><b>线索汇总（${current.clues.length}条）：</b></p>${current.clues.length? current.clues.map((c) => `<div class="log">${esc(c)}</div>`).join(""): "<p class='meta'>无线索发现。</p>"}
+<p class="meta">${missionDef.novelId ? "原著改编互动：玩家分支不等同于原著事件；原著结局与本次模拟结果分开呈现。" : "【非原著·原创】本任务为原创设计，结局为模拟结果，不是原著剧情。"}</p>
+<button class="btn small" id="missionAgain">再玩一次</button></div>`;
+$("#missionAgain").addEventListener("click", () => startMission(missionDef.id));
 }
 
 function chooseMission(i) {
@@ -458,21 +552,63 @@ missionState.log.push(stage.title + "：" + ch.text);
 applyFx(ch.fx || {});
 if (ch.next === "end") {
 const end = missionDef.ending(missionState);
-const s = missionState;
-$("#missionPanel").innerHTML = `<h3>${esc(missionDef.title)} · 任务结果</h3>${stateBarHTML()}
-<div class="card" style="margin-top:6px"><h3>行动报告·${esc(end.grade)}</h3><p>${esc(end.text)}</p>
-<p><b>行动记录：</b></p><ul style="font-size:14px">${s.log.map((l) => `<li>${esc(l)}</li>`).join("")}</ul>
-<p><b>线索汇总（${s.clues.length}条）：</b></p>${s.clues.length? s.clues.map((c) => `<div class="log">${esc(c)}</div>`).join(""): "<p class='meta'>无线索发现。</p>"}
-<p class="meta">${missionDef.kind === "原著任务"? "原著任务：结局按原著走向评定，超出原著的部分已标注。": "【非原著·原创】本任务为原创设计，结局为模拟结果，不是原著剧情。"}</p>
-<button class="btn small" id="missionAgain">再玩一次</button></div>`;
-$("#missionAgain").addEventListener("click", () => startMission(missionDef.id));
+missionState.stage = "end";
+missionState.completed = true;
+missionState.result = end;
+saveMissionState();
+renderMissionResult(end);
 return;
 }
 missionState.stage = ch.next;
+saveMissionState();
 renderMissionStage();
 }
 
-function initMissions() { renderMissionList();}
+let missionBriefRequest = 0;
+async function loadMissionCanonBrief(novelId = "casino-royale") {
+  const requestId = ++missionBriefRequest;
+  const box = $("#missionCanonBrief");
+  if (!novelId) {
+    box.innerHTML = '<p class="meta">原创任务：没有原著正典依据。所有人物关系、地点和分支均为原创模拟内容。</p>';
+    return;
+  }
+  try {
+    const r = await fetch("/api/mission?id=" + encodeURIComponent(novelId));
+    if (!r.ok) throw new Error("任务正典接口返回 " + r.status);
+    const d = await r.json();
+    if (requestId !== missionBriefRequest) return;
+    const facts = (d.facts || []).slice(0, 8);
+    const events = (d.events || []).slice(0, 4);
+    box.innerHTML = '<h3>'+esc(d.novel.titleZh)+' · '+d.novel.year+'</h3><p class="meta">'+esc(d.missionMode)+'：玩家选择会产生互动分支，不能冒充原著剧情。</p><p>'+esc(d.novel.timeline)+'</p><p><b>章节目录：</b>'+esc(d.chapters.map(c=>c.no+" "+c.title).join(" · "))+'</p><p><b>核验事实摘录：</b></p><ul>'+facts.map(f=>'<li>'+esc("第"+f.chapter+"章："+f.fact)+'</li>').join("")+'</ul><p><b>关键事件：</b></p><ul>'+events.map(e=>'<li>'+esc("第"+e.chapter+"章："+e.title+" — "+e.effect)+'</li>').join("")+'</ul>';
+  } catch(e) { box.innerHTML = '<p class="meta">原著任务资料加载失败：'+esc(e.message)+'。任务剧情暂不标为已完成正典核验。</p>'; }
+}
+function saveMissionState() {
+  try {
+    if (missionDef && missionState) {
+      localStorage.setItem("007-mission:" + missionDef.id, JSON.stringify({ missionId: missionDef.id, state: missionState }));
+      localStorage.setItem("007-mission:last", missionDef.id);
+    }
+  } catch(e) {}
+}
+function restoreMissionState(preferredId = null) {
+  try {
+    const id = preferredId || localStorage.getItem("007-mission:last") || "casino";
+    const saved = JSON.parse(localStorage.getItem("007-mission:" + id) || "null");
+    if (!saved || saved.missionId !== id || !saved.state) return false;
+    const def = missionById(id);
+    const state = saved.state;
+    if (!def || !def.stages.some(x => x.id === state.stage) && !(state.completed && state.result)) return false;
+    if (!Number.isFinite(state.funds) || !Number.isFinite(state.risk) || !Number.isFinite(state.cred) || !Array.isArray(state.clues) || !Array.isArray(state.log)) return false;
+    missionDef = def;
+    missionState = state;
+    loadMissionCanonBrief(missionDef.novelId || null);
+    localStorage.setItem("007-mission:last", id);
+    if (state.completed && state.result) renderMissionResult(state.result);
+    else renderMissionStage();
+    return true;
+  } catch(e) { return false; }
+}
+function initMissions() { renderMissionList(); loadMissionCanonBrief("casino-royale"); restoreMissionState(); }
 
 // ---- 成为邦德：场景体验 + 百家乐 ----
 const EXP_SCENES = [
@@ -484,7 +620,7 @@ const EXP_SCENES = [
 { id: "casino", title: "赌场·牌桌", text: "赌场大厅。百家乐牌桌旁，勒·希弗已经就座，面前堆着筹码。空气里有雪茄味和紧张。你走过去，拉开椅子坐下——今晚的主角到齐了。", choices: ["坐下，直接开局", "先在旁边观战一轮", "去百家乐桌实战一把"], replies: ["你坐下，推上筹码。勒·希弗抬眼看你：“邦德先生，欢迎。”", "你站在人群后看了一轮：勒·希弗拿到好牌时会摸手帕。你记住了。", "直接去下方百家乐小游戏实战，筹码与输赢都是真的。"] },
 { id: "club", title: "私人俱乐部·社交", text: "布莱兹俱乐部。皮椅、雪茄、报纸。在这里，没人高声说话，所有的交易都在低声中完成。你要找的人坐在角落那张桌子旁。", choices: ["和角落那位打个招呼", "先读一会儿报纸", "点一支雪茄"], replies: ["那人抬头：“邦德先生。坐。有些话，只能在这里说。”", "报纸上的消息一半是真的，一半是放出来的。你分得清。", "雪茄点燃，烟雾升起来。你想起M说过的话：俱乐部里没有偶遇。"] },
 { id: "car", title: "豪华汽车·出行", text: "门口停着一辆深灰色轿车，线条利落。你坐进驾驶座，发动引擎。去机场的路上有三条，你选了最绕的那条——先确认有没有人跟踪。", choices: ["选最绕的路去机场", "直接走高速", "绕到码头换船"], replies: ["你绕了三条街，后视镜里那辆车还在。很好，鱼上钩了。", "高速上车流稀少，跟你的车无处可藏。你踩下油门。", "码头边，你弃车登船。跟踪者站在岸边，看着你远去。"] },
-{ id: "travel", title: "旅行与城市探索", text: "从伦敦到皇家莱索，从伊斯坦布尔到牙买加，邦德的世界是一张不断展开的地图。每一座城市都有它的赌场、它的线人与它的危险。去世界地图看看14本书走过的地方。", choices: ["打开世界地图", "回顾皇家赌场之行", "计划下一站"], replies: ["地图在下方世界地图模块，15处地点，点任意地点进入相关档案。", "皇家莱索：牌桌、薇丝朋、勒·希弗。一切从那里开始。", "下一站由你决定——任务模拟器里还有一场威尼斯原创任务等着你。"] }
+{ id: "travel", title: "旅行与城市探索", text: "从伦敦到皇家莱索，从伊斯坦布尔到牙买加，邦德的世界是一张不断展开的地图。每一座城市都有它的赌场、它的线人与它的危险。去世界地图看看14本书走过的地方。", choices: ["打开世界地图", "回顾皇家赌场之行", "计划下一站"], replies: ["地图在下方世界地图模块，170处核验地点，点任意地点进入相关档案。", "皇家莱索：牌桌、薇丝朋、勒·希弗。一切从那里开始。", "下一站由你决定——任务模拟器里还有一场威尼斯原创任务等着你。"] }
 ];
 
 let expLog = [];
@@ -598,17 +734,6 @@ const LIT_TOPICS = [
 { t: "小说与电影改编差异", d: "电影强化了装备与场面，弱化了小说的心理与生活细节。凡是电影独有的装备、情节与人物关系，一律不得当成小说原著引用。本站人物知识边界只认小说。"}
 ];
 
-function litAnswer(q) {
-if (/悬念/.test(q)) return "弗莱明写悬念靠信息差：读者和邦德同时只知道一半，另一半由对手慢慢揭开。牌桌、密室、追踪三种场景轮换，悬念从不掉线。皇家赌场全书以牌桌为悬念核心。";
-if (/反派/.test(q)) return "弗莱明式反派有三件套：肉体特征、痴迷之物、缜密计划。勒·希弗精于算计，诺博士迷信科学，金手指痴迷黄金，布洛菲尔德把犯罪当生意。反派越具体，邦德的胜利越有分量。";
-if (/邦德.*塑造|人物塑造/.test(q)) return "邦德的可信来自细节与弱点：他讲究衣着饮食，会输牌、会受伤、会动情。配枪从贝雷塔换成瓦尔特PPK（诺博士，1958年），马提尼摇匀不搅拌（皇家赌场，1953年），都是人物标签。";
-if (/电影|改编/.test(q)) return "电影强化了装备与场面，弱化了小说的心理与生活细节。电影独有的装备、情节与人物关系，一律不得当成小说原著。本站只认小说口径，细节待TXT核验。";
-if (/女性/.test(q)) return "薇丝朋、塔蒂亚娜、崔西各有立场与秘密，不是花瓶。她们的背叛与牺牲推动剧情，也定义了邦德的感情线。评价以原著为准，不以后世眼光简单否定。";
-if (/冷战|时代|背景/.test(q)) return "系列诞生于冷战高峰：苏联情报机构、核勒索、密码机，都是时代的直接投影。读邦德要读出1950年代英国人的焦虑：帝国落日，间谍仍在。";
-if (/节奏|叙事/.test(q)) return "弗莱明的节奏是慢开场、快收尾：前半部铺陈生活细节与人物关系，后半部把冲突压缩进几天甚至几小时。动作场景写得短、准、狠，不写招式，写结果。";
-return "示例知识库中没有这个问题的现成答案。按本站规则，超出示例范围的一律说不知道，不编造。待TXT导入核验后，文学研究室可按原著逐条作答。";
-}
-
 const LAB_GEN = {
 villain: () => {
 const marks = ["左手缺了两根手指", "皮肤在阳光下泛着不自然的青色", "说话时总带着一股樟脑味", "右眼是玻璃义眼，转动时有轻微声响"];
@@ -627,208 +752,226 @@ return "秘密行动草稿：地点——" + pick(cities) + "；目标——" + 
 compare: () => {
 const a = BOOKS[Math.floor(Math.random() * BOOKS.length)];
 let b = BOOKS[Math.floor(Math.random() * BOOKS.length)];
-if (b.zh === a.zh) b = BOOKS[(BOOKS.indexOf(a) + 3) % BOOKS.length];
-return "" + a.zh + "（" + a.year + "年）与" + b.zh + "（" + b.year + "年）：前者以“" + a.setting + "”为舞台，反派是" + a.villain + "；后者舞台在“" + b.setting + "”，反派是" + b.villain + "。比较角度：开场节奏、信息揭示速度、邦德的弱点暴露方式。结论须以原著细读为准，待TXT核验后可逐条对照。";
+if (b.id === a.id) b = BOOKS[(BOOKS.indexOf(a) + 3) % BOOKS.length];
+return `${a.zh}（${a.year}年）与${b.zh}（${b.year}年）：可从叙事视角、人物知识边界、悬念铺设、行动节奏与结局结构进行比较。此处仅生成研究提纲，具体结论需回到章节证据。`;
+
 }
 };
 
 function initLiterary() {
-$("#litTopics").innerHTML = LIT_TOPICS.map((x) => `<details><summary>${esc(x.t)}</summary><p style="font-size:14px">${esc(x.d)}</p><p class="meta">${SAMPLE}</p></details>`).join("");
-$("#litAsk").addEventListener("click", () => {
+$("#litTopics").innerHTML = LIT_TOPICS.map((x) => `<details><summary>${esc(x.t)}</summary><p style="font-size:14px">${esc(x.d)}</p><p class="meta">主题卡片为研究导读；事实核验请使用下方检索。</p></details>`).join("");
+$("#litAsk").addEventListener("click", async () => {
 const q = $("#litQ").value.trim();
-if (!q) { $("#litAnswer").innerHTML = `<div class="empty">请先输入问题。</div>`; return;}
-$("#litAnswer").innerHTML = `<p style="font-size:15px">${esc(litAnswer(q))}</p><p class="meta">${SAMPLE}</p>`;
+const box = $("#litAnswer");
+if (!q) { box.innerHTML = `<div class="empty">请先输入问题。</div>`; return; }
+box.innerHTML = `<div class="empty">正在核验14部原著索引……</div>`;
+try {
+const r = await fetch("/api/dossier?q=" + encodeURIComponent(q) + "&limit=12");
+if (!r.ok) throw new Error("正典检索接口返回 " + r.status);
+const d = await r.json();
+const results = d.results || [];
+if (!results.length) {
+box.innerHTML = `<div class="empty">核验知识库没有找到与“${esc(q)}”直接匹配的事实或人物记录。当前不做无出处推断。</div>`;
+return;
+}
+box.innerHTML = `<p class="meta">检索到${results.length}条核验记录；以下为资料依据，不等同于模型生成的文学评论。</p>` + results.map(x => {
+const title = x.title_zh || x.name_zh || x.name || x.entity || x.id || "原著记录";
+const source = [x.title_zh && x.novel_id ? x.title_zh : null, x.chapter ? "第"+x.chapter+"章" : null].filter(Boolean).join(" · ") || x.novel_id || (x.sources || []).join("；") || "索引记录";
+const detail = x.fact || x.description || x.summary || x.role || x.quote || "该条目没有提供摘要。";
+const kind = x.canon_or_inference === "inference" ? "推测" : x.canon_or_inference === "canon" ? "正典事实" : x.kind || "档案";
+return `<div class="card" style="margin:8px 0"><h3>${esc(title)} <span class="tag gold">${esc(kind)}</span></h3><p class="meta">出处：${esc(source)}</p><p>${esc(detail)}</p>${x.quote ? `<blockquote>${esc(x.quote)}</blockquote>` : ""}</div>`;
+}).join("");
+} catch (e) {
+box.innerHTML = `<div class="empty">正典检索失败：${esc(e.message)}。</div>`;
+}
 });
-$$("[data-lab]").forEach((b) => b.addEventListener("click", () => {
-$("#labOut").innerHTML = `<p style="font-size:15px">${esc(LAB_GEN[b.dataset.lab]())}</p>`;
+$("[data-lab]").forEach((b) => b.addEventListener("click", async () => {
+try {
+if (b.dataset.lab === "compare") await ensureCanonBooks();
+$("#labOut").innerHTML = `<p style="font-size:15px">${esc(LAB_GEN[b.dataset.lab]())}</p><p class="meta">研究提纲/原创实验内容，不替代原著章节证据。</p>`;
+} catch(e) {
+$("#labOut").innerHTML = `<p class="meta">无法读取核验原著目录：${esc(e.message)}</p>`;
+}
 }));
 }
 
 // ---- 世界地图 ----
+let canonWorldLocations = [];
+
+function filteredCanonLocations() {
+  const country = $("#atlasCountry").value;
+  const book = $("#atlasBook").value;
+  const era = $("#atlasEra").value;
+  return canonWorldLocations.filter(p =>
+    (!country || p.country === country) &&
+    (!book || p.appearances.some(a => a.novel === book)) &&
+    (!era || p.appearances.some(a => { const year = Number(a.year); return Number.isFinite(year) && (era === "1950s" ? year < 1960 : year >= 1960); }))
+  );
+}
+
 function renderAtlas() {
-const person = $("#atlasPerson").value;
-const country = $("#atlasCountry").value;
-const book = $("#atlasBook").value;
-const era = $("#atlasEra").value;
-const list = LOCATIONS.filter((l) =>
-(!person || l.people.includes(person)) &&
-(!country || l.country === country) &&
-(!book || l.books.includes(book)) &&
-(!era || l.books.some((b) => { const y = (BOOKS.find((x) => x.zh === b) || {}).year || 0; return era === "1950s"? y < 1960: y >= 1960;})));
-const wrap = $("#mapWrap");
-const mapW = wrap.clientWidth || 900;
-const mapH = wrap.clientHeight || 300;
-const compact = mapW < 560;
-wrap.classList.toggle("compact", compact);
-// 标签防重叠：按纵向排序，贪心分配四档（下/上/远下/远上），同档标签不相交；窄屏只留圆点，点一下才显示名字
-const dots = list.filter((l) =>!l.fictional).map((l) => {
-const xPct = (l.lng + 180) / 360 * 100;
-const yPct = (90 - l.lat) / 180 * 100;
-return { l, xPct, yPct, xPx: xPct / 100 * mapW, yPx: yPct / 100 * mapH };
-});
-const placedBoxes = [];
-dots.slice().sort((a, b) => a.yPx - b.yPx || a.xPx - b.xPx).forEach((d) => {
-const w = d.l.name.length * 11 + 4, h = 14;
-let box = null;
-for (const lane of [0, 1, 2, 3, 4, 5, 6, 7]) {
-const top = lane === 0 ? d.yPx + 10 : lane === 1 ? d.yPx - 10 - h : lane === 2 ? d.yPx + 26 : lane === 3 ? d.yPx - 26 - h : lane === 4 ? d.yPx + 42 : lane === 5 ? d.yPx - 42 - h : lane === 6 ? d.yPx + 58 : d.yPx - 58 - h;
-const left = Math.max(0, Math.min(mapW - w, d.xPx - w / 2));
-const cand = { left, top: Math.max(0, Math.min(mapH - h, top)), w, h };
-const hit = placedBoxes.some((p) => cand.left < p.left + p.w + 2 && p.left < cand.left + cand.w + 2 && cand.top < p.top + p.h + 2 && p.top < cand.top + cand.h + 2);
-if (!hit) { box = cand; break; }
-}
-d.lbl = box || { left: Math.max(0, Math.min(mapW - w, d.xPx - w / 2)), top: Math.max(0, Math.min(mapH - h, d.yPx + 10)), w, h };
-placedBoxes.push(d.lbl);
-});
-wrap.innerHTML = dots.map((d) =>
-`<div class="mapdot" style="left:${d.xPct.toFixed(1)}%;top:${d.yPct.toFixed(1)}%" data-loc="${d.l.id}" title="${esc(d.l.name)}"></div><div class="maplbl" data-loc="${d.l.id}" style="left:${d.lbl.left.toFixed(0)}px;top:${d.lbl.top.toFixed(0)}px;transform:none">${esc(d.l.name)}</div>`).join("") + (list.some((l) => l.fictional)? `<div style="position:absolute;left:10px;bottom:8px;font-size:12px;color:var(--muted)">虚构地点（皇家莱索、蟹礁岛）不标注坐标，见下方卡片。</div>`: "");
-$$("#mapWrap .mapdot").forEach((d) => d.addEventListener("click", () => {
-if (wrap.classList.contains("compact")) {
-$$("#mapWrap .maplbl").forEach((x) => x.classList.remove("show"));
-const lbl = document.querySelector(`#mapWrap .maplbl[data-loc="${d.dataset.loc}"]`);
-if (lbl) lbl.classList.add("show");
-}
-showLocation(d.dataset.loc);
-}));
-$("#atlasGrid").innerHTML = list.length? list.map((l) =>
-`<div class="card clickable" data-loc="${l.id}">
-<h3>${esc(l.name)} ${l.fictional? '<span class="tag red">小说虚构地点</span>': '<span class="tag green">真实地点</span>'}</h3>
-<p class="meta">${esc(l.country)}${l.lat!== null? " · 坐标" + l.lat + "，" + l.lng: " · 无真实坐标"}</p>
-<p>${esc(l.note)}</p><p class="meta">出现：${l.books.map(esc).join("、")}</p><p class="meta">人物：${l.people.map(esc).join("、")}</p></div>`).join("")
-: `<div class="empty">没有符合筛选的地点，换个筛选条件试试。</div>`;
-$$("#atlasGrid [data-loc]").forEach((el) => el.addEventListener("click", () => showLocation(el.dataset.loc)));
+  const list = filteredCanonLocations();
+  const wrap = $("#mapWrap");
+  const mapW = wrap.clientWidth || 900;
+  const mapH = wrap.clientHeight || 300;
+  const compact = mapW < 560;
+  const dots = list.filter(p => !p.fictional && MAP_COORDINATES[p.id]).map(p => ({ p, coords: MAP_COORDINATES[p.id] }));
+
+  if (window.L && wrap) {
+    if (!leafletMap) {
+      leafletMap = window.L.map(wrap, { scrollWheelZoom: false }).setView([25, 10], 2);
+      window.L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 18,
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a>'
+      }).addTo(leafletMap);
+      leafletMarkers = window.L.layerGroup().addTo(leafletMap);
+    }
+    leafletMarkers.clearLayers();
+    dots.forEach(d => {
+      const marker = window.L.circleMarker(d.coords, {
+        radius: 6, color: "#80631c", weight: 2, fillColor: "#d2ad43", fillOpacity: 0.92
+      });
+      marker.bindPopup(`<strong>${esc(d.p.name)}</strong><br>${esc(d.p.country)}<br>${d.p.appearances.length}部作品`);
+      marker.on("click", () => showLocation(d.p.id));
+      marker.addTo(leafletMarkers);
+    });
+    if (dots.length === 1) leafletMap.setView(dots[0].coords, 4);
+    else if (dots.length > 1) leafletMap.fitBounds(window.L.latLngBounds(dots.map(d => d.coords)).pad(0.2), { maxZoom: 4 });
+    else leafletMap.setView([25, 10], 2);
+    let empty = wrap.querySelector(".map-empty-overlay");
+    if (!dots.length) {
+      if (!empty) {
+        empty = document.createElement("div");
+        empty.className = "map-empty-overlay";
+        empty.textContent = "当前筛选没有可核验坐标的真实地点；虚构或区域级地点请查看下方档案。";
+        empty.style.cssText = "position:absolute;z-index:500;top:12px;left:12px;max-width:70%;padding:8px 10px;background:rgba(244,240,228,.94);color:#1b241d;border-radius:4px;font-size:12px";
+        wrap.appendChild(empty);
+      }
+    } else if (empty) empty.remove();
+    leafletMap.invalidateSize();
+  } else {
+    wrap.classList.toggle("compact", compact);
+    const placedBoxes = [];
+    dots.forEach(d => {
+      const [lat,lng] = d.coords;
+      d.xPct = (lng + 180) / 360 * 100;
+      d.yPct = (90 - lat) / 180 * 100;
+      d.xPx = d.xPct / 100 * mapW;
+      d.yPx = d.yPct / 100 * mapH;
+    });
+    dots.slice().sort((a,b) => a.yPx - b.yPx || a.xPx - b.xPx).forEach(d => {
+      const w = d.p.name.length * 11 + 4, h = 14;
+      let box = null;
+      for (const lane of [0,1,2,3,4,5,6,7]) {
+        const top = lane === 0 ? d.yPx + 10 : lane === 1 ? d.yPx - 10 - h : lane === 2 ? d.yPx + 26 : lane === 3 ? d.yPx - 26 - h : lane === 4 ? d.yPx + 42 : lane === 5 ? d.yPx - 42 - h : lane === 6 ? d.yPx + 58 : d.yPx - 58 - h;
+        const left = Math.max(0, Math.min(mapW - w, d.xPx - w / 2));
+        const cand = { left, top: Math.max(0, Math.min(mapH - h, top)), w, h };
+        const hit = placedBoxes.some(p => cand.left < p.left+p.w+2 && p.left < cand.left+cand.w+2 && cand.top < p.top+p.h+2 && p.top < cand.top+cand.h+2);
+        if (!hit) { box = cand; break; }
+      }
+      d.lbl = box || { left: Math.max(0, Math.min(mapW-w,d.xPx-w/2)), top: Math.max(0,Math.min(mapH-h,d.yPx+10)), w,h };
+      placedBoxes.push(d.lbl);
+    });
+    wrap.innerHTML = dots.length ? dots.map(d =>
+      `<div class="mapdot" style="left:${d.xPct.toFixed(1)}%;top:${d.yPct.toFixed(1)}%" data-loc="${d.p.id}" title="${esc(d.p.name)}"></div><div class="maplbl" data-loc="${d.p.id}" style="left:${d.lbl.left.toFixed(0)}px;top:${d.lbl.top.toFixed(0)}px;transform:none">${esc(d.p.name)}</div>`
+    ).join("") : `<div style="position:absolute;left:10px;right:10px;top:45%;text-align:center;font-size:13px;color:var(--muted)">当前筛选没有可核验坐标的真实地点；请查看下方完整档案。</div>`;
+    $$("#mapWrap .mapdot").forEach(el => el.addEventListener("click", () => showLocation(el.dataset.loc)));
+  }
+  const mapped = list.filter(p => !p.fictional && MAP_COORDINATES[p.id]);
+  const unlocated = list.length - mapped.length;
+  $("#atlasGrid").innerHTML = mapped.map(p =>
+    `<div class="card clickable" data-loc="${p.id}"><h3>${esc(p.name)} <span class="tag gold">真实地点</span></h3><p class="meta">${esc(p.country)} · 城市级地图点 · ${p.appearances.length}部作品</p><p>${esc(p.appearances.map(a=>a.title+"："+a.role).join("；"))}</p></div>`
+  ).join("") + `<div class="card"><h3>档案中的其他地点</h3><p>${unlocated}处地点没有可核验的单点坐标，或属于小说虚构地点。它们仍完整保留在下方170处地点目录中。</p></div>`;
+  $$("#atlasGrid [data-loc]").forEach(el => el.addEventListener("click", () => showLocation(el.dataset.loc)));
+  renderCanonWorldDirectory();
 }
 
 function showLocation(id) {
-const l = LOCATIONS.find((x) => x.id === id);
-if (!l) return;
-$("#atlasGrid").innerHTML = `<div class="card" style="grid-column:1/-1"><h3>${esc(l.name)} ${l.fictional? '<span class="tag red">小说虚构地点</span>': '<span class="tag green">真实地点</span>'}</h3>
-<p class="meta">${esc(l.country)}${l.lat!== null? " · 坐标" + l.lat + "，" + l.lng: " · 无真实坐标，不伪造位置"}</p>
-<p>${esc(l.note)}</p><p><b>出现作品：</b>${l.books.map(esc).join("、")}</p><p><b>相关人物：</b>${l.people.map(esc).join("、")}</p>
-<p class="meta">${SAMPLE}</p>
-<div class="row"><button class="btn small" id="locBack">返回全部地点</button><button class="btn ghost small" id="locDossier">去情报馆查相关作品</button></div></div>`;
-$("#locBack").addEventListener("click", renderAtlas);
-$("#locDossier").addEventListener("click", () => {
-$("#dossierQ").value = l.books[0];
-document.getElementById("dossier").scrollIntoView({ behavior: "smooth"});
-runDossier(l.books[0]);
-});
+  const p = canonWorldLocations.find(x => x.id === id);
+  if (!p) return;
+  const coords = MAP_COORDINATES[p.id];
+  $("#atlasGrid").innerHTML = `<div class="card" style="grid-column:1/-1"><h3>${esc(p.name)} <span class="tag ${p.fictional?"red":"gold"}">${p.fictional?"小说虚构地点":"真实地点"}</span></h3>
+    <p class="meta">${esc(p.nameEn || "")} · ${esc(p.country || "国家未标注")} · ${coords ? "城市级地图坐标已核对" : "没有可核验的单点坐标"}</p>
+    <p><b>出现作品与原著语境：</b></p>${p.appearances.map(a=>`<div class="log"><b>${esc(a.title)}</b>（${esc(a.year || "年代未标注")}）：${esc(a.role)}</div>`).join("")}
+    <p class="meta">地点名称、虚构属性和作品出处来自核验知识库；地图坐标仅来自独立坐标登记。</p>
+    <div class="row"><button class="btn small" id="locBack">返回地点探索</button><button class="btn ghost small" id="locDossier">去情报馆检索此地点</button></div></div>`;
+  $("#locBack").addEventListener("click", renderAtlas);
+  $("#locDossier").addEventListener("click", () => {
+    $("#dossierQ").value = p.name;
+    document.getElementById("dossier").scrollIntoView({ behavior: "smooth" });
+    runDossier(p.name);
+  });
 }
 
-function initAtlas() {
-const persons = [...new Set(LOCATIONS.flatMap((l) => l.people))];
-const countries = [...new Set(LOCATIONS.map((l) => l.country))];
-const books = [...new Set(LOCATIONS.flatMap((l) => l.books))];
-persons.forEach((p) => { const o = document.createElement("option"); o.value = p; o.textContent = p; $("#atlasPerson").appendChild(o);});
-countries.forEach((c) => { const o = document.createElement("option"); o.value = c; o.textContent = c; $("#atlasCountry").appendChild(o);});
-books.forEach((b) => { const o = document.createElement("option"); o.value = b; o.textContent = b; $("#atlasBook").appendChild(o);});
-["atlasPerson", "atlasCountry", "atlasBook", "atlasEra"].forEach((id) => document.getElementById(id).addEventListener("change", renderAtlas));
-renderAtlas();
+function renderCanonWorldDirectory() {
+  const q = ($("#canonWorldSearch")?.value || "").trim().toLowerCase();
+  const list = filteredCanonLocations().filter(p =>
+    [p.name,p.nameEn,p.country,...p.appearances.map(a=>a.title)].join(" ").toLowerCase().includes(q)
+  );
+  const box = $("#canonWorldDirectory");
+  if (!box) return;
+  box.innerHTML = list.map(p =>
+    `<div class="card clickable" data-canon-loc="${p.id}"><h3>${esc(p.name)} <span class="tag ${p.fictional?"red":"gold"}">${p.fictional?"小说虚构地点":"真实地点"}</span></h3><p class="meta">${esc(p.nameEn || "")} · ${esc(p.country || "国家未标注")} · ${p.appearances.length}部作品</p><p>${esc(p.appearances.map(a=>a.title+"："+a.role).join("；"))}</p></div>`
+  ).join("") || '<div class="empty">没有匹配地点。</div>';
+  $$("#canonWorldDirectory [data-canon-loc]").forEach(el => el.addEventListener("click", () => showLocation(el.dataset.canonLoc)));
 }
 
-// ---- TXT导入 ----
-async function sha256Hex(buf) {
-const hash = await crypto.subtle.digest("SHA-256", buf);
-return Array.from(new Uint8Array(hash)).map((b) => b.toString(16).padStart(2, "0")).join("");
+async function loadCanonWorldDirectory() {
+  const box = $("#canonWorldDirectory");
+  try {
+    const r = await fetch("/api/world");
+    if (!r.ok) throw new Error("地点接口返回 " + r.status);
+    const d = await r.json();
+    canonWorldLocations = d.locations || [];
+    renderCanonWorldDirectory();
+    $("#canonWorldSearch").addEventListener("input", renderCanonWorldDirectory);
+    return canonWorldLocations;
+  } catch(e) {
+    box.innerHTML = '<div class="empty">核验地点索引加载失败：' + esc(e.message) + '</div>';
+    return [];
+  }
 }
 
-function detectChapters(text) {
-const lines = text.split(/\r?\n/);
-const clean = (l) => l.replace(/^\uFEFF/, "").trim();
-// 底本实测标题格式（14本不统一）：CHAPTER 1 - 标题 / CHAPTER ONE / 罗马数字独占一行+次行标题 / 数字加点标题（霹雳弹）
-// 第二阶段补：裸数字独占一行+次行标题（金刚钻、金枪人、女王密使、雷霆谷）/ 词数+冒号标题 One: …（爱我的间谍）
-// 按家族分别收集、只取章数最多的一个家族，避免正文内编号清单（如雷霆谷毒物清单1.-6.）混入。
-const wordNums = ["ONE","TWO","THREE","FOUR","FIVE","SIX","SEVEN","EIGHT","NINE","TEN","ELEVEN","TWELVE","THIRTEEN","FOURTEEN","FIFTEEN","SIXTEEN","SEVENTEEN","EIGHTEEN","NINETEEN","TWENTY","TWENTY-ONE","TWENTY-TWO","TWENTY-THREE","TWENTY-FOUR","TWENTY-FIVE","TWENTY-SIX","TWENTY-SEVEN","TWENTY-EIGHT"];
-const wordVal = {};
-wordNums.forEach((w, i) => { wordVal[w] = i + 1; });
-const nextTitle = (i) => {
-let j = i + 1;
-while (j < lines.length && !clean(lines[j])) j++;
-return j < lines.length ? clean(lines[j]).slice(0, 80) : "";
-};
-const fams = { chapter: [], numdot: [], bare: [], roman: [], wordcolon: [] };
-lines.forEach((line, i) => {
-const t = clean(line);
-if (!t) return;
-if (/^CHAPTER\s+(?:ONE|TWO|THREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE|TEN|ELEVEN|TWELVE|THIRTEEN|FOURTEEN|FIFTEEN|SIXTEEN|SEVENTEEN|EIGHTEEN|NINETEEN|TWENTY|\d+|[IVXL]+)\b/i.test(t)) {
-fams.chapter.push({ n: fams.chapter.length + 1, title: t.slice(0, 80), line: i + 1 });
-} else if (/^\d{1,2}\.\s+\S/.test(t)) {
-const n = parseInt(t, 10);
-fams.numdot.push({ n, title: t.slice(0, 80), line: i + 1 });
-} else if (/^[IVXL]{1,6}$/.test(t)) {
-const title = nextTitle(i);
-if (title) fams.roman.push({ n: fams.roman.length + 1, title: t + " \u00b7 " + title, line: i + 1 });
-} else if (/^(ONE|TWO|THREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE|TEN|ELEVEN|TWELVE|THIRTEEN|FOURTEEN|FIFTEEN):\s+\S/i.test(t)) {
-const w = t.split(":")[0].trim().toUpperCase();
-fams.wordcolon.push({ n: wordVal[w] || 0, title: t.slice(0, 80), line: i + 1 });
-} else if (/^\d{1,2}$/.test(t)) {
-fams.bare.push({ n: parseInt(t, 10), line: i });
-}
-});
-// 裸数字家族：必须从1开始连续递增，标题取次行
-const bareSeq = fams.bare.length >= 2 && fams.bare[0].n === 1 && fams.bare.every((b, k) => b.n === k + 1);
-const bareCh = bareSeq ? fams.bare.map((b, k) => ({ n: k + 1, title: b.n + " \u00b7 " + nextTitle(b.line), line: b.line + 1 })).filter((c) => c.title) : [];
-// 数字加点家族：编号必须恰好是1..N连续
-const nd = fams.numdot;
-const ndOk = nd.length >= 2 && nd.every((c, k) => c.n === k + 1);
-const wc = fams.wordcolon;
-const wcOk = wc.length >= 2 && wc.every((c, k) => c.n === k + 1);
-const cands = [
-{ name: "chapter", list: fams.chapter },
-{ name: "numdot", list: ndOk ? nd : [] },
-{ name: "bare", list: bareCh },
-{ name: "roman", list: fams.roman },
-{ name: "wordcolon", list: wcOk ? wc : [] }
-];
-cands.sort((a, b) => b.list.length - a.list.length);
-const best = cands[0].list;
-return best.map((c, k) => ({ n: k + 1, title: c.title, line: c.line }));
+async function initAtlas() {
+  await loadCanonWorldDirectory();
+  const countries = [...new Set(canonWorldLocations.map(p => p.country).filter(Boolean))].sort();
+  countries.forEach(c => {
+    const o = document.createElement("option"); o.value = c; o.textContent = c;
+    $("#atlasCountry").appendChild(o);
+  });
+  const books = await ensureCanonBooks().catch(() => []);
+  books.forEach(b => {
+    const o = document.createElement("option"); o.value = b.id; o.textContent = b.zh + " · " + b.year;
+    $("#atlasBook").appendChild(o);
+  });
+  ["atlasCountry","atlasBook","atlasEra"].forEach(id => document.getElementById(id).addEventListener("change", renderAtlas));
+  renderAtlas();
 }
 
-function guessBookByName(name, head) {
-const hay = (name + " " + head).toLowerCase().replace(/[-_]+/g, " ");
-for (const b of BOOKS) {
-if (hay.includes(b.zh) || hay.includes(b.en.toLowerCase())) return b.zh;
-}
-return null;
-}
-
-async function runImport() {
-const files = Array.from($("#txtFiles").files || []);
-const box = $("#importReport");
-if (!files.length) { box.innerHTML = `<div class="empty">请先选择txt或.pages文件。</div>`; return;}
-if (files.length > 20) { box.innerHTML = `<div class="empty">一次最多20个文件，本次选了${files.length}个。</div>`; return;}
-box.innerHTML = `<div class="empty">本地解析中…全文不上传，只计算哈希与章节摘要。</div>`;
-const summaries = [];
-const notes = [];
-for (const f of files) {
-const buf = await f.arrayBuffer();
-const hash = await sha256Hex(buf);
-if (/\.pages$/i.test(f.name)) {
-summaries.push({ name: f.name, hash, size: f.size, charCount: 0, lineCount: 0, chapters: [], head: ""});
-notes.push(f.name + "：Pages格式需经soffice批量转换成本站txt后才能解析，浏览器内无法直接读取正文。工程内转换路线：soffice --headless --convert-to txt，14本已按此路线转换。");
-continue;
-}
-const text = new TextDecoder("utf-8", { fatal: false}).decode(buf);
-const chapters = detectChapters(text);
-const head = text.slice(0, 500);
-summaries.push({ name: f.name, hash, size: f.size, charCount: text.length, lineCount: text.split(/\r?\n/).length, chapters: chapters.map((c) => c.title), head});
-}
-let server = null;
-try {
-const r = await fetch("/api/import", { method: "POST", headers: { "content-type": "application/json"}, body: JSON.stringify({ files: summaries})});
-server = await r.json();
-} catch (e) { server = null;}
-const rows = (server && server.report? server.report: summaries.map((s) => ({ name: s.name, hash: s.hash.slice(0, 16) + "…", size: s.size, charCount: s.charCount, lineCount: s.lineCount, chapterCount: s.chapters.length, bookGuess: { titleZh: guessBookByName(s.name, s.head)}, status: s.chapters.length? "ok": "needs-review", errors: s.chapters.length? []: ["未识别到章节结构"]})));
-box.innerHTML = `<p class="meta">收到${files.length}个文件 · 服务端校验${server? "已完成": "不可用，以下为本地解析结果"} · 全文未上传</p>
-${notes.map((n) => `<div class="log">${esc(n)}</div>`).join("")}
-<table><tr><th>文件</th><th>哈希（前16位）</th><th>大小</th><th>字数</th><th>章节</th><th>识别书名</th><th>状态</th></tr>
-${rows.map((r) => `<tr><td>${esc(r.name)}</td><td>${esc(r.hash)}</td><td>${r.size}</td><td>${r.charCount || "—"}</td><td>${r.chapterCount}</td><td>${esc((r.bookGuess && r.bookGuess.titleZh) || "未识别")}</td><td>${r.status === "ok"? "通过": "待复核：" + (r.errors || []).map(esc).join("；")}</td></tr>`).join("")}</table>
-<p class="meta">导入报告：通过${rows.filter((r) => r.status === "ok").length}个，待复核${rows.filter((r) => r.status!== "ok").length}个。持久化到D1/KV为待扩展项；核验通过后，示例数据逐条替换为带书名、章节、原文位置的记录。</p>`;
-}
-
-function initImport() {
-$("#txtParse").addEventListener("click", runImport);
+// ---- 正典知识库状态 ----
+async function initCanonDataStatus() {
+  const box = $("#canonDataStatus");
+  if (!box) return;
+  try {
+    const r = await fetch("/api/status");
+    if (!r.ok) throw new Error("知识库状态接口返回 " + r.status);
+    const d = await r.json();
+    const x = d.data || {};
+    const stats = [
+      ["原著", x.novels || 0], ["章节/故事单位", x.chapters || 0],
+      ["正典事实", x.canonFacts || 0], ["推测事实", x.inferenceFacts || 0],
+      ["核心人物", x.coreCharacters || 0], ["全部人物", x.characters || 0],
+      ["组织", x.organizations || 0], ["地点", x.locations || 0],
+      ["装备", x.equipment || 0]
+    ];
+    const gaps = Array.isArray(d.knownGaps) ? d.knownGaps : [];
+    box.innerHTML = `<div class="grid g3">${stats.map(([label,value]) => `<div class="state"><span class="lbl">${esc(label)}</span><b>${Number(value).toLocaleString("en-US")}</b></div>`).join("")}</div>
+      <p class="meta" style="margin-top:10px">数据状态：${esc(d.dataState || "unknown")} · 来源：${esc(d.dataSource || "未提供")} · 知识库版本：${esc(d.dataGenerated || "未提供")}</p>
+      <p class="meta">已知缺口：${gaps.length ? gaps.map(g => esc(typeof g === "string" ? g : JSON.stringify(g))).join("；") : "知识库未列出缺口。"}</p>
+      <p class="meta">同步方式：本地开发/构建时从知识库主分支拉取；生成文件不手工编辑、不向网站用户开放正典写入。</p>`;
+  } catch (e) {
+    box.innerHTML = `<div class="empty">知识库状态暂时不可用：${esc(e.message)}</div>`;
+  }
 }
 
 // ---- 状态与启动 ----
@@ -839,12 +982,12 @@ if (!r.ok) throw new Error("status " + r.status);
 const d = await r.json();
 const pill = $("#statusPill");
 if (d.llm && d.llm.available) { pill.textContent = "模型已接入：" + d.llm.provider; modelAvailable = true;}
-else { pill.textContent = "模型待接入·离线演示中"; pill.classList.add("red"); modelAvailable = false;}
-$("#modelLine").textContent = d.llm && d.llm.available? "模型已接入：" + d.llm.provider: "模型状态：未接入，当前为离线演示。接入MiniMax-M3后自动切换实时对话。";
+else { pill.textContent = "模型待接入·人物对话暂停"; pill.classList.add("red"); modelAvailable = false;}
+$("#modelLine").textContent = d.llm && d.llm.available? "模型已接入：" + d.llm.provider: "模型未接入：正典人物对话已暂停；档案、任务与世界探索仍可使用。";
 } catch (e) {
-$("#statusPill").textContent = "接口不可用·离线演示中";
+$("#statusPill").textContent = "状态接口不可用";
 $("#statusPill").classList.add("red");
-$("#modelLine").textContent = "模型状态：接口不可用，当前为离线演示。";
+$("#modelLine").textContent = "状态接口不可用，无法确认模型状态；正典人物对话不会使用无约束回退。";
 }
 }
 
@@ -856,6 +999,6 @@ initExperience();
 initBaccarat();
 initLiterary();
 initAtlas();
-initImport();
+initCanonDataStatus();
 initStatus();
 });

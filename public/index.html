@@ -84,6 +84,9 @@ table{width:100%;border-collapse:collapse;font-size:14px}
 th,td{border-bottom:1px solid var(--line);padding:8px 6px;text-align:left;vertical-align:top}
 th{color:var(--gold2);font-size:13px}
 .mapwrap{position:relative;height:300px;border:1px solid var(--line);border-radius:4px;background:linear-gradient(180deg,#0a1a12,#0c1712);overflow:hidden}
+.mapwrap.leaflet-container{background:#dce2d8}
+.mapwrap .leaflet-popup-content-wrapper,.mapwrap .leaflet-popup-tip{background:#f4f0e4;color:#1b241d}
+.mapwrap .leaflet-control-attribution{font-size:10px}
 .mapdot{position:absolute;width:12px;height:12px;border-radius:50%;background:var(--gold);border:2px solid #0a120d;cursor:pointer;transform:translate(-50%,-50%)}
 .mapdot.fictional{background:var(--red)}
 .mapdot:hover{box-shadow:0 0 0 4px rgba(201,162,39,.35)}
@@ -108,19 +111,23 @@ details summary{cursor:pointer;color:var(--gold2);font-size:15px}
 .nav a{padding:5px 7px;font-size:13px}
 }
 @media(max-width:560px){.g3,.g4,.g2{grid-template-columns:1fr}.hero h1{font-size:28px}}
+
+.submod{margin-top:20px;padding-top:16px;border-top:1px solid var(--line)}
+.submod>h3{margin:0 0 8px;color:var(--gold2);font-family:Georgia,serif;font-size:21px;letter-spacing:.04em}
 </style>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 </head>
 <body>
 <header class="topbar"><div class="topbar-in">
 <div class="brand">007 INTELLIGENCE LAB<small>THE WORLD OF IAN FLEMING</small></div>
 <nav class="nav sans">
-<a href="#characters">人物档案</a><a href="#dossier">情报馆</a><a href="#mission">任务模拟</a><a href="#experience">成为邦德</a><a href="#literary">文学研究室</a><a href="#atlas">世界地图</a><a href="#import">TXT导入</a>
+<a href="#dossier">INTELLIGENCE ARCHIVE · 情报档案馆</a><a href="#characters">CHARACTER THEATRE · 人物剧场</a><a href="#mission">MISSION CONTROL · 任务控制</a><a href="#atlas">WORLD EXPLORER · 世界探索</a>
 </nav>
 <span class="pill" id="statusPill">状态检测中…</span>
 </div></header>
 
 <div class="hero">
-<div class="kicker">WORLD LAB · CHARACTER LAB · BOOK LAB</div>
+<div class="kicker">CLASSIFIED INTELLIGENCE · IAN FLEMING CANON ARCHIVE</div>
 <h1><span class="n007">007</span> INTELLIGENCE LAB</h1>
 <div class="sub">THE WORLD OF IAN FLEMING</div>
 <div class="slogan">KNOW THE WORLD. READ THE SIGNS. TRUST NO ONE.</div>
@@ -136,16 +143,16 @@ details summary{cursor:pointer;color:var(--gold2);font-size:15px}
 
 <div class="stats">
 <div class="stat"><b>14本</b><span>弗莱明邦德小说</span></div>
-<div class="stat"><b>12人</b><span>核心人物档案</span></div>
-<div class="stat"><b>15处</b><span>世界地图地点</span></div>
+<div class="stat"><b>32人</b><span>核心人物约束档案</span></div>
+<div class="stat"><b>170处</b><span>核验地点索引</span></div>
 <div class="stat"><b>2个</b><span>可玩任务·原著+原创</span></div>
 </div>
 
 <main>
 <!--1人物-->
 <section class="mod" id="characters">
-<h2><span class="en">CHARACTER FILES</span>人物档案与角色模拟</h2>
-<p class="mod-desc">12人完整档案：身份背景、外貌行为、性格价值观、语言习惯、人际关系、首次登场、参与事件、知识边界。三层约束写进每一次对话：人物核心+原著事实检索+场景与知识控制。邦德不知道自己尚未经历的事，电影版剧情不算原著，自由发挥必标。</p>
+<h2><span class="en">CHARACTER THEATRE</span>人物剧场</h2>
+<p class="mod-desc">32位核心人物正典档案：身份、外貌、性格、习惯、语言风格、人际关系、时间线与知识边界。对话按小说时间点执行三层约束；电影设定与原著隔离。</p>
 <div class="row"><div><label>搜索人物</label><input id="charSearch" placeholder="输入名字，如邦德、M、Q、布洛菲尔德…"></div>
 <div><label>按首次登场筛选</label><select id="charBookFilter"><option value="">全部作品</option></select></div></div>
 <div class="grid g4" id="charGrid" style="margin-top:14px"></div>
@@ -160,8 +167,8 @@ details summary{cursor:pointer;color:var(--gold2);font-size:15px}
 <button class="chipbtn" data-mode="group">多角色同场</button>
 </div>
 <p class="meta" id="chatHint">先选一个人，再开始对话。当前模式：自由对话。</p>
-<div id="groupPick" style="display:none"><label>同场第二人</label><select id="groupSecond"></select></div>
-<div class="chatbox" id="chatLog"><div class="msg sys">对话只保存在你的浏览器里，不上传服务器。模型未接入时显示离线脚本化演示回复，并明确标注。</div></div>
+<div class="row" style="margin:10px 0;align-items:end"><div style="flex:1"><label for="sceneNovel">选择原著</label><select id="sceneNovel"><option value="casino-royale">皇家赌场 · 1953</option></select></div><div style="flex:1"><label for="sceneChapter">人物所处章节（控制章内未来知识）</label><select id="sceneChapter"><option value="">全书结束（默认）</option></select></div></div><div id="groupPick" style="display:none"><label>同场第二人</label><select id="groupSecond"></select></div>
+<div class="chatbox" id="chatLog"><div class="msg sys">对话消息会发送至模型服务生成回复；最近80条对话仅保存在当前浏览器。选择原著与章节后，人物按出场顺序和章级知识边界回答；默认时间点为全书结束。</div></div>
 <div class="row" style="margin-top:10px"><div style="flex:3"><input id="chatInput" placeholder="说点什么…" maxlength="500"></div><button class="btn small" id="chatSend" style="flex:0 0 auto">发送</button></div>
 <p class="meta" id="modelLine">模型状态检测中…</p>
 </div>
@@ -170,7 +177,7 @@ details summary{cursor:pointer;color:var(--gold2);font-size:15px}
 
 <!--2情报馆-->
 <section class="mod" id="dossier">
-<h2><span class="en">INTELLIGENCE DOSSIER</span>情报档案馆</h2>
+<h2><span class="en">INTELLIGENCE ARCHIVE</span>情报档案馆</h2>
 <p class="mod-desc">跨全系列检索：小说、人物、地点、组织、武器装备、事件、反派计划、线索、关系、时间线。结果尽量给出书名与出处，原著事实与模型推断明确区分，推断必标。</p>
 <div class="row"><div style="flex:3"><input id="dossierQ" placeholder="输入关键词，如日本、苏联、莱特、武器、赌场、布洛菲尔德…"></div><button class="btn small" id="dossierGo" style="flex:0 0 auto">检索</button></div>
 <div class="chips">
@@ -189,19 +196,44 @@ details summary{cursor:pointer;color:var(--gold2);font-size:15px}
 <button class="chipbtn" data-tab="weapons">武器与装备</button>
 </div>
 <div id="dossierTabBody" style="margin-top:12px"></div>
+
+<div class="submod" id="literary">
+<h3><span class="en">LITERARY INTELLIGENCE</span>文学研究与创作实验</h3>
+<p class="mod-desc">研究伊恩·弗莱明的写作方式：人物塑造、悬念、信息控制、节奏、动作、气氛、女性角色、冷战背景、小说与电影改编差异。原创写作实验一律标注非原著，绝不冒充原著内容。</p>
+<div class="grid g2" id="litTopics"></div>
+<div class="grid g2" style="margin-top:14px;align-items:start">
+<div class="card"><h3>提问分析</h3>
+<p class="meta">输入关键词，检索核验知识库中的人物、事件、事实与出处。文学评论导读与原创实验会明确区分，不把推断冒充原著事实。</p>
+<input id="litQ" placeholder="例如：弗莱明怎么写悬念？邦德和反派有什么共同点？">
+<div style="margin-top:10px"><button class="btn small" id="litAsk">分析</button></div>
+<div id="litAnswer" style="margin-top:12px"><div class="empty">尚未提问</div></div></div>
+<div class="card"><h3>原创写作实验 <span class="tag red">非原著</span></h3>
+<p class="meta">以下生成均为原创实验，灵感来自弗莱明式结构，不是原著内容。</p>
+<div class="chips">
+<button class="chipbtn" data-lab="villain">创建一个新反派</button>
+<button class="chipbtn" data-lab="suspense">设计悬念结构</button>
+<button class="chipbtn" data-lab="mission">设计一场秘密行动</button>
+<button class="chipbtn" data-lab="compare">比较两部小说叙事</button>
+</div>
+<div id="labOut" style="margin-top:12px"><div class="empty">点上方任一实验开始。</div></div></div>
+</div>
+</div>
+<div class="card" id="canonDataCard" style="margin-top:16px">
+<h3>正典知识库 · 数据源与核验状态</h3>
+<p class="meta">唯一数据源：nequex-eng/007-intelligence-lab-knowledge。网站不会把互动改编、模型推断或未核验内容写回正典。</p>
+<div id="canonDataStatus"><div class="empty">正在读取知识库状态…</div></div>
+</div>
 </section>
 
 <!--3任务模拟-->
 <section class="mod" id="mission">
-<h2><span class="en">MISSION SIMULATOR</span>任务模拟器</h2>
-<p class="mod-desc">你扮演英国秘密情报机构行动人员。每个选择都会改变资金、风险、情报可信度、线索与人物关系，并决定后续分支与最终报告——不是AI自由讲故事，是真实状态机。</p>
-<div class="grid g2" id="missionList"></div>
+<h2><span class="en">MISSION CONTROL</span>任务控制中心</h2>
+<p class="mod-desc">你扮演英国秘密情报机构行动人员。每个选择都会改变资金、风险、情报可信度、线索与人物关系，并决定后续分支。状态机是互动改编；原著事实另附章节出处，不把玩家选择伪装成弗莱明原著。</p>
+<div class="card" id="missionCanonBrief" style="margin:12px 0"><p class="meta">正在加载《皇家赌场》核验事实与章节索引…</p></div><div class="grid g2" id="missionList"></div>
 <div class="card" id="missionPanel" style="margin-top:14px"><h3>任务控制台</h3><p class="meta">先在上方选一个任务开始。</p><div class="empty">尚未开始任务</div></div>
-</section>
 
-<!--4成为邦德-->
-<section class="mod" id="experience">
-<h2><span class="en">BOND EXPERIENCE</span>成为詹姆斯·邦德</h2>
+<div class="submod" id="experience">
+<h3><span class="en">FIELD OPERATIONS</span>实战体验 · 成为邦德</h3>
 <p class="mod-desc">从M办公室领任务，到Q部门领装备，再到酒店、餐厅、酒吧、赌场、俱乐部与豪华汽车。赌场部分是真正可玩的百家乐：有规则、有对手、有筹码输赢。</p>
 <div class="chips" id="expScenes"></div>
 <div class="card" id="expPanel" style="margin-top:12px"><h3>场景</h3><p class="meta">点上方场景进入体验。</p><div class="empty">尚未选择场景</div></div>
@@ -222,81 +254,38 @@ details summary{cursor:pointer;color:var(--gold2);font-size:15px}
 <div id="bacTable" style="margin-top:12px"><div class="empty">尚未开局。筹码1000，用完可点“重新领筹码”恢复。</div></div>
 <div class="row" style="margin-top:10px"><button class="btn ghost small" id="bacReset">重新领筹码</button><span class="meta" id="bacNote"></span></div>
 </div>
+</div>
 </section>
+
+<!--4成为邦德-->
+
 
 <!--5文学研究室-->
-<section class="mod" id="literary">
-<h2><span class="en">FLEMING LITERARY LAB</span>文学研究室</h2>
-<p class="mod-desc">研究伊恩·弗莱明的写作方式：人物塑造、悬念、信息控制、节奏、动作、气氛、女性角色、冷战背景、小说与电影改编差异。原创写作实验一律标注非原著，绝不冒充原著内容。</p>
-<div class="grid g2" id="litTopics"></div>
-<div class="grid g2" style="margin-top:14px;align-items:start">
-<div class="card"><h3>提问分析</h3>
-<p class="meta">问一个关于弗莱明写作的问题，系统按示例知识库作答，超出示例范围的一律说不知道。</p>
-<input id="litQ" placeholder="例如：弗莱明怎么写悬念？邦德和反派有什么共同点？">
-<div style="margin-top:10px"><button class="btn small" id="litAsk">分析</button></div>
-<div id="litAnswer" style="margin-top:12px"><div class="empty">尚未提问</div></div></div>
-<div class="card"><h3>原创写作实验 <span class="tag red">非原著</span></h3>
-<p class="meta">以下生成均为原创实验，灵感来自弗莱明式结构，不是原著内容。</p>
-<div class="chips">
-<button class="chipbtn" data-lab="villain">创建一个新反派</button>
-<button class="chipbtn" data-lab="suspense">设计悬念结构</button>
-<button class="chipbtn" data-lab="mission">设计一场秘密行动</button>
-<button class="chipbtn" data-lab="compare">比较两部小说叙事</button>
-</div>
-<div id="labOut" style="margin-top:12px"><div class="empty">点上方任一实验开始。</div></div></div>
-</div>
-</section>
 
-<!--6世界地图-->
+
+<!--4世界探索-->
 <section class="mod" id="atlas">
-<h2><span class="en">WORLD ATLAS</span>007世界地图</h2>
-<p class="mod-desc">15处地点，全部来自示例知识库。真实城市标注真实坐标，虚构地点（如皇家莱索、蟹礁岛）明确标为虚构，不给假坐标。点地图上的点或下方卡片，进入相关人物、事件与小说。</p>
+<h2><span class="en">WORLD EXPLORER</span>007世界探索</h2>
+<p class="mod-desc">世界探索以核验知识库中的170处地点为目录。地图只绘制有可靠真实坐标的城市；虚构地点与未核实坐标的地点只进入档案，不伪造坐标。</p>
 <div class="row">
-<div><label>按人物筛选</label><select id="atlasPerson"><option value="">全部人物</option></select></div>
 <div><label>按国家筛选</label><select id="atlasCountry"><option value="">全部国家</option></select></div>
 <div><label>按小说筛选</label><select id="atlasBook"><option value="">全部小说</option></select></div>
 <div><label>按年代筛选</label><select id="atlasEra"><option value="">全部年代</option><option value="1950s">1950年代</option><option value="1960s">1960年代</option></select></div>
 </div>
 <div class="mapwrap" id="mapWrap" style="margin-top:14px"></div>
-<p class="meta">金点为真实地点，红点为小说虚构地点。坐标为城市级示意位置，事件归属以小说为准。</p>
-<div class="grid g3" id="atlasGrid" style="margin-top:12px"></div>
+<p class="meta">地图只显示具有可靠坐标的真实地点；虚构地点与区域级地点只进入档案，不绘制假坐标。坐标为城市级示意位置。</p>
+<div class="grid g3" id="atlasGrid" style="margin-top:12px"></div><div class="card" style="margin-top:16px"><h3>完整地点索引 · 170处</h3><input id="canonWorldSearch" placeholder="搜索地点、国家或小说…" style="margin-bottom:10px"><div id="canonWorldDirectory" class="grid g2"><div class="empty">正在读取核验地点索引…</div></div></div>
 </section>
 
-<!--7TXT导入-->
-<section class="mod" id="import">
-<h2><span class="en">TXT IMPORT</span>原著TXT导入</h2>
-<p class="mod-desc">全本14本已转txt共926290词，13本章节索引通过、1本待复核，知识库仍标示例数据·待TXT导入核验。导入流程：本地解析txt（计算哈希、识别小说名与章节、统计字数行数）→摘要POST到服务端校验（重复检测、小说识别、错误报告）→核验后按数据结构入库。服务端不接收、不存储原著全文。</p>
-<div class="grid g2" style="align-items:start">
-<div class="card"><h3>批量导入</h3>
-<label>选择txt文件（可多选，每批最多20个）</label>
-<input type="file" id="txtFiles" accept=".txt" multiple>
-<div style="margin-top:10px"><button class="btn small" id="txtParse">解析并校验</button></div>
-<p class="meta">解析在你的浏览器本地完成，全文不上传。只把文件名、哈希、字数、章节摘要发给服务端校验。</p>
-<div id="importReport" style="margin-top:12px"><div class="empty">全本14本已转txt，章节索引13本通过、1本待复核；当前知识库仍为示例数据，待导入核验后替换。</div></div></div>
-<div class="card"><h3>数据结构</h3>
-<p class="meta">轻量结构，十张表，导入后每条记录保留书名、章节、原文位置。</p>
-<table><tr><th>表</th><th>内容</th></tr>
-<tr><td>books</td><td>小说目录与版本信息</td></tr>
-<tr><td>chapters</td><td>章节结构与位置</td></tr>
-<tr><td>characters</td><td>人物档案与知识边界</td></tr>
-<tr><td>locations</td><td>地点与坐标（虚构地点不给假坐标）</td></tr>
-<tr><td>organizations</td><td>情报机构与犯罪组织</td></tr>
-<tr><td>events</td><td>重要事件与时间线</td></tr>
-<tr><td>objects</td><td>武器与装备</td></tr>
-<tr><td>relationships</td><td>人物关系图谱</td></tr>
-<tr><td>timelines</td><td>跨小说事件顺序</td></tr>
-<tr><td>source_references</td><td>每条记录的书名、章节、原文位置</td></tr></table>
-<p class="meta" style="margin-top:10px">当前状态：<span class="tag gold">框架已完成</span> <span class="tag red">待TXT导入</span> <span class="tag">持久化到D1/KV待扩展</span></p></div>
-</div>
-</section>
 </main>
 
 <footer>
 <p><b>007 INTELLIGENCE LAB</b> · THE WORLD OF IAN FLEMING</p>
 <p>KNOW THE WORLD. READ THE SIGNS. TRUST NO ONE.</p>
 <p>本站为粉丝研究模拟，非官方，与伊恩·弗莱明遗产管理方及出版方无关。对话与原创任务由AI生成或按示例脚本演示，不是原著引文。原著引用必要、简短并标注出处，不提供整本小说下载，不做公开阅读网站。</p>
-<p class="sans">数据状态：示例数据·待TXT导入核验 · 模型状态见页顶状态pill · 工程：本机~/workspace/007-intelligence-lab/ · 部署：Cloudflare Pages直传 · GitHub：无需GitHub</p>
+<p class="sans">数据状态：核验知识库已接入 · 版本与数据规模见情报档案馆状态卡 · 源码与知识库由GitHub版本管理 · 生产部署须经用户授权</p>
 </footer>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="/app.js"></script>
 </body>
 </html>
