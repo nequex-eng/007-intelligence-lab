@@ -91,6 +91,9 @@ function applyLanguage() {
   document.documentElement.lang=LANGUAGE==="en"?"en":"zh-CN";
   document.documentElement.dataset.language=LANGUAGE;
   document.body.dataset.language=LANGUAGE;
+  document.title=LANGUAGE==="en" ? "007 Intelligence Lab | Ian Fleming Canon Archive & Interactive World" : "007 INTELLIGENCE LAB·伊恩·弗莱明世界实验室";
+  const description=document.querySelector('meta[name="description"]');
+  if(description) description.content=LANGUAGE==="en" ? "Explore Ian Fleming’s 14 original James Bond novels through verified character dossiers, intelligence archives, interactive missions and a canon-aware character simulator." : "进入伊恩·弗莱明笔下的007世界：人物档案、情报档案馆、任务模拟器、邦德体验、文学研究室与世界地图。";
   const b=document.getElementById("languageToggle");
   if(b){b.textContent=LANGUAGE==="en"?"中文":"EN";b.setAttribute("aria-label",LANGUAGE==="en"?"Switch to Chinese":"Switch to English");}
   const w=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);let n;while((n=w.nextNode()))translateTextNode(n);
