@@ -779,6 +779,47 @@ const EN_TEXT = new Map([
   ["正在读取核验地点索引…","Loading verified location index…"],
   ["本站为粉丝研究模拟，非官方，与伊恩·弗莱明遗产管理方及出版方无关。对话与原创任务由AI生成或按示例脚本演示，不是原著引文。原著引用必要、简短并标注出处，不提供整本小说下载，不做公开阅读网站。","This is an unofficial fan research simulation and is not affiliated with the Ian Fleming estate or publishers. Conversations and original missions are AI-generated or scripted demonstrations, not novel quotations. Any necessary quotations are brief and sourced; no complete novel downloads or public ebook library are provided."],
   ["数据状态：核验知识库已接入 · 版本与数据规模见情报档案馆状态卡 · 源码与知识库由GitHub版本管理 · 生产部署须经用户授权","Data: verified knowledge base connected · see the Archive status panel for version and scale · source code and knowledge base are version-controlled on GitHub · production deployment requires user authorisation"]
+["M办公室·领任务","M’s Office · Assignment"],
+["Q部门·领装备","Q Branch · Equipment"],
+["豪华酒店·入住","Luxury Hotel · Check-in"],
+["高级餐厅·晚餐","Fine Dining · Dinner"],
+["鸡尾酒吧·马提尼","Cocktail Bar · Martini"],
+["赌场·牌桌","Casino · Baccarat Table"],
+["私人俱乐部·社交","Private Club · Social Call"],
+["豪华汽车·出行","Luxury Car · On the Move"],
+["旅行与城市探索","Travel & City Exploration"],
+["接下任务简报","Accept the briefing"],
+["追问任务细节","Ask for more details"],
+["请M再给24小时准备","Ask M for another 24 hours"],
+["领瓦尔特PPK手枪","Take the Walther PPK"],
+["领改装钢笔","Take the modified pen"],
+["问有没有新装备","Ask about new equipment"],
+["要朝海的房间","Request a sea-view room"],
+["让前台留意可疑访客","Ask reception to watch for suspicious visitors"],
+["先去酒吧坐坐","Visit the bar first"],
+["点牛排配红酒","Order steak and red wine"],
+["等薇丝朋到了再点菜","Wait for Vesper before ordering"],
+["留意邻桌的男人","Watch the man at the next table"],
+["点一杯马提尼，摇匀不搅拌","Order a martini, shaken not stirred"],
+["点一杯香槟","Order champagne"],
+["请酒保讲讲今晚牌局","Ask the bartender about tonight’s game"],
+["坐下，直接开局","Sit down and play"],
+["先在旁边观战一轮","Watch one round first"],
+["去百家乐桌实战一把","Play a hand of baccarat"],
+["和角落那位打个招呼","Greet the person in the corner"],
+["先读一会儿报纸","Read the newspaper first"],
+["点一支雪茄","Light a cigar"],
+["选最绕的路去机场","Take the longest route to the airport"],
+["直接走高速","Take the motorway"],
+["绕到码头换船","Go to the docks and change boats"],
+["打开世界地图","Open the world map"],
+["回顾皇家赌场之行","Review the Casino Royale operation"],
+["计划下一站","Plan the next destination"],
+["你可以选择行动，也可以自由输入任何行动。后果由模型根据情境动态判定，不保证成功。","Choose an action or describe any action in your own words. Consequences are generated dynamically; success is never guaranteed."],
+["描述你想采取的行动…","Describe your own action…"],
+["行动","Act"],
+["局势正在发展……","The situation is developing…"],
+["现场反馈","Field report"]
 ]);
 const originalText = new WeakMap();
 const originalAttributes = new WeakMap();
@@ -1635,7 +1676,7 @@ async function sendExperienceAction(action) {
     if (out) out.innerHTML = history.map(m => `<div class="log"><b>${m.role === "user" ? (LANGUAGE === "en" ? "You" : "你") : (LANGUAGE === "en" ? "Field report" : "现场反馈")}：</b>${esc(m.content)}</div>`).join("");
   } catch (error) {
     history.push({ role: "assistant", content: LANGUAGE === "en" ? "Connection error. Please try again." : "连接失败，请重试。" });
-    if (out) out.innerHTML = history.map(m => `<div class="log"><b>${m.role === "user" ? (LANGUAGE === "en" ? "You" : "你") : (LANGUAGE === "en" ? "现场反馈" : "现场反馈")}：</b>${esc(m.content)}</div>`).join("");
+    if (out) out.innerHTML = history.map(m => `<div class="log"><b>${m.role === "user" ? (LANGUAGE === "en" ? "You" : "你") : (LANGUAGE === "en" ? "Field report" : "现场反馈")}：</b>${esc(m.content)}</div>`).join("");
   } finally {
     if (send) send.disabled = false;
     $("#expActionInput")?.focus();
