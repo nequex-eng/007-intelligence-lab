@@ -90,10 +90,21 @@ $("#charGrid").innerHTML = list.length? list.map((c) =>
 $$("#charGrid [data-char]").forEach((el) => el.addEventListener("click", () => selectChar(el.dataset.char)));
 }
 
-function selectChar(id) {
-selectedChar = id;
-restoreChatHistory();
+async function selectChar(id) {
 const c = charById(id);
+if (!c) { addChatMsg("sys", "知识库中没有找到该人物，无法启动角色模式。"); return; }
+selectedChar = id;
+const matchedNovel = c.firstNovelId || BOOKS.find(b => b.zh === c.firstBook)?.id || "casino-royale";
+const scene = $("#sceneNovel");
+if (scene && matchedNovel && scene.value !== matchedNovel) {
+  scene.value = matchedNovel;
+  await loadSceneChapters(matchedNovel);
+  $("#sceneChapter").value = "";
+}
+const matchedBook = BOOKS.find(b => b.id === matchedNovel);
+const sceneLabel = $("#sceneNovelLabel");
+if (sceneLabel) sceneLabel.textContent = matchedBook ? matchedBook.zh + " · " + matchedBook.year + "（按人物首次登场自动匹配）" : (c.firstBook || "自动匹配原著");
+restoreChatHistory();
 renderCharGrid();
 $("#charDetail").innerHTML = `<h3>${esc(c.name)} · ${esc(c.zh)}</h3>
 <p><span class="tag gold">${esc(c.role)}</span> <span class="tag">首次登场：${esc(c.firstBook)}（${c.firstYear}年）</span> <span class="tag red">知识截止：${esc(c.cutoff)}</span></p>
@@ -222,6 +233,8 @@ facts:[...(c.sources||[])].map(x=>"出处索引："+x), opener:"请按当前小�
  [...new Set(CHARACTERS.map(c=>c.firstBook))].forEach(b=>{const o=document.createElement("option");o.value=b;o.textContent=b;bf.appendChild(o);});
  bd.books.forEach(b => { const so=document.createElement("option");so.value=b.id;so.textContent=b.titleZh+" · "+b.year;scene.appendChild(so); });
 scene.value="casino-royale";
+const initialBook = BOOKS.find(b => b.id === scene.value);
+if ($("#sceneNovelLabel")) $("#sceneNovelLabel").textContent = initialBook ? initialBook.zh + " · " + initialBook.year + "（选择人物后自动匹配）" : "选择人物后自动匹配";
 await loadSceneChapters(scene.value);
 } catch(e) {
 $("#charGrid").innerHTML='<div class="empty">核验知识库加载失败：'+esc(e.message)+'。请检查本地同步与API。</div>';
