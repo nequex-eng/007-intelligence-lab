@@ -720,6 +720,8 @@ function applyLanguage() {
   if (activeDossierTab) renderDossierTab(activeDossierTab);
   const activeDossierQuery = document.getElementById("dossierQ")?.value?.trim();
   if (activeDossierQuery) runDossier(activeDossierQuery);
+  const labOutput = document.getElementById("labOut");
+  if (labOutput && labOutput.textContent.trim()) labOutput.innerHTML = LANGUAGE === "en" ? '<div class="empty">Choose a writing experiment above to generate an English draft.</div>' : '<div class="empty">点上方任一实验开始。</div>';
   if (Array.isArray(canonWorldLocations) && canonWorldLocations.length) {
     const countrySelect = document.getElementById("atlasCountry");
     if (countrySelect) [...countrySelect.options].slice(1).forEach(o => {
@@ -1795,10 +1797,14 @@ async function initCanonDataStatus() {
       ["装备", x.equipment || 0]
     ];
     const gaps = Array.isArray(d.knownGaps) ? d.knownGaps : [];
-    box.innerHTML = `<div class="grid g3">${stats.map(([label,value]) => `<div class="state"><span class="lbl">${esc(label)}</span><b>${Number(value).toLocaleString("en-US")}</b></div>`).join("")}</div>
-      <p class="meta" style="margin-top:10px">数据状态：${esc(d.dataState || "unknown")} · 来源：${esc(d.dataSource || "未提供")} · 知识库版本：${esc(d.dataGenerated || "未提供")}</p>
-      <p class="meta">已知缺口：${gaps.length ? gaps.map(g => esc(typeof g === "string" ? g : JSON.stringify(g))).join("；") : "知识库未列出缺口。"}</p>
-      <p class="meta">同步方式：本地开发/构建时从知识库主分支拉取；生成文件不手工编辑、不向网站用户开放正典写入。</p>`;
+    const dataState = LANGUAGE === "en" ? (englishText(d.dataState) || "Status not specified") : (d.dataState || "unknown");
+    const dataSource = LANGUAGE === "en" ? (englishText(d.dataSource) || "Not specified") : (d.dataSource || "未提供");
+    const gapSummary = LANGUAGE === "en" ? (gaps.length ? "See the knowledge-base manifest for documented data gaps." : "No known gaps are listed.") : (gaps.length ? gaps.map(g => typeof g === "string" ? g : JSON.stringify(g)).join("；") : "知识库未列出缺口。");
+    const syncSummary = LANGUAGE === "en" ? "Knowledge data is synchronised from the source repository during local development and builds. Generated canon files are not manually edited or writable by site visitors." : "同步方式：本地开发/构建时从知识库主分支拉取；生成文件不手工编辑、不向网站用户开放正典写入。";
+    box.innerHTML = `<div class="grid g3">${stats.map(([label,value]) => `<div class="state"><span class="lbl">${esc(LANGUAGE === "en" ? (EN_TEXT.get(label) || label) : label)}</span><b>${Number(value).toLocaleString("en-US")}</b></div>`).join("")}</div>
+      <p class="meta" style="margin-top:10px">${LANGUAGE === "en" ? "Data status" : "数据状态"}: ${esc(dataState)} · ${LANGUAGE === "en" ? "Source" : "来源"}: ${esc(dataSource)} · ${LANGUAGE === "en" ? "Knowledge-base version" : "知识库版本"}: ${esc(d.dataGenerated || "Not specified")}</p>
+      <p class="meta">${LANGUAGE === "en" ? "Known gaps" : "已知缺口"}: ${esc(gapSummary)}</p>
+      <p class="meta">${syncSummary}</p>`;
   } catch (e) {
     box.innerHTML = `<div class="empty">知识库状态暂时不可用：${esc(e.message)}</div>`;
   }
