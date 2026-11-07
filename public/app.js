@@ -33,13 +33,7 @@ const MAP_COORDINATES = {
   "fort-knox": [37.8937, -85.9574]
 };
 
-const ORGS = [
-{ name: "英国秘密情报机构", en: "Secret Intelligence Service", kind: "情报机构", note: "邦德所属机构，首长为M，总部在伦敦。", books: "全系列" },
-{ name: "美国中央情报局", en: "Central Intelligence Agency", kind: "情报机构", note: "费利克斯·莱特所属机构，邦德的盟友。", books: "皇家赌场、生死关头、金刚钻、金手指、霹雳弹、金枪人" },
-{ name: "苏联反间谍机构", en: "SMERSH", kind: "情报机构", note: "早期小说中的苏联方面机构，勒·希弗为其出纳。", books: "皇家赌场、生死关头、来自俄罗斯的爱情" },
-{ name: "幽灵党", en: "SPECTRE", kind: "犯罪组织", note: "布洛菲尔德领导的跨国犯罪组织，霹雳弹起成为主要对手。", books: "霹雳弹、女王密使、雷霆谷" },
-{ name: "Q部门", en: "Q Branch", kind: "技术部门", note: "负责军械与特种装备，负责人为Q。", books: "全系列" }
-];
+// Organization records are sourced from the canon API, never a second local catalog.
 
 const WEAPONS = [
 { name: "贝雷塔手枪", en: "Beretta 418", kind: "手枪", note: "邦德早期配枪，诺博士起被换下。", books: "皇家赌场至来自俄罗斯的爱情" },
