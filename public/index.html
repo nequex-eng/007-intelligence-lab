@@ -135,14 +135,14 @@ details summary{cursor:pointer;color:var(--gold2);font-size:15px}
   .topbar,.topbar-in{transition:none}
 }
 body[data-language="en"]{font-family:Georgia,"Times New Roman",serif} body[data-language="en"] .sans{font-family:Arial,sans-serif} #languageToggle{flex:0 0 auto;min-width:44px;font-weight:700;border-color:var(--gold);color:var(--gold2)}
-</style>
+body[data-language="en"] .label-zh,body[data-language="zh"] .label-en{display:none}body[data-language="zh"] .en{display:none}body[data-language="en"] .nav a{letter-spacing:.04em}body[data-language="en"] label{font-family:Arial,sans-serif}</style>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 </head>
 <body>
 <header class="topbar"><div class="topbar-in">
 <div class="brand">007 INTELLIGENCE LAB<small>THE WORLD OF IAN FLEMING</small></div>
 <nav class="nav sans">
-<a href="#dossier">INTELLIGENCE ARCHIVE · 情报档案馆</a><a href="#characters">CHARACTER THEATRE · 人物剧场</a><a href="#mission">MISSION CONTROL · 任务控制</a><a href="#atlas">WORLD EXPLORER · 世界探索</a>
+<a href="#dossier"><span class="label-en">INTELLIGENCE ARCHIVE</span><span class="label-zh">情报档案馆</span></a><a href="#characters"><span class="label-en">CHARACTER THEATRE</span><span class="label-zh">人物剧场</span></a><a href="#mission"><span class="label-en">MISSION CONTROL</span><span class="label-zh">任务控制</span></a><a href="#atlas"><span class="label-en">WORLD EXPLORER</span><span class="label-zh">世界探索</span></a>
 </nav>
 <button class="chipbtn" id="languageToggle" type="button" aria-label="Switch to English">EN</button><span class="pill" id="statusPill">状态检测中…</span>
 </div></header>
@@ -172,7 +172,7 @@ body[data-language="en"]{font-family:Georgia,"Times New Roman",serif} body[data-
 <main>
 <!--1人物-->
 <section class="mod" id="characters">
-<h2><span class="en">CHARACTER THEATRE</span>人物剧场</h2>
+<h2><span class="en">CHARACTER THEATRE</span><span class="label-zh">人物剧场</span></h2>
 <p class="mod-desc">32位核心人物正典档案：身份、外貌、性格、习惯、语言风格、人际关系、时间线与知识边界。对话按小说时间点执行三层约束；电影设定与原著隔离。</p>
 <div class="row"><div><label>搜索人物</label><input id="charSearch" placeholder="输入名字，如邦德、M、Q、布洛菲尔德…"></div>
 <div><label>按首次登场筛选</label><select id="charBookFilter"><option value="">全部作品</option></select></div></div>
@@ -198,7 +198,7 @@ body[data-language="en"]{font-family:Georgia,"Times New Roman",serif} body[data-
 
 <!--2情报馆-->
 <section class="mod" id="dossier">
-<h2><span class="en">INTELLIGENCE ARCHIVE</span>情报档案馆</h2>
+<h2><span class="en">INTELLIGENCE ARCHIVE</span><span class="label-zh">情报档案馆</span></h2>
 <p class="mod-desc">跨全系列检索：小说、人物、地点、组织、武器装备、事件、反派计划、线索、关系、时间线。结果尽量给出书名与出处，原著事实与模型推断明确区分，推断必标。</p>
 <div class="row"><div style="flex:3"><input id="dossierQ" placeholder="输入关键词，如日本、苏联、莱特、武器、赌场、布洛菲尔德…"></div><button class="btn small" id="dossierGo" style="flex:0 0 auto">检索</button></div>
 <div class="chips">
@@ -219,7 +219,7 @@ body[data-language="en"]{font-family:Georgia,"Times New Roman",serif} body[data-
 <div id="dossierTabBody" style="margin-top:12px"></div>
 
 <div class="submod" id="literary">
-<h3><span class="en">LITERARY INTELLIGENCE</span>文学研究与创作实验</h3>
+<h3><span class="en">LITERARY INTELLIGENCE</span><span class="label-zh">文学研究与创作实验</span></h3>
 <p class="mod-desc">研究伊恩·弗莱明的写作方式：人物塑造、悬念、信息控制、节奏、动作、气氛、女性角色、冷战背景、小说与电影改编差异。原创写作实验一律标注非原著，绝不冒充原著内容。</p>
 <div class="grid g2" id="litTopics"></div>
 <div class="grid g2" style="margin-top:14px;align-items:start">
@@ -248,13 +248,13 @@ body[data-language="en"]{font-family:Georgia,"Times New Roman",serif} body[data-
 
 <!--3任务模拟-->
 <section class="mod" id="mission">
-<h2><span class="en">MISSION CONTROL</span>任务控制中心</h2>
+<h2><span class="en">MISSION CONTROL</span><span class="label-zh">任务控制中心</span></h2>
 <p class="mod-desc">你扮演英国秘密情报机构行动人员。每个选择都会改变资金、风险、情报可信度、线索与人物关系，并决定后续分支。状态机是互动改编；原著事实另附章节出处，不把玩家选择伪装成弗莱明原著。</p>
 <div class="card" id="missionCanonBrief" style="margin:12px 0"><p class="meta">正在加载《皇家赌场》核验事实与章节索引…</p></div><div class="grid g2" id="missionList"></div>
 <div class="card" id="missionPanel" style="margin-top:14px"><h3>任务控制台</h3><p class="meta">先在上方选一个任务开始。</p><div class="empty">尚未开始任务</div></div>
 
 <div class="submod" id="experience">
-<h3><span class="en">FIELD OPERATIONS</span>实战体验 · 成为邦德</h3>
+<h3><span class="en">FIELD OPERATIONS</span><span class="label-zh">实战体验 · 成为邦德</span></h3>
 <p class="mod-desc">从M办公室领任务，到Q部门领装备，再到酒店、餐厅、酒吧、赌场、俱乐部与豪华汽车。赌场部分是真正可玩的百家乐：有规则、有对手、有筹码输赢。</p>
 <div class="chips" id="expScenes"></div>
 <div class="card" id="expPanel" style="margin-top:12px"><h3>场景</h3><p class="meta">点上方场景进入体验。</p><div class="empty">尚未选择场景</div></div>
@@ -286,7 +286,7 @@ body[data-language="en"]{font-family:Georgia,"Times New Roman",serif} body[data-
 
 <!--4世界探索-->
 <section class="mod" id="atlas">
-<h2><span class="en">WORLD EXPLORER</span>007世界探索</h2>
+<h2><span class="en">WORLD EXPLORER</span><span class="label-zh">007世界探索</span></h2>
 <p class="mod-desc">世界探索以核验知识库中的170处地点为目录。地图只绘制有可靠真实坐标的城市；虚构地点与未核实坐标的地点只进入档案，不伪造坐标。</p>
 <div class="row">
 <div><label>按国家筛选</label><select id="atlasCountry"><option value="">全部国家</option></select></div>
