@@ -29,6 +29,10 @@ assert.ok(app.includes('fetch("/api/canon?action=chapters&novel="'), "character 
 assert.ok(app.includes('chapterNo: $("#sceneChapter").value || null'), "chat request includes selected chapter");
 assert.ok(app.includes("firstNovelId"), "character selection automatically matches first-appearance novel");
 assert.ok(app.includes("mode: chatMode"), "chat mode is sent to server");
+assert.ok(app.includes('$("#chatModes .chipbtn")'), "all four chat mode controls are bound inside their container");
+assert.ok(!app.includes('$("#chatModes.chipbtn")'), "invalid chat mode selector is absent");
+assert.ok(app.includes('addChatMsg("me", input);'), "user messages render without a speaker heading");
+assert.ok(app.includes('m.role === "user" ? null'), "restored user messages render without a speaker heading");
 assert.ok(app.includes('$$("[data-lab]").forEach'), "all literary experiment buttons are bound");
 assert.ok(!app.includes('\n$("[data-lab]").forEach'), "single-element forEach initialization crash is fixed");
 assert.ok(app.includes("createShoe()"), "baccarat uses a shuffled physical deck");
