@@ -7,22 +7,19 @@ const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&l
 
 let CHARACTERS = [];
 
-const BOOKS = [
-{ zh: "皇家赌场", en: "Casino Royale", year: 1953, kind: "长篇", setting: "法国皇家莱索", villain: "勒·希弗", summary: "邦德受命在皇家赌场牌桌上击败苏联情报机构出纳勒·希弗，阻止其翻本。牌桌、酷刑与薇丝朋·琳德之死，构成系列开篇。" },
-{ zh: "生死关头", en: "Live and Let Die", year: 1954, kind: "长篇", setting: "美国、牙买加", villain: "Mr Big（大先生）", summary: "邦德追查与苏联方面勾结的犯罪头目，费利克斯·莱特首次登场并与邦德结盟。" },
-{ zh: "月亮牌", en: "Moonraker", year: 1955, kind: "长篇", setting: "英国肯特郡", villain: "雨果·德拉克斯", summary: "邦德调查月亮牌导弹计划，揭开德拉克斯爵士的真实身份与阴谋。" },
-{ zh: "金刚钻", en: "Diamonds Are Forever", year: 1956, kind: "长篇", setting: "非洲、美国、拉斯维加斯", villain: "钻石走私集团", summary: "邦德卧底追查钻石走私链，从非洲一路追到拉斯维加斯。" },
-{ zh: "来自俄罗斯的爱情", en: "From Russia with Love", year: 1957, kind: "长篇", setting: "伊斯坦布尔、东方快车", villain: "克伦斯坦、罗莎·克莱布", summary: "苏联方面以密码机为诱饵设下诱杀局，塔蒂亚娜·罗曼诺娃在途中倒向邦德。" },
-{ zh: "诺博士", en: "Dr No", year: 1958, kind: "长篇", setting: "牙买加、蟹礁岛", villain: "诺博士", summary: "邦德前往牙买加调查失踪事件，登上蟹礁岛，对付双手为钢钳的诺博士。" },
-{ zh: "金手指", en: "Goldfinger", year: 1959, kind: "长篇", setting: "英国、美国诺克斯堡", villain: "奥里克·金手指", summary: "邦德从高尔夫球场一路追查黄金走私巨头金手指，挫败其诺克斯堡行动。" },
-{ zh: "只为你的双眼", en: "For Your Eyes Only", year: 1960, kind: "短篇集", setting: "多地", villain: "多位", summary: "短篇集，含多个独立任务故事。" },
-{ zh: "霹雳弹", en: "Thunderball", year: 1961, kind: "长篇", setting: "巴哈马、拿骚", villain: "布洛菲尔德、埃米利奥·拉戈", summary: "幽灵党首脑布洛菲尔德首次登场，策划核勒索，邦德在巴哈马海域追击。" },
-{ zh: "爱我的间谍", en: "The Spy Who Loved Me", year: 1962, kind: "长篇", setting: "美国", villain: "黑帮打手", summary: "以女性视角讲述的特别篇章，邦德在旅馆夜战中救下女主人公。" },
-{ zh: "女王密使", en: "On Her Majesty's Secret Service", year: 1963, kind: "长篇", setting: "瑞士阿尔卑斯山区", villain: "布洛菲尔德", summary: "邦德追查布洛菲尔德，与崔西相恋结婚，婚礼当日崔西遇害。" },
-{ zh: "雷霆谷", en: "You Only Live Twice", year: 1964, kind: "长篇", setting: "日本", villain: "布洛菲尔德", summary: "失忆与复仇之作，邦德前往日本，在雷霆谷与化名博士的布洛菲尔德对决。" },
-{ zh: "金枪人", en: "The Man with the Golden Gun", year: 1965, kind: "长篇", setting: "牙买加", villain: "弗朗西斯科·斯卡拉曼加", summary: "邦德追查以金枪闻名的杀手斯卡拉曼加，弗莱明去世后出版的遗作。" },
-{ zh: "八爪女与黎明生死线", en: "Octopussy and The Living Daylights", year: 1966, kind: "短篇集", setting: "多地", villain: "多位", summary: "短篇集，弗莱明去世后出版，含八爪女等故事。" }
-];
+let BOOKS = [];
+let canonBooksLoaded = false;
+async function ensureCanonBooks() {
+  if (canonBooksLoaded) return BOOKS;
+  const r = await fetch("/api/canon?action=books");
+  if (!r.ok) throw new Error("原著目录接口返回 " + r.status);
+  const d = await r.json();
+  BOOKS = (d.books || []).map(b => ({
+    id: b.id, zh: b.titleZh, en: b.titleEn, year: b.year, kind: b.kind
+  }));
+  canonBooksLoaded = true;
+  return BOOKS;
+}
 
 const LOCATIONS = [
 { id: "london", name: "伦敦", country: "英国", lat: 51.5074, lng: -0.1278, fictional: false, books: ["皇家赌场", "月亮牌", "金手指"], note: "秘密情报机构总部所在地，M办公室与Q部门所在地。", people: ["邦德", "M", "钱彭妮", "Q"] },
@@ -140,30 +137,6 @@ box.appendChild(div);
 box.scrollTop = box.scrollHeight;
 }
 
-function scriptedReply(c, input) {
-const t = (input || "").toLowerCase();
-if (/(你是谁|身份|介绍)/.test(input)) return c.intro + "我的知识截止于" + c.cutoff + "，之后的事我不知道。";
-if (/武器|枪|装备/.test(input)) {
-if (c.id === "q") return "装备清单按Q部门口径：瓦尔特PPK手枪是标准配枪，诺博士起换装。别的装备得看任务单，我不能凭空给你。";
-if (c.id === "bond") return "我的枪是瓦尔特PPK，诺博士那次换的。早期的贝雷塔已经不用了。";
-return "武器装备的事得问Q，我只知道自己职责范围内的部分。";
-}
-if (/任务|汇报|M/.test(input) && c.id === "m") return "汇报。只讲事实，别加你的看法。任务简报在任务模拟器里，M办公室只听汇报，不发新任务。";
-if (/赌场|牌|百家乐/.test(input)) {
-if (c.id === "lechiffre") return "牌桌上没有朋友，只有筹码。你想坐下来，先证明你有筹码。";
-if (c.id === "bond") return "牌桌上我只信两样东西：牌，和对手的眼睛。皇家赌场那一晚就是这么赢的。";
-return "赌场的事我知道的不多，牌桌细节得问当时在场的人。";
-}
-if (/电影/.test(input)) return "电影版剧情不算原著，我不能拿电影里的事当小说事实回答你。";
-if (/(死|杀|结局)/.test(input) && c.facts.some((f) => /身亡|处决|杀害|自杀/.test(f))) {
-const f = c.facts.find((f2) => /身亡|处决|杀害|自杀/.test(f2));
-return "按原著事实：" + f + "超出这个范围的事，我不知道。";
-}
-const fact = c.facts.find((f) => input.split("").some((ch) => ch && f.includes(ch) && ch.length > 0)) || null;
-if (fact && input.length > 3) return "按我知道的原著事实：" + fact;
-return c.scripted[Math.floor(Math.random() * c.scripted.length)] + "（这句是离线脚本化演示回复，模型接入后会按三层约束实时生成。）";
-}
-
 function clearThinking() {
 const t = document.getElementById("chatThinking");
 if (t) t.remove();
@@ -266,48 +239,6 @@ renderCharGrid();
 }
 
 // ---- 情报档案馆 ----
-function dossierSearchLocal(q) {
-  const query = (q || "").trim();
-  if (!query) return [];
-  const hits = [];
-  const push = (type, title, source, detail) => hits.push({ type, title, source, detail });
-  if (/日本/.test(query)) push("小说", "雷霆谷", "雷霆谷（1964年）", "邦德前往日本，在雷霆谷对决布洛菲尔德。");
-  if (/苏联|苏俄|SMERSH/i.test(query)) {
-    push("反派", "勒·希弗", "皇家赌场（1953年）", "苏联情报机构出纳，挪用公款后企图在赌场翻本。");
-    push("组织", "苏联反间谍机构", "皇家赌场、来自俄罗斯的爱情", "早期小说中的苏联方面机构。");
-    push("人物", "塔蒂亚娜·罗曼诺娃", "来自俄罗斯的爱情（1957年）", "苏联密码员，被卷入针对邦德的诱杀计划。");
-  }
-  if (/莱特|费利克斯/.test(query)) push("人物", "费利克斯·莱特", "生死关头（1954年）首次登场", "美国中央情报局人员，邦德的盟友。底本核验出现作品：皇家赌场、生死关头、金刚钻、金手指、霹雳弹、金枪人（共6本）。");
-  if (/武器|手枪|PPK|贝雷塔|金枪/.test(query)) {
-    push("武器", "贝雷塔手枪", "皇家赌场至来自俄罗斯的爱情", "邦德早期配枪。");
-    push("武器", "瓦尔特PPK手枪", "诺博士（1958年）起", "诺博士起成为邦德标志性配枪。");
-    push("武器", "金枪", "金枪人（1965年）", "斯卡拉曼加的标志性武器。");
-  }
-  if (/赌场|百家乐|牌桌/.test(query)) {
-    push("小说", "皇家赌场", "皇家赌场（1953年）", "全书核心为赌场牌桌对决。");
-    push("小说", "金刚钻", "金刚钻（1956年）", "涉及拉斯维加斯赌场。示例，待TXT核验。");
-  }
-  if (/邦德|007/.test(query)) BOOKS.forEach((b) => push("小说", b.zh, b.en + "（" + b.year + "年）", b.summary));
-  if (/布洛菲尔德|幽灵党|SPECTRE/i.test(query)) {
-    push("反派", "布洛菲尔德", "霹雳弹（1961年）首次登场", "幽灵党首脑，全系列最大反派。");
-    push("组织", "幽灵党", "霹雳弹、女王密使、雷霆谷", "布洛菲尔德领导的跨国犯罪组织。");
-  }
-  if (/崔西|薇丝朋|塔蒂亚娜|女性/.test(query)) {
-    push("人物", "薇丝朋·琳德", "皇家赌场（1953年）", "英国财政部联络人，双面间谍。");
-    push("人物", "塔蒂亚娜·罗曼诺娃", "来自俄罗斯的爱情（1957年）", "苏联密码员。");
-    push("人物", "崔西·邦德", "女王密使（1963年）", "邦德唯一正式迎娶的妻子。");
-  }
-  if (/伦敦/.test(query)) push("地点", "伦敦", "全系列", "秘密情报机构总部所在地。");
-  if (/牙买加|蟹礁岛/.test(query)) {
-    push("地点", "金斯敦", "生死关头、诺博士、金枪人", "邦德多次行动的加勒比海基地。");
-    push("地点", "蟹礁岛", "诺博士（1958年）", "虚构岛屿，诺博士基地所在地。");
-  }
-  if (/M|钱彭妮|Q/.test(query) && !/邦德/.test(query)) {
-    CHARACTERS.filter((c) => ["m", "moneypenny", "q"].includes(c.id)).forEach((c) => push("人物", c.zh, c.firstBook + "（" + c.firstYear + "年）首次登场", c.intro));
-  }
-  return hits;
-}
-
 async function runDossier(q) {
   const box = $("#dossierResults");
   box.innerHTML = '<div class="empty">正在检索14部核验原著……</div>';
@@ -661,17 +592,6 @@ const LIT_TOPICS = [
 { t: "小说与电影改编差异", d: "电影强化了装备与场面，弱化了小说的心理与生活细节。凡是电影独有的装备、情节与人物关系，一律不得当成小说原著引用。本站人物知识边界只认小说。"}
 ];
 
-function litAnswer(q) {
-if (/悬念/.test(q)) return "弗莱明写悬念靠信息差：读者和邦德同时只知道一半，另一半由对手慢慢揭开。牌桌、密室、追踪三种场景轮换，悬念从不掉线。皇家赌场全书以牌桌为悬念核心。";
-if (/反派/.test(q)) return "弗莱明式反派有三件套：肉体特征、痴迷之物、缜密计划。勒·希弗精于算计，诺博士迷信科学，金手指痴迷黄金，布洛菲尔德把犯罪当生意。反派越具体，邦德的胜利越有分量。";
-if (/邦德.*塑造|人物塑造/.test(q)) return "邦德的可信来自细节与弱点：他讲究衣着饮食，会输牌、会受伤、会动情。配枪从贝雷塔换成瓦尔特PPK（诺博士，1958年），马提尼摇匀不搅拌（皇家赌场，1953年），都是人物标签。";
-if (/电影|改编/.test(q)) return "电影强化了装备与场面，弱化了小说的心理与生活细节。电影独有的装备、情节与人物关系，一律不得当成小说原著。本站只认小说口径，细节待TXT核验。";
-if (/女性/.test(q)) return "薇丝朋、塔蒂亚娜、崔西各有立场与秘密，不是花瓶。她们的背叛与牺牲推动剧情，也定义了邦德的感情线。评价以原著为准，不以后世眼光简单否定。";
-if (/冷战|时代|背景/.test(q)) return "系列诞生于冷战高峰：苏联情报机构、核勒索、密码机，都是时代的直接投影。读邦德要读出1950年代英国人的焦虑：帝国落日，间谍仍在。";
-if (/节奏|叙事/.test(q)) return "弗莱明的节奏是慢开场、快收尾：前半部铺陈生活细节与人物关系，后半部把冲突压缩进几天甚至几小时。动作场景写得短、准、狠，不写招式，写结果。";
-return "示例知识库中没有这个问题的现成答案。按本站规则，超出示例范围的一律说不知道，不编造。待TXT导入核验后，文学研究室可按原著逐条作答。";
-}
-
 const LAB_GEN = {
 villain: () => {
 const marks = ["左手缺了两根手指", "皮肤在阳光下泛着不自然的青色", "说话时总带着一股樟脑味", "右眼是玻璃义眼，转动时有轻微声响"];
@@ -690,8 +610,9 @@ return "秘密行动草稿：地点——" + pick(cities) + "；目标——" + 
 compare: () => {
 const a = BOOKS[Math.floor(Math.random() * BOOKS.length)];
 let b = BOOKS[Math.floor(Math.random() * BOOKS.length)];
-if (b.zh === a.zh) b = BOOKS[(BOOKS.indexOf(a) + 3) % BOOKS.length];
-return "" + a.zh + "（" + a.year + "年）与" + b.zh + "（" + b.year + "年）：前者以“" + a.setting + "”为舞台，反派是" + a.villain + "；后者舞台在“" + b.setting + "”，反派是" + b.villain + "。比较角度：开场节奏、信息揭示速度、邦德的弱点暴露方式。结论须以原著细读为准，待TXT核验后可逐条对照。";
+if (b.id === a.id) b = BOOKS[(BOOKS.indexOf(a) + 3) % BOOKS.length];
+return `${a.zh}（${a.year}年）与${b.zh}（${b.year}年）：可从叙事视角、人物知识边界、悬念铺设、行动节奏与结局结构进行比较。此处仅生成研究提纲，具体结论需回到章节证据。`;
+
 }
 };
 
@@ -722,8 +643,13 @@ return `<div class="card" style="margin:8px 0"><h3>${esc(title)} <span class="ta
 box.innerHTML = `<div class="empty">正典检索失败：${esc(e.message)}。</div>`;
 }
 });
-$("[data-lab]").forEach((b) => b.addEventListener("click", () => {
-$("#labOut").innerHTML = `<p style="font-size:15px">${esc(LAB_GEN[b.dataset.lab]())}</p><p class="meta">原创实验内容，不属于Ian Fleming原著正典。</p>`;
+$("[data-lab]").forEach((b) => b.addEventListener("click", async () => {
+try {
+if (b.dataset.lab === "compare") await ensureCanonBooks();
+$("#labOut").innerHTML = `<p style="font-size:15px">${esc(LAB_GEN[b.dataset.lab]())}</p><p class="meta">研究提纲/原创实验内容，不替代原著章节证据。</p>`;
+} catch(e) {
+$("#labOut").innerHTML = `<p class="meta">无法读取核验原著目录：${esc(e.message)}</p>`;
+}
 }));
 }
 
@@ -820,8 +746,9 @@ async function loadCanonWorldDirectory() {
   }
 }
 
-function initAtlas() {
+async function initAtlas() {
 loadCanonWorldDirectory();
+try { await ensureCanonBooks(); } catch(e) { console.error("canon book index unavailable", e); }
 const persons = [...new Set(LOCATIONS.flatMap((l) => l.people))];
 const countries = [...new Set(LOCATIONS.map((l) => l.country))];
 const books = [...new Set(LOCATIONS.flatMap((l) => l.books))];
