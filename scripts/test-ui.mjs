@@ -32,6 +32,8 @@ assert.ok(app.includes("function restoreMissionState(preferredId = null)"), "mis
 assert.ok(app.includes('"007-mission:last"'), "mission resume pointer is stored locally");
 assert.ok(!app.includes("离线演示中"), "offline model status does not promise scripted demo replies");
 assert.ok(app.includes("const MAP_COORDINATES = {"), "map coordinates are a separate verified registry");
+for (const id of ["dr-no", "goldfinger", "thunderball"]) assert.ok(app.includes(`id: "${id}"`), `canon mission exists: ${id}`);
+assert.ok(app.includes("loadMissionCanonBrief(missionDef.novelId || null)"), "mission evidence panel follows the selected mission");
 assert.ok(!app.includes("const LOCATIONS = ["), "legacy duplicate location catalog is removed");
 
 console.log("PASS: four-module UI structure, chapter controls, canon-backed world explorer, and browser script syntax");
