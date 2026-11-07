@@ -6,6 +6,7 @@ import { onRequest as world } from "../functions/api/world.js";
 import { onRequest as mission } from "../functions/api/mission.js";
 import { onRequest as canon } from "../functions/api/canon.js";
 import { onRequestPost as chat } from "../functions/api/chat.js";
+import { onRequestPost as literary } from "../functions/api/literary.js";
 
 const ctx = (path) => ({ request: new Request("http://localhost" + path), env: {} });
 const postCtx = (path, body) => ({
@@ -21,6 +22,7 @@ const json = async (response) => ({ status: response.status, body: await respons
 const s = await json(await status(ctx("/api/status")));
 assert.equal(s.status, 200);
 assert.equal(s.body.dataState, "verified-canon");
+assert.equal(s.body.llm.mode, "not-configured", "Workers AI must not be treated as the production model when MiniMax is absent");
 assert.equal(s.body.data.facts, 773);
 assert.equal(s.body.data.coreCharacters, 32);
 
@@ -33,6 +35,7 @@ assert.equal(b.body.books.length, 14);
 
 const c = await json(await characters());
 assert.equal(c.body.characters.length, 32);
+assert.ok(c.body.characters.find(x => x.id === "bond")?.firstNovelId, "character API exposes first-appearance novel id");
 
 const w = await json(await world());
 assert.equal(w.body.locations.length, 170);
@@ -67,6 +70,13 @@ assert.equal(invalidSceneChapter.status, 400);
 assert.equal(invalidSceneChapter.body.code, "UNKNOWN_CHAPTER");
 const romanChapterScene = await json(await canon(ctx("/api/canon?action=scene&character=mr-big&novel=live-and-let-die&chapter=XXIII")));
 assert.equal(romanChapterScene.status, 409, "Roman numeral chapter boundary must block characters after exit");
+
+const reportWrongRecipient = await json(await chat(postCtx("/api/chat", {
+  characterIds: ["bond"], mode: "report", novelId: "casino-royale",
+  messages: [{ role: "user", content: "任务完成。" }]
+})));
+assert.equal(reportWrongRecipient.status, 400);
+assert.equal(reportWrongRecipient.body.code, "REPORT_REQUIRES_M");
 
 const chatWithoutTimeline = await json(await chat(postCtx("/api/chat", {
   characterIds: ["bond"],
@@ -122,6 +132,11 @@ const chatFutureKnowledgeBlocked = await json(await chat(postCtx("/api/chat", {
   messages: [{ role: "user", content: "你是谁？" }]
 })));
 assert.equal(chatFutureKnowledgeBlocked.status, 409, "dead character must not appear in later novel scenes");
+
+const lit = await json(await literary(postCtx("/api/literary", { question: "邦德在皇家赌场的牌局如何推动人物塑造？" })));
+assert.equal(lit.status, 503, "literary analysis reports missing MiniMax configuration instead of silent fallback");
+assert.equal(lit.body.code, "MODEL_NOT_CONNECTED");
+assert.ok(Array.isArray(lit.body.evidence));
 
 const ambiguous = await json(await canon(ctx("/api/canon?action=resolve&q=Molony&kind=characters")));
 assert.equal(ambiguous.body.result.ambiguous, true);
