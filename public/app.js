@@ -368,7 +368,61 @@ const EN_TEXT = new Map([
 ["已保存进度：","Saved progress: "],
 ["条核验索引"," verified index entries"],
 ["选择人物后自动匹配原著","The original novel is matched automatically when you select a character"]
-]);
+  ["例如：弗莱明怎么写悬念？邦德和反派有什么共同点？","For example: How does Fleming build suspense? What do Bond and his adversaries have in common?"],
+  ["弗莱明用细节堆出邦德：衣着、饮食、牌技、配枪，每一处都服务于“专业人士”形象。邦德不是超人，他会受伤、会输牌、会动情，这正是他可信的原因。","Fleming builds Bond through precise details: clothes, food, card skills and weapons all reinforce the image of a professional. Bond is no superhero. He gets hurt, loses at cards and falls in love; those vulnerabilities make him believable."],
+  ["弗莱明式反派都有三件套：肉体特征（钢钳、金色皮肤）、痴迷之物（黄金、科学、权力）、缜密计划。反派越具体，邦德的胜利越有分量。","Fleming’s villains tend to have three defining elements: a striking physical trait, an obsession such as gold, science or power, and an intricate plan. The more distinctive the villain, the more meaningful Bond’s victory."],
+  ["弗莱明常用“信息差”制造悬念：读者和邦德同时只知道一半，另一半由对手慢慢揭开。牌桌、密室、追踪，三种场景轮换，悬念从不掉线。","Fleming often creates suspense through an information gap: the reader and Bond know only half the story, while the opponent gradually reveals the rest. Card tables, locked rooms and surveillance alternate to keep tension alive."],
+  ["谁知道什么，弗莱明算得很清楚。邦德不知道的事，读者也不知道；反派知道的事，读者只能猜。这种控制让反转成立，也让人物可信。","Fleming carefully controls who knows what. If Bond does not know something, the reader usually does not either; what the villain knows is left for the reader to infer. This makes twists credible and characters convincing."],
+  ["慢开场、快收尾是弗莱明的节奏：前半部铺陈生活细节与人物关系，后半部把冲突压缩进几天甚至几小时，读起来像上膛的手枪。","Fleming’s rhythm often moves from a slow opening to a fast finish. The first half establishes daily routines and relationships; the second compresses the conflict into days or even hours, like a loaded gun."],
+  ["弗莱明的动作写得短、准、狠：不写招式，写结果；不写心理，写动作。追车、格斗、牌桌对决，全部用事实推进，不用形容词撑场。","Fleming writes action with economy and precision: show the result rather than the technique, and the action rather than lengthy introspection. Car chases, fights and card-table duels advance through concrete events, not decorative adjectives."],
+  ["赌场、加勒比海、阿尔卑斯山，弗莱明写环境必带气味与温度：雪茄味、海风、冷空气。环境不是背景，是邦德的另一个对手。","From casinos to the Caribbean and the Alps, Fleming gives settings a smell and a temperature: cigar smoke, sea air and cold mountain air. The environment is not just a backdrop; it becomes another opponent for Bond."],
+  ["薇丝朋、塔蒂亚娜、崔西各有立场与秘密，不是花瓶。她们的背叛与牺牲推动剧情，也定义了邦德的感情线。评价时应以原著为准，不以后世眼光简单否定。","Vesper, Tatiana and Tracy each have their own motives and secrets. They are not decorative figures: their betrayals and sacrifices shape the plot and Bond’s emotional life. Assess them in the context of the novels rather than dismissing them through a purely modern lens."],
+  ["系列诞生于冷战高峰：苏联情报机构、核勒索、密码机，都是时代的直接投影。读邦德要读出1950年代英国人的焦虑：帝国落日，间谍仍在。","The series emerged at the height of the Cold War. Soviet intelligence, nuclear blackmail and cipher machines reflect the anxieties of the era. Reading Bond also means recognising 1950s British concerns: an empire in decline, with espionage still in the shadows."],
+  ["电影强化了装备与场面，弱化了小说的心理与生活细节。凡是电影独有的装备、情节与人物关系，一律不得当成小说原著引用。本站人物知识边界只认小说。","The films amplify gadgets and spectacle while often reducing the novels’ psychological and everyday detail. Film-only gadgets, plot points and relationships must never be cited as novel canon. This archive treats the original novels as the authority."],
+  ["以1953年《皇家赌场》为正典背景的互动改编。任务选择与分支为玩家体验设计，不等同于弗莱明原著实际发生的事件。","An interactive adaptation set against the canon of the 1953 novel Casino Royale. Mission choices and branches are designed for gameplay; they are not events that occur in Fleming’s original text."],
+  ["依据《诺博士》核验章节设计：调查斯特兰威斯与特鲁布拉德失踪案，追查蟹礁岛。玩家选择与分支为互动改编，不等同于原著实际过程。","Built around verified chapters of Dr. No: investigate the disappearance of Strangways and Trueblood, then follow the trail to Crab Key. Player choices and branches are an interactive adaptation, not a reproduction of the novel’s events."],
+  ["依据《金手指》核验章节设计：追查黄金外流、揭穿金手指的走私网络，并识别诺克斯堡大满贯计划。玩家分支属于互动改编。","Built around verified chapters of Goldfinger: trace the gold movements, expose Goldfinger’s smuggling network and uncover the Fort Knox Operation Grand Slam. Player branches are interactive adaptations."],
+  ["依据《霹雳弹》核验章节设计：追踪被劫持的Vindicator轰炸机与两枚核弹，调查SPECTRE勒索，并在巴哈马阻止核袭击。玩家分支属于互动改编。","Built around verified chapters of Thunderball: track the hijacked Vindicator bomber and its two nuclear weapons, investigate SPECTRE’s blackmail and prevent a nuclear attack in the Bahamas. Player branches are interactive adaptations."],
+  ["原创任务，明确标注非原著：使用弗莱明世界观与人物设定生成的独立任务，人物与组织关系为原创设计，不是原著剧情。","An original mission, explicitly marked as non-canon. It uses Fleming’s world and character framework, but its plot, character relationships and organisations are newly created."],
+  ["第1阶段·M的简报","Stage 1 · M’s Briefing"],
+  ["第2阶段·抵达皇家莱索","Stage 2 · Arrival in Royale-les-Eaux"],
+  ["第3阶段·牌桌对决","Stage 3 · The Baccarat Table"],
+  ["第4阶段·决胜与伏击","Stage 4 · The Showdown and Ambush"],
+  ["第1阶段·M的简报","Stage 1 · M’s Briefing"],
+  ["第2阶段·金斯顿调查","Stage 2 · Kingston Investigation"],
+  ["第3阶段·夜渡蟹礁岛","Stage 3 · Crossing to Crab Key at Night"],
+  ["第4阶段·诺博士的设施","Stage 4 · Dr. No’s Facility"],
+  ["第1阶段·英格兰银行简报","Stage 1 · Bank of England Briefing"],
+  ["第2阶段·迈阿密牌局","Stage 2 · The Miami Card Game"],
+  ["第3阶段·黄金走私链","Stage 3 · The Gold Smuggling Network"],
+  ["第4阶段·诺克斯堡计划","Stage 4 · The Fort Knox Plan"],
+  ["第1阶段·核勒索简报","Stage 1 · Nuclear Blackmail Briefing"],
+  ["第2阶段·灌木林线索","Stage 2 · The Shrublands Lead"],
+  ["第3阶段·拿骚与飞碟号","Stage 3 · Nassau and the Disco Volante"],
+  ["第4阶段·核弹回收","Stage 4 · Recovering the Nuclear Weapons"],
+  ["第1阶段·M的简报【非原著·原创】","Stage 1 · M’s Briefing [Original, Non-Canon]"],
+  ["第2阶段·抵达威尼斯【非原著·原创】","Stage 2 · Arrival in Venice [Original, Non-Canon]"],
+  ["第3阶段·假面舞会【非原著·原创】","Stage 3 · The Masked Ball [Original, Non-Canon]"],
+  ["M在伦敦办公室交给你任务简报：勒·希弗挪用苏联情报机构公款炒作失败，今晚将在皇家赌场牌桌上翻本。你的资金由财政部提供，薇丝朋·琳德担任联络人。记住：输光他，就等于切断他的退路。","M briefs you at his London office. Le Chiffre has lost money embezzled from Soviet intelligence and plans to win it back at the Casino Royale table tonight. Your funds come from the Treasury, and Vesper Lynd is your liaison. Remember: bankrupt him, and you cut off his escape route."],
+  ["你抵达法国海滨赌城皇家莱索。赌场灯火通明，勒·希弗已经坐在牌桌旁。薇丝朋在吧台等你，她带来一个消息：勒·希弗今晚的资金来源不明，有人说他身后站着苏联方面的人。","You arrive in the French seaside resort of Royale-les-Eaux. The casino is ablaze with light, and Le Chiffre is already at the table. Vesper is waiting at the bar with a warning: the source of his funds tonight is unknown, and some believe Soviet interests are backing him."],
+  ["百家乐牌桌。勒·希弗推上一大叠筹码，眼睛盯着你。你手里的资金有限，每一把都可能决定任务成败。","At the baccarat table, Le Chiffre pushes forward a towering stack of chips and fixes his eyes on you. Your funds are limited; every hand could decide the mission."],
+  ["最后一把牌结束，勒·希弗输光了筹码。他离场时脸色惨白。回酒店的路上，你注意到有人跟上了你——任务还没有结束。","The final hand is over. Le Chiffre has lost his entire stake and leaves looking ashen. On your way back to the hotel, you notice someone following you. The mission is not over."],
+  ["加勒比地区负责人斯特兰威斯与助手玛丽·特鲁布拉德失踪三周。官方称两人私奔，但每日18时30分与伦敦的无线电联络突然中断，档案也被取空。M派你前往牙买加调查，唯一线索指向蟹礁岛与岛主诺博士。","Strangways, the Secret Service chief in the Caribbean, and his assistant Mary Trueblood have been missing for three weeks. The official story is that they eloped, but their daily 6:30 p.m. radio check-ins with London abruptly stopped and their files were emptied. M sends you to Jamaica. The only lead points to Crab Key and its owner, Dr. No."],
+  ["金斯顿的线索逐渐指向诺博士：斯特兰威斯的太阳光汽车被人使用，总督府档案可能遭到渗透，一名自称报社摄影记者的安娜贝尔·钟反复拍摄你的行踪。","The trail in Kingston increasingly points to Dr. No. Strangways’s Sunbeam has been used by someone else, Government House records may have been compromised, and Annabel Chung, claiming to be a newspaper photographer, keeps taking pictures of your movements."],
+  ["你与夸雷尔准备乘独木舟夜渡蟹礁岛。岛上传闻有一条会喷火的巨龙，奥杜邦协会的调查人员也曾在岛上失踪。雷达与海岸巡逻让登陆风险极高。","Quarrel and you prepare to cross to Crab Key by canoe under cover of darkness. Locals speak of a fire-breathing dragon, and Audubon Society investigators have also disappeared there. Radar and coastal patrols make a landing extremely dangerous."],
+  ["你已进入岛内设施。诺博士承认斯特兰威斯夫妇遭到谋杀，并透露自己干扰美国导弹试验的计划。哈妮被囚禁，岛上守卫正在收紧搜索。","You have entered the island facility. Dr. No admits that the Strangways couple were murdered and reveals his plan to interfere with American missile tests. Honey is being held captive, and the guards are tightening their search."],
+  ["英格兰银行发现大量黄金异常外流。M要求你调查奥里克·金手指：他以旧金回收生意为掩护，拥有分布在多个国家的金条储备。","The Bank of England has detected an unusual outflow of gold. M orders you to investigate Auric Goldfinger, who uses a scrap-gold business as cover and maintains bullion reserves across several countries."],
+  ["杜邦称自己一周内输给金手指25,000美元，怀疑对方作弊。邦德在弗洛里迪亚纳酒店调查，发现吉尔·马斯特顿在套房内用望远镜与麦克风向金手指报牌。","Du Pont says he lost $25,000 to Goldfinger in a week and suspects cheating. At the Floridiana Hotel, Bond discovers that Jill Masterton is using a telescope and microphone from a suite to signal the cards to Goldfinger."],
+  ["调查发现，金手指的劳斯莱斯银色幽灵并非普通车身：车身含有约两吨18K白金，拆解后将被改制成航空座椅运往印度。线索还指向一项代号“大满贯”的大规模行动。","The investigation reveals that Goldfinger’s Rolls-Royce Silver Ghost has an extraordinary body: roughly two tons of 18-carat white gold, to be dismantled and converted into aircraft seats for shipment to India. The trail also points to a major operation codenamed Grand Slam."],
+  ["金手指的目标是诺克斯堡黄金储备。他计划使用原子弹头炸开金库，并在供水系统投放GB神经毒剂；黄金将由苏联巡洋舰运走。你必须设法破坏计划并保护平民。","Goldfinger’s target is the Fort Knox gold reserve. He plans to breach the vault with an atomic device and release GB nerve agent into the water supply; a Soviet cruiser will carry away the gold. You must stop the plan and protect civilians."],
+  ["SPECTRE劫持一架Vindicator轰炸机，机上有两枚核弹，并向英国政府勒索价值一亿英镑的黄金。期限迫近，M派你前往巴哈马参与搜寻行动。","SPECTRE has hijacked a Vindicator bomber carrying two nuclear weapons and is demanding £100 million in gold from the British government. The deadline is approaching, and M sends you to the Bahamas to join the search."],
+  ["邦德在灌木林疗养院发现利普腕下的红闪电帮会纹身。利普企图在治疗过程中杀死邦德，随后被SPECTRE灭口。M要求你不要被这条支线拖住，尽快前往巴哈马。","At the Shrublands health clinic, Bond spots the Red Lightning gang tattoo beneath Lippe’s wrist. Lippe tries to kill him during treatment and is later silenced by SPECTRE. M orders you not to get sidetracked and to proceed to the Bahamas."],
+  ["拿骚。你接触到拉戈的飞碟号与多米诺·佩塔基。拉戈声称自己是寻宝团负责人，但船上燃油、人员与航行安排存在疑点。多米诺与拉戈的关系也并不简单。","Nassau. You make contact with Largo’s yacht, the Disco Volante, and Domino Vitali. Largo claims to lead a treasure-hunting expedition, but the vessel’s fuel, crew and sailing schedule raise questions. Domino’s relationship with Largo is more complicated than it appears."],
+  ["你与莱特找到失事飞机残骸，确认两枚核弹与引信已被取走。拉戈准备将核弹运往大巴哈马岛导弹基地。必须在布放前拦截潜水队。","You and Leiter locate the wreck and confirm that both nuclear weapons and their triggers have been removed. Largo plans to move them to a missile base on Grand Bahama. The divers must be intercepted before deployment."],
+  ["M交给你一份原创任务简报：一名化名“玻璃匠”的中间人将在威尼斯出售一份伪造的密码机图纸，买家不明。你的任务是查清买家身份，阻止图纸外流。本任务为原创设计，不是原著剧情。","M gives you an original assignment: an intermediary known as “the Glassmaker” will sell forged cipher-machine blueprints in Venice. The buyer is unknown. Identify the buyer and stop the plans from leaving the country. This mission is original and is not part of the novels."],
+  ["威尼斯，雨夜。你在圣马可广场附近的咖啡馆与线人接头。线人说：“玻璃匠”今晚会出现在假面舞会，买家也会到场，但舞会宾客名单是假的。","Venice, a rainy night. You meet your contact at a café near St Mark’s Square. The contact says the Glassmaker will attend a masked ball tonight, along with the buyer, but the guest list is fake."],
+  ["舞会灯火辉煌，人人戴着面具。“玻璃匠”出现了，手里提着一个黑色皮箱。你必须在不惊动全场的情况下接近他。","The ballroom glitters, and every guest wears a mask. The Glassmaker arrives carrying a black case. You must get close without alerting the room."]
+]); 
 const originalText = new WeakMap();
 const originalAttributes = new WeakMap();
 function translateElementAttributes(root = document) {
@@ -381,7 +435,7 @@ function translateElementAttributes(root = document) {
       if (!el.hasAttribute(name)) return;
       if (!(name in saved)) saved[name] = el.getAttribute(name);
       let value = saved[name];
-      if (LANGUAGE === "en") for (const pair of EN_TEXT) value = value.split(pair[0]).join(pair[1]);
+      if (LANGUAGE === "en") for (const pair of [...EN_TEXT].sort((a,b)=>b[0].length-a[0].length)) value = value.split(pair[0]).join(pair[1]);
       if (el.getAttribute(name) !== value) el.setAttribute(name, value);
     });
   });
@@ -391,7 +445,7 @@ function translateTextNode(n) {
   if (!originalText.has(n)) originalText.set(n,n.nodeValue);
   const src=originalText.get(n);
   let out=src;
-  if (LANGUAGE==="en") for (const [zh,en] of EN_TEXT) out=out.split(zh).join(en);
+  if (LANGUAGE==="en") for (const [zh,en] of [...EN_TEXT].sort((a,b)=>b[0].length-a[0].length)) out=out.split(zh).join(en);
   if (n.nodeValue!==out) n.nodeValue=out;
 }
 function applyLanguage() {
