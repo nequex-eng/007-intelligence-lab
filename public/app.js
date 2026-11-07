@@ -372,7 +372,7 @@ function initDossier() {
 
 // ---- 任务模拟器：真实状态机 ----
 const MISSIONS = [
-{ id: "casino", title: "皇家赌场", kind: "原著任务", kindTag: "原著", desc: "严格依据原著设定：1953年，皇家莱索。你的任务是在牌桌上击败勒·希弗，阻止苏联情报机构出纳翻本。", start: { funds: 10000, risk: 20, cred: 70, day: 1},
+{ id: "casino", title: "皇家赌场", kind: "原著改编互动", kindTag: "改编", desc: "以1953年《皇家赌场》为正典背景的互动改编。任务选择与分支为玩家体验设计，不等同于弗莱明原著实际发生的事件。", start: { funds: 10000, risk: 20, cred: 70, day: 1},
 stages: [
 { id: "brief", title: "第1阶段·M的简报", text: "M在伦敦办公室交给你任务简报：勒·希弗挪用苏联情报机构公款炒作失败，今晚将在皇家赌场牌桌上翻本。你的资金由财政部提供，薇丝朋·琳德担任联络人。记住：输光他，就等于切断他的退路。", choices: [
 { text: "仔细研读简报与勒·希弗的牌风记录", hint: "情报可信度+15，时间+半天", fx: { cred: 15, day: 0.5}, next: "arrive"},
@@ -436,6 +436,7 @@ $$("#missionList [data-mission]").forEach((el) => el.addEventListener("click", (
 function startMission(id) {
 missionDef = missionById(id);
 missionState = { funds: missionDef.start.funds, risk: missionDef.start.risk, cred: missionDef.start.cred, day: missionDef.start.day, clues: [], rels: {}, equip: [], stage: missionDef.stages[0].id, log: []};
+saveMissionState();
 renderMissionStage();
 }
 
@@ -448,6 +449,7 @@ if (fx.day) s.day += fx.day;
 if (fx.clue) s.clues.push(fx.clue);
 if (fx.equip) s.equip.push(fx.equip);
 if (fx.rel) s.rels[fx.rel[0]] = (s.rels[fx.rel[0]] || 0) + fx.rel[1];
+saveMissionState();
 }
 
 function stateBarHTML() {
@@ -506,7 +508,13 @@ async function loadCasinoCanonBrief() {
     box.innerHTML = '<h3>'+esc(d.novel.titleZh)+' · '+d.novel.year+'</h3><p class="meta">'+esc(d.missionMode)+'：玩家选择会产生互动分支，不能冒充原著剧情。</p><p>'+esc(d.novel.timeline)+'</p><p><b>章节目录：</b>'+esc(d.chapters.map(c=>c.no+" "+c.title).join(" · "))+'</p><p><b>核验事实摘录：</b></p><ul>'+facts.map(f=>'<li>'+esc("第"+f.chapter+"章："+f.fact)+'</li>').join("")+'</ul>';
   } catch(e) { box.innerHTML = '<p class="meta">原著任务资料加载失败：'+esc(e.message)+'。任务剧情暂不标为已完成正典核验。</p>'; }
 }
-function initMissions() { renderMissionList(); loadCasinoCanonBrief(); }
+function saveMissionState() {
+  try { if (missionDef && missionState) localStorage.setItem("007-mission:" + missionDef.id, JSON.stringify({ missionId: missionDef.id, state: missionState })); } catch(e) {}
+}
+function restoreMissionState() {
+  try { const saved = JSON.parse(localStorage.getItem("007-mission:casino") || "null"); if (!saved || !saved.state) return; const def = missionById(saved.missionId); if (!def || !def.stages.some(x=>x.id===saved.state.stage)) return; missionDef=def; missionState=saved.state; renderMissionStage(); } catch(e) {}
+}
+function initMissions() { renderMissionList(); loadCasinoCanonBrief(); restoreMissionState(); }
 
 // ---- 成为邦德：场景体验 + 百家乐 ----
 const EXP_SCENES = [
