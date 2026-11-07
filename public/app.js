@@ -299,35 +299,51 @@ function dossierSearchLocal(q) {
 
 async function runDossier(q) {
   const box = $("#dossierResults");
-  box.innerHTML = `<div class="empty">检索中…</div>`;
-  let results = null;
+  box.innerHTML = '<div class="empty">正在检索14部核验原著……</div>';
   try {
-    const r = await fetch("/api/dossier?q=" + encodeURIComponent(q));
-    if (r.ok) { const d = await r.json(); results = d.results || []; }
-  } catch (e) { /* 离线用本地检索 */ }
-  if (!results) results = dossierSearchLocal(q);
-  if (!results.length) {
-    box.innerHTML = `<div class="empty">示例知识库中没有“${esc(q)}”的匹配结果。待TXT导入后可检索全系列。原著事实与模型推断区分：本页结果均为原著事实（示例），无推断内容。</div>`;
-    return;
+    const r = await fetch("/api/dossier?q=" + encodeURIComponent(q) + "&limit=60");
+    if (!r.ok) throw new Error("检索接口返回 " + r.status);
+    const d = await r.json(), results = d.results || [];
+    if (!results.length) {
+      box.innerHTML = `<div class="empty">核验知识库中没有找到“${esc(q)}”的匹配记录。未命中不代表原著绝对没有，只表示当前索引没有可确认结果。</div>`;
+      return;
+    }
+    box.innerHTML = `<p class="meta">共${results.length}条 · 来源：核验知识库 · 原著事实与推测分别标记。</p>` +
+      results.map(h => {
+        const title = h.title_zh || h.name_zh || h.name || h.name_en || h.entity || h.id || "未命名记录";
+        const kind = h.kind || "档案";
+        const source = [h.title_zh && h.novel_id ? h.title_zh : null, h.chapter ? "第"+h.chapter+"章" : null, h.source_novel || h.novel_id || null].filter(Boolean).join(" · ") || (h.sources || []).join("；") || "索引记录";
+        const detail = h.fact || h.summary || h.description || h.story_timeline || h.role || h.note || h.change || h.quote || "该条目没有提供摘要字段。";
+        const status = h.canon_or_inference === "inference" ? "推测" : h.canon_or_inference === "canon" ? "正典事实" : kind;
+        return `<div class="card" style="margin:8px 0"><h3>${esc(title)} <span class="tag gold">${esc(status)}</span></h3><p class="meta">出处：${esc(source)}</p><p>${esc(detail)}</p>${h.quote ? `<blockquote>${esc(h.quote)}</blockquote>` : ""}</div>`;
+      }).join("");
+  } catch (e) {
+    box.innerHTML = `<div class="empty">核验检索暂时不可用：${esc(e.message)}。已禁用旧示例数据回退，避免把未核验内容冒充正典。</div>`;
   }
-  box.innerHTML = `<p class="meta">共${results.length}条结果 · ${SAMPLE} · 原著事实，非推断。</p>` +
-    results.map((h) => `<div class="card" style="margin:8px 0"><h3>${esc(h.title)} <span class="tag gold">${esc(h.type)}</span></h3><p class="meta">出处：${esc(h.source)}</p><p>${esc(h.detail)}</p></div>`).join("");
 }
 
-function renderDossierTab(tab) {
+async function renderDossierTab(tab) {
   const body = $("#dossierTabBody");
-  if (tab === "books") {
-    body.innerHTML = `<p class="meta">${SAMPLE} · 章节索引待TXT导入后生成。</p><table><tr><th>书名</th><th>英文原名</th><th>首版</th><th>类型</th><th>地点</th><th>反派</th><th>梗概</th></tr>` +
-      BOOKS.map((b) => `<tr><td><b>${esc(b.zh)}</b></td><td>${esc(b.en)}</td><td>${b.year}年</td><td>${esc(b.kind)}</td><td>${esc(b.setting)}</td><td>${esc(b.villain)}</td><td>${esc(b.summary)}</td></tr>`).join("") + `</table>`;
-  } else if (tab === "timeline") {
-    body.innerHTML = `<p class="meta">${SAMPLE}</p>` + TIMELINE.map((t) =>
-      `<div class="log"><b style="color:var(--gold2)">${t[0]}年·${esc(t[1])}</b>：${esc(t[2])}</div>`).join("");
-  } else if (tab === "orgs") {
-    body.innerHTML = `<p class="meta">${SAMPLE}</p><div class="grid g2">` + ORGS.map((o) =>
-      `<div class="card"><h3>${esc(o.name)}</h3><p class="meta">${esc(o.en)} · ${esc(o.kind)}</p><p>${esc(o.note)}</p><p class="meta">出现：${esc(o.books)}</p></div>`).join("") + `</div>`;
-  } else if (tab === "weapons") {
-    body.innerHTML = `<p class="meta">${SAMPLE}</p><table><tr><th>武器</th><th>英文</th><th>类型</th><th>说明</th><th>出现作品</th></tr>` +
-      WEAPONS.map((w) => `<tr><td><b>${esc(w.name)}</b></td><td>${esc(w.en)}</td><td>${esc(w.kind)}</td><td>${esc(w.note)}</td><td>${esc(w.books)}</td></tr>`).join("") + `</table>`;
+  body.innerHTML = '<div class="empty">正在读取核验档案……</div>';
+  const kinds = { books:"books", timeline:"timeline", orgs:"organizations", weapons:"equipment" };
+  try {
+    const r = await fetch("/api/dossier?kind=" + kinds[tab]);
+    if (!r.ok) throw new Error("档案接口返回 " + r.status);
+    const d = await r.json();
+    if (tab === "books") {
+      body.innerHTML = `<p class="meta">14部原著 · 章节摘要来自逐部核验知识库</p><table><tr><th>书名</th><th>英文原名</th><th>出版年</th><th>类型</th><th>章节</th><th>故事时间线</th></tr>` +
+        d.books.map(b => `<tr><td><b>${esc(b.titleZh)}</b></td><td>${esc(b.titleEn)}</td><td>${b.year}</td><td>${esc(b.kind)}</td><td>${b.chapters}</td><td>${esc(b.summary)}</td></tr>`).join("") + `</table>`;
+    } else if (tab === "timeline") {
+      body.innerHTML = `<p class="meta">按出版顺序排列；故事内部年份与出版年份不混为一谈。</p>` +
+        (d.timeline || []).map(t => `<div class="log"><b style="color:var(--gold2)">${esc(t.title_zh || t.novel)}</b>：${esc(t.story_timeline || "")}</div>`).join("");
+    } else {
+      const items = tab === "orgs" ? d.organizations : d.equipment;
+      const title = tab === "orgs" ? "组织档案" : "装备档案";
+      body.innerHTML = `<p class="meta">${title} · ${items.length}条核验索引</p><div class="grid g2">` +
+        items.map(o => `<div class="card"><h3>${esc(o.name_zh || o.name || o.id)}</h3><p class="meta">${esc(o.name_en || "")} · ${esc(o.id)}</p><p>${esc(o.description || o.role || o.note || "原著索引条目")}</p><p class="meta">出场：${esc((o.appearances || []).map(a => a.novel || a).join("、"))}</p></div>`).join("") + `</div>`;
+    }
+  } catch (e) {
+    body.innerHTML = `<div class="empty">核验档案加载失败：${esc(e.message)}。不会回退到旧示例数据。</div>`;
   }
 }
 
