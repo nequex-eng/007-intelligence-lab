@@ -1587,27 +1587,59 @@ const EXP_SCENES = [
 { id: "travel", title: "旅行与城市探索", text: "从伦敦到皇家莱索，从伊斯坦布尔到牙买加，邦德的世界是一张不断展开的地图。每一座城市都有它的赌场、它的线人与它的危险。去世界地图看看14本书走过的地方。", choices: ["打开世界地图", "回顾皇家赌场之行", "计划下一站"], replies: ["地图在下方世界地图模块，170处核验地点，点任意地点进入相关档案。", "皇家莱索：牌桌、薇丝朋、勒·希弗。一切从那里开始。", "下一站由你决定——任务模拟器里还有一场威尼斯原创任务等着你。"] }
 ];
 
-let expLog = [];
+let expCurrentScene = "m-office";
+const expSessions = {};
 function initExperience() {
   $("#expScenes").innerHTML = EXP_SCENES.map((s) => `<button class="chipbtn" data-exp="${s.id}">${esc(s.title)}</button>`).join("");
   $$("#expScenes .chipbtn").forEach((b) => b.addEventListener("click", () => showExpScene(b.dataset.exp)));
   showExpScene("m-office");
 }
-
 function showExpScene(id) {
-  const s = EXP_SCENES.find((x) => x.id === id);
+  const scene = EXP_SCENES.find((x) => x.id === id);
+  if (!scene) return;
+  expCurrentScene = id;
+  if (!expSessions[id]) expSessions[id] = [];
   $$("#expScenes .chipbtn").forEach((x) => x.classList.toggle("active", x.dataset.exp === id));
-  $("#expPanel").innerHTML = `<h3>${esc(s.title)}</h3><p>${esc(s.text)}</p>
-  ${s.choices.map((c, i) => `<button class="choice" data-expchoice="${i}">${esc(c)}</button>`).join("")}
-  <div id="expOut">${expLog.length ? expLog.map((l) => `<div class="log">${esc(l)}</div>`).join("") : ""}</div>
-  ${id === "casino" ? `<p class="meta">赌场实战在下方百家乐小游戏，筹码与输赢都是真的。</p>` : ""}`;
-  $$("#expPanel [data-expchoice]").forEach((el) => el.addEventListener("click", () => {
-    const reply = s.replies[+el.dataset.expchoice];
-    expLog.push(s.title + "：" + reply);
-    $("#expOut").innerHTML = expLog.map((l) => `<div class="log">${esc(l)}</div>`).join("");
-    if (id === "casino" && +el.dataset.expchoice === 2) document.getElementById("baccaratCard").scrollIntoView({ behavior: "smooth" });
-    if (id === "travel" && +el.dataset.expchoice === 0) document.getElementById("atlas").scrollIntoView({ behavior: "smooth" });
+  const history = expSessions[id];
+  $("#expPanel").innerHTML = `<h3>${esc(scene.title)}</h3><p>${esc(scene.text)}</p>
+  <p class="meta">${LANGUAGE === "en" ? "Choose an approach or describe any action in your own words. Outcomes are generated dynamically and are not guaranteed." : "你可以选择行动，也可以自由输入任何行动。后果由模型根据情境动态判定，不保证成功。"}</p>
+  ${scene.choices.map((choice, i) => `<button class="choice" data-expchoice="${i}">${esc(choice)}</button>`).join("")}
+  <div id="expOut">${history.map(m => `<div class="log"><b>${m.role === "user" ? (LANGUAGE === "en" ? "You" : "你") : (LANGUAGE === "en" ? "Field report" : "现场反馈")}：</b>${esc(m.content)}</div>`).join("")}</div>
+  <div class="row" style="margin-top:10px"><div style="flex:3"><input id="expActionInput" maxlength="1000" placeholder="${LANGUAGE === "en" ? "Describe your own action…" : "描述你想采取的行动…"}"></div><button class="btn small" id="expActionSend" style="flex:0 0 auto">${LANGUAGE === "en" ? "Act" : "行动"}</button></div>
+  ${id === "casino" ? `<p class="meta">${LANGUAGE === "en" ? "The baccarat table below is also playable." : "下方百家乐桌也可以直接实战。"}</p>` : ""}`;
+  $$("#expPanel [data-expchoice]").forEach(el => el.addEventListener("click", () => {
+    const choice = scene.choices[Number(el.dataset.expchoice)];
+    sendExperienceAction(choice);
+    if (id === "casino" && Number(el.dataset.expchoice) === 2) document.getElementById("baccaratCard").scrollIntoView({ behavior: "smooth" });
+    if (id === "travel" && Number(el.dataset.expchoice) === 0) document.getElementById("atlas").scrollIntoView({ behavior: "smooth" });
   }));
+  $("#expActionSend").addEventListener("click", () => {
+    const input = $("#expActionInput"), value = input.value.trim();
+    if (value) sendExperienceAction(value);
+  });
+  $("#expActionInput").addEventListener("keydown", e => { if (e.key === "Enter") $("#expActionSend").click(); });
+}
+async function sendExperienceAction(action) {
+  const scene = EXP_SCENES.find(x => x.id === expCurrentScene);
+  const history = expSessions[expCurrentScene] || (expSessions[expCurrentScene] = []);
+  history.push({ role: "user", content: action });
+  const out = $("#expOut"), send = $("#expActionSend");
+  if (out) out.innerHTML = history.map(m => `<div class="log"><b>${m.role === "user" ? (LANGUAGE === "en" ? "You" : "你") : (LANGUAGE === "en" ? "Field report" : "现场反馈")}：</b>${esc(m.content)}</div>`).join("") + `<div class="log" id="expThinking">${LANGUAGE === "en" ? "The situation is developing…" : "局势正在发展……"}</div>`;
+  if (send) send.disabled = true;
+  try {
+    const response = await fetch("/api/field", { method: "POST", headers: { "content-type": "application/json" },
+      body: JSON.stringify({ scene: scene.title, setting: scene.text, action, language: LANGUAGE, history: history.slice(0, -1).slice(-10) }) });
+    const data = await response.json();
+    const reply = response.ok ? data.reply : (data.error || (LANGUAGE === "en" ? "The simulation is unavailable." : "模拟暂时不可用。"));
+    history.push({ role: "assistant", content: reply });
+    if (out) out.innerHTML = history.map(m => `<div class="log"><b>${m.role === "user" ? (LANGUAGE === "en" ? "You" : "你") : (LANGUAGE === "en" ? "Field report" : "现场反馈")}：</b>${esc(m.content)}</div>`).join("");
+  } catch (error) {
+    history.push({ role: "assistant", content: LANGUAGE === "en" ? "Connection error. Please try again." : "连接失败，请重试。" });
+    if (out) out.innerHTML = history.map(m => `<div class="log"><b>${m.role === "user" ? (LANGUAGE === "en" ? "You" : "你") : (LANGUAGE === "en" ? "现场反馈" : "现场反馈")}：</b>${esc(m.content)}</div>`).join("");
+  } finally {
+    if (send) send.disabled = false;
+    $("#expActionInput")?.focus();
+  }
 }
 
 // 百家乐（简化规则，已在页面说明）
