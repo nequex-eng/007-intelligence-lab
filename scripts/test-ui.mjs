@@ -28,7 +28,7 @@ assert.ok(app.includes('fetch("/api/world")'), "world explorer reads canonical l
 assert.ok(app.includes('fetch("/api/canon?action=chapters&novel="'), "character theatre reads canonical chapter index");
 assert.ok(app.includes('chapterNo: $("#sceneChapter").value || null'), "chat request includes selected chapter");
 assert.ok(app.includes("firstNovelId"), "character selection automatically matches first-appearance novel");
-assert.ok(app.includes('const modes = $("#chatModes .chipbtn")'), "chat mode controls bind before remote data loading");
+assert.ok(/const modes = \\$\\$\("#chatModes \.chipbtn"\)/.test(app), "all chat mode buttons are selected as a collection before remote data loading");
 assert.ok(app.includes('loadSceneChapters(scene.value);'), "chapter index loads without blocking initial character rendering");
 assert.ok(!app.includes('await loadSceneChapters(scene.value);'), "slow chapter index cannot block character cards and chat controls");
 assert.ok(app.indexOf('const modes = $("#chatModes .chipbtn")') < app.indexOf('fetch("/api/characters")'), "chat mode handlers are registered before API requests");
