@@ -88,7 +88,7 @@ export function getNovel(id) {
 export function getCharacter(id) {
   return characterCore.find((c) => c.id === id) || null;
 }
-export function characterForScene(id, novelId) {
+export function characterForScene(id, novelId, chapterNo = null) {
   const character = getCharacter(id);
   if (!character) return { ok: false, error: "UNKNOWN_CHARACTER" };
   const book = getNovel(novelId);
@@ -98,6 +98,12 @@ export function characterForScene(id, novelId) {
   const status = entry?.status || "unknown";
   if (status !== "present") {
     return { ok: false, error: "CHARACTER_UNAVAILABLE_AT_SCENE", status, character, book };
+  }
+  if (chapterNo !== null && chapterNo !== undefined && character.first_appearance?.novel === book.novel_id) {
+    const firstChapter = Number(character.first_appearance.first_chapter);
+    if (Number.isFinite(firstChapter) && Number(chapterNo) < firstChapter) {
+      return { ok: false, error: "CHARACTER_NOT_YET_APPEARED", status: "not-yet-appeared", character, book };
+    }
   }
   return { ok: true, character, book, status };
 }
@@ -113,7 +119,7 @@ function questionTerms(question) {
   return [...new Set([...english, ...chinese])];
 }
 
-export function canonSystemPrompt(character, book, status, question = "") {
+export function canonSystemPrompt(character, book, status, question = "", chapterNo = null) {
   const allowedNovelNos = new Set((character.knowledge_scope || [])
     .filter(x => x.status === "present" && x.novel_no <= book.novel_no)
     .map(x => x.novel_no));
@@ -123,6 +129,10 @@ export function canonSystemPrompt(character, book, status, question = "") {
     if (novel.novel_no > book.novel_no || !allowedNovelNos.has(novel.novel_no)) continue;
     for (const fact of novel.facts || []) {
       if (fact.canon_or_inference !== "canon") continue;
+      if (novel.novel_no === book.novel_no && chapterNo !== null && chapterNo !== undefined) {
+        const factChapter = Number(String(fact.chapter).match(/\\d+/)?.[0]);
+        if (Number.isFinite(factChapter) && factChapter > Number(chapterNo)) continue;
+      }
       const hay = [fact.entity, fact.fact, fact.quote].filter(Boolean).join(" ").toLocaleLowerCase();
       const score = terms.reduce((n, term) => n + (hay.includes(term) ? (term.length > 2 ? 3 : 1) : 0), 0);
       if (score > 0) candidates.push({ score, text: `[${novel.title_zh} / 第${fact.chapter}章] ${fact.fact}` });
@@ -131,11 +141,17 @@ export function canonSystemPrompt(character, book, status, question = "") {
   candidates.sort((a, b) => b.score - a.score);
   const facts = candidates.slice(0, 16).map(x => x.text);
   const sceneScope = (character.knowledge_scope || []).find(x => x.novel === book.novel_id);
+  const chapterLabel = chapterNo === null || chapterNo === undefined
+    ? "全书结束（可使用本书全篇已发生事实）"
+    : `第${chapterNo}章结束（严禁引用本章之后的事实）`;
+  const scopeText = chapterNo === null || chapterNo === undefined
+    ? `本书知识范围：已知：${JSON.stringify(sceneScope?.known || [])}；未知：${JSON.stringify(sceneScope?.unknown || [])}`
+    : "已启用章级知识截止。人物只能知道所选章节及此前已发生、且本人有机会获知的事实；不得提及后续章节的事件、身份揭露、死亡或结局。";
   return [
     "你是Ian Fleming的007原著世界角色。必须严格遵守以下正典约束。",
-    `当前场景：${book.title_zh}（${book.title_en}），出版年${book.publication_year}。人物：${character.name_zh || character.name_en}。`,
+    `当前场景：${book.title_zh}（${book.title_en}），出版年${book.publication_year}。人物：${character.name_zh || character.name_en}。当前时间点：${chapterLabel}。`,
     `该人物在本书状态：${status}。人物身份与行为边界：${JSON.stringify({ appearance: character.appearance, age_clues: character.age_clues, personality: character.personality, habits: character.habits, background: character.background, relationships: character.relationships, voice_style: character.voice_style, behavioral_boundaries: character.behavioral_boundaries, knowledge_boundaries: character.knowledge_boundaries, timeline_cutoff: character.timeline_cutoff })}`,
-    `本书知识范围：已知：${JSON.stringify(sceneScope?.known || [])}；未知：${JSON.stringify(sceneScope?.unknown || [])}`,
+    scopeText,
     knowledgeControl.purpose,
     ...knowledgeControl.rules.map(r => `${r.id} ${r.rule}：${r.text}`),
     "仅可将知识库canon事实作为确定事实；inference必须明确标为推测；原著未写必须回答不知道。不得把电影设定混入原著。",
