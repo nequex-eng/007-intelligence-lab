@@ -1,5 +1,5 @@
 import { canonData } from "../functions/_data/canon-data.js";
-import { novels, characterCore, indexes, searchCanon, characterForScene } from "../functions/_lib/canon.js";
+import { novels, characterCore, indexes, searchCanon, resolveEntity, characterForScene } from "../functions/_lib/canon.js";
 import assert from "node:assert/strict";
 
 const facts = novels.reduce((n, b) => n + (b.facts || []).length, 0);
@@ -11,6 +11,8 @@ assert.equal(indexes.locations.locations.length, 170, "location index count");
 assert.equal(indexes.equipment.equipment.length, 128, "equipment index count");
 assert.equal(characterCore.length, 32, "32 core character constraints");
 assert.ok(searchCanon("Vesper", "all", 20).length > 0, "search must return canonical matches");
+assert.equal(resolveEntity("leiter", "characters")?.entity?.id, "felix-leiter", "alias resolution");
+assert.equal(resolveEntity("Molony", "characters")?.ambiguous, true, "ambiguous aliases must return candidates");
 assert.equal(characterForScene("bond", "casino-royale").ok, true, "Bond present in Casino Royale");
 assert.equal(characterForScene("le-chiffre", "live-and-let-die").ok, false, "Le Chiffre dead after Casino Royale");
 assert.equal(characterForScene("vesper-lynd", "live-and-let-die").ok, false, "Vesper dead after Casino Royale");
