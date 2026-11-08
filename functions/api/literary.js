@@ -57,13 +57,12 @@ export async function onRequestPost(context) {
           { role: "user", content: answer }
         ]);
         if (translated.ok) answer = translated.text;
+        if (/[\u3400-\u9fff]/.test(answer)) return json({ error: "The model returned mixed-language content. Please retry.", evidence }, 502);
       }
       return json({ answer, model: out.model, evidence });
     }
     return json({
-      error: out.code === "MODEL_NOT_CONNECTED"
-        ? "MiniMax 尚未配置：已返回知识库检索证据；配置生产环境 MINIMAX_API_KEY 后即可生成文学分析。"
-        : "MiniMax 请求失败：请检查 API Key、模型权限与账户额度。以下保留已检索证据。",
+      error: language === "en" ? (out.code === "MODEL_NOT_CONNECTED" ? "MiniMax is not configured. Verified evidence is shown below; configure the production API key to generate the analysis." : "MiniMax request failed. Check the API key, model access and account quota. Verified evidence is shown below.") : (out.code === "MODEL_NOT_CONNECTED" ? "MiniMax 尚未配置：已返回知识库检索证据；配置生产环境 MINIMAX_API_KEY 后即可生成文学分析。" : "MiniMax 请求失败：请检查 API Key、模型权限与账户额度。以下保留已检索证据。"),
       code: out.code,
       modelStatus: llmStatus(context.env || {}),
       modelError: out.reason || "Unknown MiniMax error",
@@ -71,7 +70,7 @@ export async function onRequestPost(context) {
     }, out.code === "MODEL_NOT_CONNECTED" ? 503 : 502);
   } catch (error) {
     console.error("literary request failed", error?.message);
-    return json({ error: "文学研究请求处理失败，请稍后重试。", evidence: [] }, 400);
+    return json({ error: language === "en" ? "The literary research request failed. Please try again." : "文学研究请求处理失败，请稍后重试。", evidence: [] }, 400);
   }
 }
 
