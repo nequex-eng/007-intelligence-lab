@@ -9,7 +9,7 @@ const json = (data, status = 200) => new Response(JSON.stringify(data), {
 export async function onRequestPost(context) {
   try {
     const body = await context.request.json();
-    const language = body.language === "en" ? "en" : "zh";
+    language = body.language === "en" ? "en" : "zh";
     const question = String(body.question || "").trim().slice(0, 1200);
     if (!question) return json({ error: language === "en" ? "Enter a literary research question." : "请输入文学研究问题", evidence: [] }, 400);
     const compact = question.replace(/如何|为什么|怎样|怎么|是否|以及|通过|推动|分析|研究|比较|请问|请你|帮我|一下|对于|关于|的|了|吗|呢|？|\?/g, "");
