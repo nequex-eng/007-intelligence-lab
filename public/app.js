@@ -1567,7 +1567,7 @@ ${stage.choices.map((ch,i)=>`<button type="button" class="choice" data-choice="$
 ${missionState.clues.length?`<p class="meta"><b>${LANGUAGE==="en"?"Evidence secured:":"已发现线索："}</b></p>`+missionState.clues.map(c=>`<div class="log">${esc(c)}</div>`).join(""):""}
 <div class="row" style="margin-top:10px"><button type="button" class="btn ghost small" id="missionQuit">${LANGUAGE==="en"?"Abandon mission":"放弃任务"}</button></div>`;
 $$("#missionPanel [data-choice]").forEach((el) => el.addEventListener("click", () => chooseMission(+el.dataset.choice)));
-$("#missionPanel [data-stage-jump]").forEach((el) => el.addEventListener("click", (event) => {
+$$("#missionPanel [data-stage-jump]").forEach((el) => el.addEventListener("click", (event) => {
   event.preventDefault();
   event.stopPropagation();
   if (missionBusy || !missionDef || !missionState) return;
