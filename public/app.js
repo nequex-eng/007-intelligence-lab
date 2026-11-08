@@ -1547,16 +1547,32 @@ return `<div class="statebar">
 </div>`;
 }
 
+function missionStageNavHTML() {
+  if (!missionDef || !missionState) return "";
+  return `<nav class="mission-stage-nav" aria-label="任务阶段" style="display:flex;flex-wrap:wrap;gap:7px;margin:12px 0 16px">
+    <span class="meta" style="width:100%">点击阶段可切换查看或继续任务</span>
+    ${missionDef.stages.map((item, index) => `<button type="button" class="chipbtn ${item.id === missionState.stage ? "active" : ""}" data-stage-jump="${esc(item.id)}" aria-current="${item.id === missionState.stage ? "step" : "false"}">${index + 1}. ${esc(item.title.split("·")[0].trim())}</button>`).join("")}
+  </nav>`;
+}
+
 function renderMissionStage() {
 const panel = $("#missionPanel");
 const stage = missionDef.stages.find((s) => s.id === missionState.stage);
-panel.innerHTML = `<h3>${esc(missionDef.title)} · ${esc(missionDef.kind)}</h3>${stateBarHTML()}
+panel.innerHTML = `<h3>${esc(missionDef.title)} · ${esc(missionDef.kind)}</h3>${missionStageNavHTML()}${stateBarHTML()}
 <h3 style="margin-top:6px">${esc(stage.title)}</h3><p>${esc(stage.text)}</p>
 <p class="meta">${LANGUAGE==="en"?"The AI game master evaluates each decision against the briefing, evidence, resources and prior actions. Outcomes are not predetermined.":"由大模型结合任务简报、证据、资源和此前行动裁定结果；成功并非预设。"}</p>
 ${stage.choices.map((ch,i)=>`<button class="choice" data-choice="${i}" ${missionBusy?"disabled":""}>${esc(ch.text)}<small>${esc(ch.hint)}</small></button>`).join("")}
 ${missionState.clues.length?`<p class="meta"><b>${LANGUAGE==="en"?"Evidence secured:":"已发现线索："}</b></p>`+missionState.clues.map(c=>`<div class="log">${esc(c)}</div>`).join(""):""}
 <div class="row" style="margin-top:10px"><button class="btn ghost small" id="missionQuit">${LANGUAGE==="en"?"Abandon mission":"放弃任务"}</button></div>`;
-$$("#missionPanel [data-choice]").forEach((el) => el.addEventListener("click", () => chooseMission(+el.dataset.choice)));
+$("#missionPanel [data-choice]").forEach((el) => el.addEventListener("click", () => chooseMission(+el.dataset.choice)));
+$("#missionPanel [data-stage-jump]").forEach((el) => el.addEventListener("click", () => {
+  if (missionBusy || !missionDef || !missionState) return;
+  const target = missionDef.stages.find((item) => item.id === el.dataset.stageJump);
+  if (!target) return;
+  missionState.stage = target.id;
+  saveMissionState();
+  renderMissionStage();
+}));
 $("#missionQuit").addEventListener("click", () => {
 if (missionDef) {
 localStorage.removeItem("007-mission:" + missionDef.id);
