@@ -2,7 +2,7 @@ import { generate, llmStatus } from "../_lib/llm.js";
 const json=(d,s=200)=>new Response(JSON.stringify(d),{status:s,headers:{"content-type":"application/json; charset=utf-8","cache-control":"no-store"}});
 const modes={infiltration:["潜入行动","Covert Infiltration"],intelligence:["情报分析","Intelligence Analysis"],negotiation:["审讯与交涉","Interrogation & Negotiation"],crisis:["危机处置","Crisis Response"],surveillance:["监视与反监视","Surveillance & Counter-surveillance"]};
 function parse(s){s=String(s||"").replace(/^\x60\x60\x60(?:json)?\s*/i,"").replace(/\s*\x60\x60\x60$/,"").trim();try{return JSON.parse(s)}catch(e){}const a=s.indexOf("{"),b=s.lastIndexOf("}");if(a>=0&&b>a){try{return JSON.parse(s.slice(a,b+1))}catch(e){}}return null;}
-const clamp=n=>Math.max(0,Math.min(100,Math.round(Number(n)||50)));
+const clamp=n=>{const v=Number(n);return Number.isFinite(v)?Math.max(0,Math.min(100,Math.round(v))):50;};
 export async function onRequestPost(ctx){
  try{
  const b=await ctx.request.json(),lang=b.language==="en"?"en":"zh",mode=modes[b.mode]?b.mode:"infiltration",kind=b.action==="act"?"act":"start",env=ctx.env||{};
