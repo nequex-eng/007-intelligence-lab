@@ -7,6 +7,7 @@ const json = (data, status = 200) => new Response(JSON.stringify(data), {
 });
 
 export async function onRequestPost(context) {
+  let language = "zh";
   try {
     const body = await context.request.json();
     language = body.language === "en" ? "en" : "zh";
