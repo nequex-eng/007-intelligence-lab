@@ -15,7 +15,7 @@
     "deploy": "bash deploy.sh",
     "test:canon": "node scripts/test-canon.mjs",
     "test:api": "node scripts/test-api.mjs",
-    "test:ui": "node --check public/app.js && node --check functions/_lib/canon.js && node --check functions/api/chat.js && node --check functions/api/training.js && node scripts/test-ui.mjs"
+    "test:ui": "node --check public/app.js && node --check functions/_lib/canon.js && node --check functions/api/chat.js && node --check functions/api/training.js && node --check functions/api/literary.js && node --check functions/api/field.js && node scripts/test-ui.mjs"
   },
   "type": "module"
 }
