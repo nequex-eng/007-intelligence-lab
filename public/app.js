@@ -907,7 +907,7 @@ function applyLanguage() {
   if (activeDossierTab) renderDossierTab(activeDossierTab);
   const activeDossierQuery = document.getElementById("dossierQ")?.value?.trim();
   if (activeDossierQuery) runDossier(activeDossierQuery);
-  const labOutput = document.getElementById("labOut");
+  const litAnswer = document.getElementById("litAnswer");\n  if (litAnswer) litAnswer.innerHTML = LANGUAGE === "en" ? '<div class="empty">Ask a question to analyse the novels in English.</div>' : '<div class="empty">尚未提问</div>';\n  const labOutput = document.getElementById("labOut");
   if (labOutput && labOutput.textContent.trim()) labOutput.innerHTML = LANGUAGE === "en" ? '<div class="empty">Choose a writing experiment above to generate an English draft.</div>' : '<div class="empty">点上方任一实验开始。</div>';
   if (Array.isArray(canonWorldLocations) && canonWorldLocations.length) {
     const countrySelect = document.getElementById("atlasCountry");
@@ -925,7 +925,7 @@ function applyLanguage() {
 }
 function initLanguage(){
   const b=document.getElementById("languageToggle");
-  if(b)b.addEventListener("click",()=>{LANGUAGE=LANGUAGE==="en"?"zh":"en";try{localStorage.setItem("007-language",LANGUAGE);}catch(_){}applyLanguage();if(CHARACTERS.length){renderCharGrid();if(selectedChar)selectChar(selectedChar);}if(expCurrentScene)showExpScene(expCurrentScene);if(typeof drawSurv==="function")drawSurv();if(typeof dedDraw==="function")dedDraw();if(typeof routeDraw==="function")routeDraw();if(typeof resetTrainingLanguage==="function")resetTrainingLanguage();});
+  if(b)b.addEventListener("click",()=>{LANGUAGE=LANGUAGE==="en"?"zh":"en";try{localStorage.setItem("007-language",LANGUAGE);}catch(_){}applyLanguage();if(CHARACTERS.length){renderCharGrid();if(selectedChar)selectChar(selectedChar);}if(expCurrentScene){Object.keys(expSessions).forEach(k=>delete expSessions[k]);showExpScene(expCurrentScene);}if(typeof initStatus==="function")initStatus();if(typeof drawSurv==="function")drawSurv();if(typeof dedDraw==="function")dedDraw();if(typeof routeDraw==="function")routeDraw();if(typeof resetTrainingLanguage==="function")resetTrainingLanguage();});
   const observer=new MutationObserver(records=>records.forEach(r=>{if(r.type==="characterData")translateTextNode(r.target);else r.addedNodes.forEach(n=>{if(n.nodeType===3)translateTextNode(n);else if(n.nodeType===1){const w=document.createTreeWalker(n,NodeFilter.SHOW_TEXT);let t;while((t=w.nextNode()))translateTextNode(t);translateElementAttributes(n);}});}));
   observer.observe(document.body,{subtree:true,childList:true,characterData:true});
   applyLanguage();
@@ -991,7 +991,7 @@ let selectedChar = null;
 let chatMode = "talk";
 let chatHistory = [];
 let modelAvailable = null;
-function chatStorageKey() { return "007-intel-chat:" + selectedChar + ":" + chatMode + ":" + ($("#groupSecond")?.value || "none") + ":" + (chatMode === "roleplay" ? "free" : (document.getElementById("sceneNovel")?.value || "casino-royale") + ":" + (document.getElementById("sceneChapter")?.value || "end")); }
+function chatStorageKey() { return "007-intel-chat:" + LANGUAGE + ":" + selectedChar + ":" + chatMode + ":" + ($("#groupSecond")?.value || "none") + ":" + (chatMode === "roleplay" ? "free" : (document.getElementById("sceneNovel")?.value || "casino-royale") + ":" + (document.getElementById("sceneChapter")?.value || "end")); }
 function saveChatHistory() { try { if (selectedChar) localStorage.setItem(chatStorageKey(), JSON.stringify(chatHistory.slice(-80))); } catch(e) {} }
 function restoreChatHistory() {
   try { const saved = JSON.parse(localStorage.getItem(chatStorageKey()) || "[]"); chatHistory = Array.isArray(saved) ? saved.filter(m => m && ["user","assistant"].includes(m.role) && typeof m.content === "string").slice(-80) : []; } catch(e) { chatHistory = []; }
@@ -1356,7 +1356,7 @@ function showExpScene(id) {
   const scene = EXP_SCENES.find((x) => x.id === id);
   if (!scene) return;
   expCurrentScene = id;
-  if (!expSessions[id]) { try { expSessions[id] = JSON.parse(localStorage.getItem("007-field:" + id) || "[]"); if (!Array.isArray(expSessions[id])) expSessions[id] = []; } catch (_) { expSessions[id] = []; } }
+  if (!expSessions[id]) { try { expSessions[id] = JSON.parse(localStorage.getItem("007-field:" + LANGUAGE + ":" + id) || "[]"); if (!Array.isArray(expSessions[id])) expSessions[id] = []; } catch (_) { expSessions[id] = []; } }
   $$("#expScenes .chipbtn").forEach((x) => x.classList.toggle("active", x.dataset.exp === id));
   const history = expSessions[id];
   $("#expPanel").innerHTML = `<h3>${esc(scene.title)}</h3><p>${esc(scene.text)}</p>
@@ -1382,13 +1382,13 @@ function showExpScene(id) {
     // Undo one complete exchange; if only a user action exists, remove that pending action.
     if (history[history.length - 1]?.role === "assistant") history.pop();
     if (history[history.length - 1]?.role === "user") history.pop();
-    try { localStorage.setItem("007-field:" + expCurrentScene, JSON.stringify(history)); } catch (_) {}
+    try { localStorage.setItem("007-field:" + LANGUAGE + ":" + expCurrentScene, JSON.stringify(history)); } catch (_) {}
     const out = $("#expOut");
     if (out) out.innerHTML = history.map(m => `<div class="log"><b>${m.role === "user" ? (LANGUAGE === "en" ? "You" : "你") : (LANGUAGE === "en" ? "Field report" : "现场反馈")}：</b>${esc(m.content)}</div>`).join("");
   });
   $("#expClear").addEventListener("click", () => {
     expSessions[expCurrentScene] = [];
-    try { localStorage.removeItem("007-field:" + expCurrentScene); } catch (_) {}
+    try { localStorage.removeItem("007-field:" + LANGUAGE + ":" + expCurrentScene); } catch (_) {}
     const out = $("#expOut");
     if (out) out.innerHTML = "";
   });
