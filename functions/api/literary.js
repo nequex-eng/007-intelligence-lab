@@ -9,8 +9,9 @@ const json = (data, status = 200) => new Response(JSON.stringify(data), {
 export async function onRequestPost(context) {
   try {
     const body = await context.request.json();
+    const language = body.language === "en" ? "en" : "zh";
     const question = String(body.question || "").trim().slice(0, 1200);
-    if (!question) return json({ error: "请输入文学研究问题", evidence: [] }, 400);
+    if (!question) return json({ error: language === "en" ? "Enter a literary research question." : "请输入文学研究问题", evidence: [] }, 400);
     const compact = question.replace(/如何|为什么|怎样|怎么|是否|以及|通过|推动|分析|研究|比较|请问|请你|帮我|一下|对于|关于|的|了|吗|呢|？|\?/g, "");
     const terms = Array.from(new Set([
       ...(question.match(/[A-Za-z0-9-]{2,}/g) || []),
@@ -27,10 +28,10 @@ export async function onRequestPost(context) {
       if (seen.has(key)) return false;
       seen.add(key); return true;
     }).slice(0, 12).map(item => ({
-      title: item.title_zh || item.name_zh || item.name || item.entity || item.id || "原著记录",
-      kind: item.canon_or_inference === "inference" ? "推测" : item.canon_or_inference === "canon" ? "正典事实" : item.kind || "档案",
+      title: language === "en" ? (item.title_en || item.name_en || item.name || item.entity || item.id || "Canon record") : (item.title_zh || item.name_zh || item.name || item.entity || item.id || "原著记录"),
+      kind: language === "en" ? (item.canon_or_inference === "inference" ? "Inference" : item.canon_or_inference === "canon" ? "Canon fact" : item.kind_en || "Dossier") : (item.canon_or_inference === "inference" ? "推测" : item.canon_or_inference === "canon" ? "正典事实" : item.kind || "档案"),
       source: [item.title_zh && item.novel_id ? item.title_zh : null, item.chapter ? "第" + item.chapter + "章" : null].filter(Boolean).join(" · ") || item.novel_id || (item.sources || []).join("；") || "索引记录",
-      detail: item.fact || item.description || item.summary || item.role || item.quote || "该条目没有提供摘要字段。"
+      detail: language === "en" ? (item.fact_en || item.description_en || item.summary_en || item.role_en || item.quote_en || "No English summary is available for this record.") : (item.fact || item.description || item.summary || item.role || item.quote || "该条目没有提供摘要字段。")
     }));
     const system = [
       "你是007文学研究与创作实验室的研究员，研究对象是伊恩·弗莱明的邦德小说。",
@@ -42,7 +43,7 @@ export async function onRequestPost(context) {
       { role: "system", content: system },
       { role: "user", content: "研究问题：" + question + "\n\n核验知识库检索结果：\n" + JSON.stringify(evidence) }
     ]);
-    if (out.ok) return json({ answer: out.text, model: out.model, evidence });
+    if (out.ok) {\n      let answer = out.text;\n      if (language === "en" && /[\\u3400-\\u9fff]/.test(answer)) {\n        const translated = await generate(context.env || {}, [{ role: "system", content: "Translate the following literary analysis into fluent English. Preserve all facts, qualifications and citations. Do not add claims. Output English only, with no Chinese characters." }, { role: "user", content: answer }]);\n        if (translated.ok) answer = translated.text;\n      }\n      return json({ answer, model: out.model, evidence });\n    }
     return json({
       error: out.code === "MODEL_NOT_CONNECTED"
         ? "MiniMax 尚未配置：已返回知识库检索证据；配置生产环境 MINIMAX_API_KEY 后即可生成文学分析。"
