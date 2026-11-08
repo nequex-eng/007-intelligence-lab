@@ -910,7 +910,7 @@ function applyLanguage() {
 }
 function initLanguage(){
   const b=document.getElementById("languageToggle");
-  if(b)b.addEventListener("click",()=>{LANGUAGE=LANGUAGE==="en"?"zh":"en";try{localStorage.setItem("007-language",LANGUAGE);}catch(_){}applyLanguage();if(CHARACTERS.length){renderCharGrid();if(selectedChar)selectChar(selectedChar);}if(missionDef)loadMissionCanonBrief(missionDef.novelId||null);if(expCurrentScene)showExpScene(expCurrentScene);if(missionState?.completed&&missionState.result)renderMissionResult(missionState.result);if(typeof renderSeriesGameIndex==="function")renderSeriesGameIndex();if(typeof drawSurv==="function")drawSurv();if(typeof dedDraw==="function")dedDraw();if(typeof routeDraw==="function")routeDraw();if(typeof bjShow==="function")bjShow(!bjActive);});
+  if(b)b.addEventListener("click",()=>{LANGUAGE=LANGUAGE==="en"?"zh":"en";try{localStorage.setItem("007-language",LANGUAGE);}catch(_){}applyLanguage();if(CHARACTERS.length){renderCharGrid();if(selectedChar)selectChar(selectedChar);}if(expCurrentScene)showExpScene(expCurrentScene);if(typeof drawSurv==="function")drawSurv();if(typeof dedDraw==="function")dedDraw();if(typeof routeDraw==="function")routeDraw();});
   const observer=new MutationObserver(records=>records.forEach(r=>{if(r.type==="characterData")translateTextNode(r.target);else r.addedNodes.forEach(n=>{if(n.nodeType===3)translateTextNode(n);else if(n.nodeType===1){const w=document.createTreeWalker(n,NodeFilter.SHOW_TEXT);let t;while((t=w.nextNode()))translateTextNode(t);translateElementAttributes(n);}});}));
   observer.observe(document.body,{subtree:true,childList:true,characterData:true});
   applyLanguage();
@@ -1665,7 +1665,6 @@ const EXP_SCENES = [
 { id: "hotel", title: "豪华酒店·入住", text: "皇家莱索最好的酒店。你要了朝海的房间，行李只有一只小皮箱。前台递来钥匙，你顺手把一张钞票留在桌上——在这里，小费是最好的通行证。", choices: ["要朝海的房间", "让前台留意可疑访客", "先去酒吧坐坐"], replies: ["前台：“3楼朝海的房间，先生。祝您住得愉快。”", "前台压低声音：“明白，先生。有任何动静，我第一个通知您。”", "你走向酒吧。真正的情报，总是在酒吧里流传。"] },
 { id: "restaurant", title: "高级餐厅·晚餐", text: "餐厅里烛光摇曳。你点了牛排与红酒，对面的座位还空着——薇丝朋说她晚点到。侍者经过时，你注意到邻桌的男人也在看你。", choices: ["点牛排配红酒", "等薇丝朋到了再点菜", "留意邻桌的男人"], replies: ["侍者：“牛排五分熟，红酒是1953年的。先生好品味。”", "你点了杯水，慢慢等。等人，是这行最基本的耐心。", "邻桌的男人低头看报，报纸拿反了。你记下了他的脸。"] },
 { id: "bar", title: "鸡尾酒吧·马提尼", text: "吧台前，你对酒保说出那句标志性的话。酒保点头，开始摇酒。周围的人都在谈论今晚赌场的牌局，勒·希弗的名字被提起了三次。", choices: ["点一杯马提尼，摇匀不搅拌", "点一杯香槟", "请酒保讲讲今晚牌局"], replies: ["酒保把马提尼推过来，摇匀，不搅拌。你抿了一口，味道正好。", "香槟上桌，气泡升起来像小小的信号。你没有碰，只是看着。", "酒保擦着杯子：“勒·希弗今晚手气不好，先生。不过输急了的人最危险。”"] },
-{ id: "casino", title: "赌场·牌桌", text: "赌场大厅。百家乐牌桌旁，勒·希弗已经就座，面前堆着筹码。空气里有雪茄味和紧张。你走过去，拉开椅子坐下——今晚的主角到齐了。", choices: ["坐下，直接开局", "先在旁边观战一轮", "去百家乐桌实战一把"], replies: ["你坐下，推上筹码。勒·希弗抬眼看你：“邦德先生，欢迎。”", "你站在人群后看了一轮：勒·希弗拿到好牌时会摸手帕。你记住了。", "直接去下方百家乐小游戏实战，筹码与输赢都是真的。"] },
 { id: "club", title: "私人俱乐部·社交", text: "布莱兹俱乐部。皮椅、雪茄、报纸。在这里，没人高声说话，所有的交易都在低声中完成。你要找的人坐在角落那张桌子旁。", choices: ["和角落那位打个招呼", "先读一会儿报纸", "点一支雪茄"], replies: ["那人抬头：“邦德先生。坐。有些话，只能在这里说。”", "报纸上的消息一半是真的，一半是放出来的。你分得清。", "雪茄点燃，烟雾升起来。你想起M说过的话：俱乐部里没有偶遇。"] },
 { id: "car", title: "豪华汽车·出行", text: "门口停着一辆深灰色轿车，线条利落。你坐进驾驶座，发动引擎。去机场的路上有三条，你选了最绕的那条——先确认有没有人跟踪。", choices: ["选最绕的路去机场", "直接走高速", "绕到码头换船"], replies: ["你绕了三条街，后视镜里那辆车还在。很好，鱼上钩了。", "高速上车流稀少，跟你的车无处可藏。你踩下油门。", "码头边，你弃车登船。跟踪者站在岸边，看着你远去。"] },
 { id: "travel", title: "旅行与城市探索", text: "从伦敦到皇家莱索，从伊斯坦布尔到牙买加，邦德的世界是一张不断展开的地图。每一座城市都有它的赌场、它的线人与它的危险。去世界地图看看14本书走过的地方。", choices: ["打开世界地图", "回顾皇家赌场之行", "计划下一站"], replies: ["地图在下方世界地图模块，170处核验地点，点任意地点进入相关档案。", "皇家莱索：牌桌、薇丝朋、勒·希弗。一切从那里开始。", "下一站由你决定——任务模拟器里还有一场威尼斯原创任务等着你。"] }
@@ -1694,7 +1693,7 @@ function showExpScene(id) {
   $$("#expPanel [data-expchoice]").forEach(el => el.addEventListener("click", () => {
     const choice = scene.choices[Number(el.dataset.expchoice)];
     sendExperienceAction(choice);
-    if (id === "casino" && Number(el.dataset.expchoice) === 2) document.getElementById("baccaratCard").scrollIntoView({ behavior: "smooth" });
+    
     if (id === "travel" && Number(el.dataset.expchoice) === 0) document.getElementById("atlas").scrollIntoView({ behavior: "smooth" });
   }));
   $("#expActionSend").addEventListener("click", () => {
@@ -1746,85 +1745,6 @@ async function sendExperienceAction(action) {
 }
 
 // 百家乐（简化规则，已在页面说明）
-let bacChips = 1000, bacWins = 0, bacLosses = 0, bacPushes = 0, bacStreak = 0;
-const SUITS = ["♠", "♥", "♦", "♣"];
-const RANKS = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
-function createShoe() {
-  const deck = [];
-  for (const suit of SUITS) for (const rank of RANKS) {
-    const value = rank === "A" ? 1 : (["10", "J", "Q", "K"].includes(rank) ? 0 : parseInt(rank, 10));
-    deck.push({ label: rank + suit, value });
-  }
-  for (let i = deck.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [deck[i], deck[j]] = [deck[j], deck[i]];
-  }
-  return deck;
-}
-function drawCard(shoe) { return shoe.pop(); }
-function handTotal(cards) { return cards.reduce((a, c) => a + c.value, 0) % 10; }
-function playBaccarat() {
-  if (bacChips < 10) { $("#bacNote").textContent = "筹码不足，请点“重新领筹码”。"; return; }
-  const requested = parseInt($("#bacAmount").value, 10);
-  if (!Number.isFinite(requested) || requested < 10) { $("#bacNote").textContent = "每局最低下注10筹码。"; return; }
-  const amount = Math.min(bacChips, requested);
-  const side = $("#bacSide").value;
-  const shoe = createShoe();
-  const player = [drawCard(shoe), drawCard(shoe)];
-  const banker = [drawCard(shoe), drawCard(shoe)];
-  bacChips -= amount;
-  let pTotal = handTotal(player), bTotal = handTotal(banker);
-  const pNatural = pTotal >= 8, bNatural = bTotal >= 8;
-  let pThird = null;
-  if (!pNatural && !bNatural) {
-    if (pTotal <= 5) { pThird = drawCard(shoe); player.push(pThird); pTotal = handTotal(player); }
-    if (pThird === null) {
-      if (bTotal <= 5) { banker.push(drawCard(shoe)); bTotal = handTotal(banker); }
-    } else {
-      const tv = pThird.value;
-      if (bTotal <= 2) banker.push(drawCard(shoe));
-      else if (bTotal === 3 && tv !== 8) banker.push(drawCard(shoe));
-      else if (bTotal === 4 && tv >= 2 && tv <= 7) banker.push(drawCard(shoe));
-      else if (bTotal === 5 && tv >= 4 && tv <= 7) banker.push(drawCard(shoe));
-      else if (bTotal === 6 && (tv === 6 || tv === 7)) banker.push(drawCard(shoe));
-      bTotal = handTotal(banker);
-    }
-  }
-  const result = pTotal === bTotal ? "tie" : pTotal > bTotal ? "player" : "banker";
-  let payout = 0, outcome = "";
-  if (result === "tie" && side !== "tie") {
-    bacChips += amount; bacPushes++; bacStreak = 0;
-    outcome = "和局，庄闲投注退回本金，本局不输不赢。";
-  } else if (side === result) {
-    payout = result === "tie" ? amount * 8 : result === "banker" ? Math.floor(amount * 0.95) : amount;
-    bacChips += amount + payout; bacWins++; bacStreak = bacStreak > 0 ? bacStreak + 1 : 1;
-    outcome = result === "tie" ? "和局！你押中和局，净赢" + payout + "筹码。" : "你赢了这把，净赢" + payout + "筹码。";
-  } else {
-    bacLosses++; bacStreak = bacStreak < 0 ? bacStreak - 1 : -1;
-    outcome = "这把输了，输掉" + amount + "筹码。" + (result === "player" ? "闲家胜。" : result === "banker" ? "庄家胜。" : "本局和局。");
-  }
-  const rival = bacStreak >= 3 ? "勒·希弗眯起眼睛：“你今晚手气不错，邦德先生。”" : bacStreak <= -3 ? "勒·希弗冷笑：“筹码会自己长脚走到我这边来。”" : bacStreak > 0 ? "勒·希弗：“继续，别停。”" : bacStreak < 0 ? "勒·希弗：“别急，牌桌还长着呢。”" : "勒·希弗观望中。";
-  $("#bacChips").textContent = bacChips;
-  $("#bacBet").textContent = amount + "·" + ({ player: "闲家", banker: "庄家", tie: "和局" }[side]);
-  $("#bacRecord").textContent = bacWins + "胜" + bacLosses + "负" + bacPushes + "和";
-  $("#bacRival").textContent = rival;
-  $("#bacTable").innerHTML = `<table><tr><th>闲家</th><th>点数</th><th>庄家</th><th>点数</th></tr><tr><td>${player.map(c => esc(c.label)).join(" ")}</td><td><b>${pTotal}</b></td><td>${banker.map(c => esc(c.label)).join(" ")}</td><td><b>${bTotal}</b></td></tr></table><p style="margin-top:10px">${esc(outcome)}</p><p class="meta">${esc(rival)}</p>`;
-  $("#bacNote").textContent = bacChips <= 0 ? "筹码用完了，点“重新领筹码”恢复1000。" : "";
-}
-
-function initBaccarat() {
-  $("#bacDeal").addEventListener("click", playBaccarat);
-  $("#bacReset").addEventListener("click", () => {
-    bacChips = 1000; bacWins = 0; bacLosses = 0; bacPushes = 0; bacStreak = 0;
-    $("#bacChips").textContent = bacChips;
-    $("#bacRecord").textContent = "0胜0负0和";
-    $("#bacRival").textContent = "观望中";
-    $("#bacBet").textContent = "—";
-    $("#bacTable").innerHTML = `<div class="empty">已重新领筹码1000。祝牌桌好运。</div>`;
-    $("#bacNote").textContent = "";
-  });
-}
-
 // ---- 文学研究室 ----
 const LIT_TOPICS = [
 { t: "邦德人物塑造", d: "弗莱明用细节堆出邦德：衣着、饮食、牌技、配枪，每一处都服务于“专业人士”形象。邦德不是超人，他会受伤、会输牌、会动情，这正是他可信的原因。"},
@@ -2089,7 +2009,7 @@ function appendTrainingLog(role,content){const log=$("#trainingLog");if(!log)ret
 async function requestTraining(action,payload={}){const r=await fetch("/api/training",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({action,language:LANGUAGE,mode:$("#trainingMode")?.value||"infiltration",history:trainingHistory.slice(-12),...payload})});const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||("Training request failed ("+r.status+")"));return d;}
 async function startTraining(){if(trainingBusy)return;trainingBusy=true;$("#trainingStart").disabled=true;$("#trainingChoices").innerHTML="";$("#trainingScene").textContent=trainingText("正在生成行动简报…","Generating mission briefing…");$("#trainingLog").innerHTML="";$("#trainingFeedback").textContent="";trainingHistory=[];trainingStats={pressure:50,intel:50,exposure:20};renderTrainingStats();try{const d=await requestTraining("start");trainingHistory.push({role:"assistant",content:JSON.stringify(d)});renderTrainingTurn(d);$("#trainingReset").hidden=false;}catch(e){$("#trainingScene").textContent=e.message;$("#trainingFeedback").textContent=trainingText("请检查模型连接后重试。","Check the model connection and try again.");}finally{trainingBusy=false;$("#trainingStart").disabled=false;}}
 async function submitTrainingAction(action){if(trainingBusy||!action)return;trainingBusy=true;$("#trainingSend").disabled=true;$("#trainingFreeAction").disabled=true;appendTrainingLog("user",action);trainingHistory.push({role:"user",content:action});$("#trainingChoices").innerHTML="";$("#trainingScene").textContent=trainingText("模型正在评估你的行动…","The model is evaluating your action…");try{const d=await requestTraining("act",{actionText:action});trainingHistory.push({role:"assistant",content:JSON.stringify(d)});appendTrainingLog("assistant",d.feedback||d.scene||"");renderTrainingTurn(d);if(d.completed){$("#trainingChoices").innerHTML="";$("#trainingFeedback").textContent=(d.feedback||"")+" · "+trainingText("本次训练结束，可重新开始。","Training complete. Start a new exercise when ready.");}}catch(e){$("#trainingScene").textContent=e.message;$("#trainingFeedback").textContent=trainingText("本次行动未能提交，重试即可。","The action was not submitted. You can retry.");}finally{trainingBusy=false;$("#trainingSend").disabled=false;$("#trainingFreeAction").disabled=false;}}
-function initFieldGames(){renderTrainingStats();$("#trainingStart")?.addEventListener("click",startTraining);$("#trainingReset")?.addEventListener("click",startTraining);$("#trainingSend")?.addEventListener("click",()=>{const i=$("#trainingFreeAction"),v=i.value.trim();if(v){i.value="";submitTrainingAction(v);}});$("#trainingFreeAction")?.addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();$("#trainingSend").click();}});}
+function initFieldGames(){const input=$("#trainingFreeAction");if(input)input.placeholder=trainingText("输入你自己的行动指令…","Enter your own action…");renderTrainingStats();$("#trainingStart")?.addEventListener("click",startTraining);$("#trainingReset")?.addEventListener("click",startTraining);$("#trainingSend")?.addEventListener("click",()=>{const i=$("#trainingFreeAction"),v=i.value.trim();if(v){i.value="";submitTrainingAction(v);}});$("#trainingFreeAction")?.addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();$("#trainingSend").click();}});}
 
 // ---- 状态与启动 ----
 async function initStatus() {
@@ -2115,9 +2035,8 @@ function startApp() {
 
   initLanguage();
   const tasks = [
-    ["人物剧场", initCharacters], ["情报档案馆", initDossier],
-    ["任务控制中心", initMissions], ["场景体验", initExperience],
-    ["百家乐", initBaccarat], ["特工挑战", initFieldGames], ["文学研究", initLiterary],
+    ["人物剧场", initCharacters], ["情报档案", initDossier],
+    ["场景体验", initExperience], ["特工训练", initFieldGames], ["文学研究", initLiterary],
     ["世界探索", initAtlas],
     ["模型状态", initStatus]
   ];
