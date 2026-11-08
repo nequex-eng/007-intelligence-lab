@@ -17,13 +17,17 @@ export async function onRequestPost(ctx){
  const prompt=kind==="start"?"开始一场新的"+title+"训练。建立鲜明现场、目标、时间或资源限制、一名有动机的人物和一个信息疑点。给出三个不同首轮行动。初始状态压力50、情报50、暴露20。":"受训者刚才采取的行动："+action+"。延续同一任务，评估行动并呈现后果，更新状态，给出下一轮选择。";
  const promptEn=kind==="start"?"Start a new "+title+" exercise. Establish a vivid setting, objective, time or resource constraint, a motivated character and one unresolved intelligence question. Offer exactly three distinct opening actions. Initial stats: pressure 50, intelligence 50, exposure 20.":"The trainee just took this action: "+action+". Continue the same scenario. Assess it fairly, show consequences, update the state and present the next decision.";
  const promptForModel=lang==="en"?promptEn:prompt;
- const out=await generate(env,[{role:"system",content:rules},{role:"user",content:promptForModel+"\nPrior exercise history (interpret any Chinese internally, but respond only in English): "+JSON.stringify(history)}]);
+ const historyLabel=lang==="en"?"\nPrior exercise history (interpret any Chinese internally; respond only in English): ":"\n此前训练记录（仅用于理解任务连续性；请始终使用简体中文回复，不得因为历史记录中出现英文而切换语言）：";
+ const out=await generate(env,[{role:"system",content:rules},{role:"user",content:promptForModel+historyLabel+JSON.stringify(history)}]);
  if(!out.ok)return json({error:lang==="en"?"The model could not generate the next turn. Please try again.":"模型生成失败，请重试。",errorEn:"The model could not generate the next turn. Please try again.",code:out.code||"MODEL_ERROR"},out.code==="MODEL_NOT_CONNECTED"?503:502);
  let d=parse(out.text);
+ const userFacing=x=>x?[x.phase,x.scene,x.intel,x.feedback,...(x.options||[]).flatMap(o=>typeof o==="string"?[o]:[o.label,o.rationale])].filter(v=>typeof v==="string"&&v.trim()):[];
  const hasChinese=s=>/[\u3400-\u9fff]/.test(String(s||""));
- const hasChineseOutput=x=>x&&[x.phase,x.scene,x.intel,x.feedback,...(x.options||[]).flatMap(o=>typeof o==="string"?[o]:[o.label,o.rationale])].some(hasChinese);
+ const hasChineseOutput=x=>userFacing(x).some(hasChinese);
+ const hasEnglishOnlyOutput=x=>userFacing(x).some(s=>/[A-Za-z]{3,}/.test(s)&&!hasChinese(s));
  if(lang==="en"&&hasChineseOutput(d)){const fix=await generate(env,[{role:"system",content:"Translate this JSON into fluent English. Preserve the exact structure, facts, choices, stats and meaning. Do not add or remove options. Output ONLY valid JSON and no Chinese characters."},{role:"user",content:out.text}]);if(fix.ok)d=parse(fix.text);}
- if(!d||typeof d.scene!=="string"||!Array.isArray(d.options)||(lang==="en"&&hasChineseOutput(d)))return json({error:lang==="en"?"The model returned content in the wrong language. Please retry.":"模型返回格式异常，请重新开始。",errorEn:"The model returned content in the wrong language. Please retry."},502);
+ if(lang==="zh"&&hasEnglishOnlyOutput(d)){const fix=await generate(env,[{role:"system",content:"将下面的训练简报JSON完整改写为自然、准确的简体中文。所有面向用户的字段必须使用简体中文，包括phase、scene、intel、feedback、每个option的label和rationale。专有名词可保留通行译名或必要缩写。必须原样保留JSON结构、事实、选项数量、数值和completed状态；不得添加或删减选项。只输出合法JSON，不要解释。"},{role:"user",content:out.text}]);if(fix.ok)d=parse(fix.text);}
+ if(!d||typeof d.scene!=="string"||!Array.isArray(d.options)||(lang==="en"&&hasChineseOutput(d))||(lang==="zh"&&hasEnglishOnlyOutput(d)))return json({error:lang==="en"?"The model returned content in the wrong language. Please retry.":"模型返回格式或语言异常，请重新开始。",errorEn:"The model returned content in the wrong language. Please retry."},502);
  d.options=d.options.slice(0,3).map(x=>typeof x==="string"?{label:x,rationale:""}:{label:String(x.label||(lang==="en"?"Observe and reassess":"继续观察")),rationale:String(x.rationale||"")});
  while(d.options.length<3)d.options.push({label:lang==="en"?"Observe and reassess":"继续观察并重新评估",rationale:""});
  d.stats={pressure:clamp(d.stats?.pressure),intel:clamp(d.stats?.intel),exposure:clamp(d.stats?.exposure)};
