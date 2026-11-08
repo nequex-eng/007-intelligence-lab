@@ -28,7 +28,16 @@ export async function onRequestPost(context) {
       if (out.code === "MODEL_NOT_CONNECTED") return json({ error: language === "en" ? "The MiniMax model is not configured." : "MiniMax模型尚未配置。", code: out.code, status: llmStatus(context.env || {}) }, 503);
       return json({ error: language === "en" ? "The field simulation could not continue. Please try again." : "实战模拟暂时无法继续，请重试。", code: out.code }, 502);
     }
-    return json({ reply: out.text, model: out.model });
+    let reply = out.text;
+    if (language === "en" && /[\u3400-\u9fff]/.test(reply)) {
+      const translated = await generate(context.env || {}, [
+        { role: "system", content: "Translate this role-play response into fluent, natural English. Preserve all events, dialogue, tone and meaning. Output English only. Do not include Chinese characters." },
+        { role: "user", content: reply }
+      ]);
+      if (translated.ok) reply = translated.text;
+      if (/[\u3400-\u9fff]/.test(reply)) return json({ error: "The model returned a reply in the wrong language. Please retry." }, 502);
+    }
+    return json({ reply, model: out.model });
   } catch (e) {
     return json({ error: "Invalid request." }, 400);
   }
