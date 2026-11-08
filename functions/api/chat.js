@@ -13,6 +13,16 @@ const legacyIds = {
   tatiana: "tatiana-romanova"
 };
 
+async function enforceEnglish(env, text, language) {
+  if (language !== "en" || !/[\u3400-\u9fff]/.test(String(text || ""))) return String(text || "");
+  const translated = await generate(env, [
+    { role: "system", content: "Translate the following character dialogue into natural, fluent English. Preserve the character's personality, meaning, events and tone. Do not add facts. Output English only and never include Chinese characters." },
+    { role: "user", content: String(text || "") }
+  ]);
+  if (translated.ok && !/[\u3400-\u9fff]/.test(translated.text)) return translated.text;
+  return null;
+}
+
 function resolveCore(id) {
   const canonical = legacyIds[id] || id;
   return characterCore.find(c => c.id === canonical)
@@ -98,7 +108,7 @@ export async function onRequestPost(context) {
       const playerName = language === "en" ? playerCharacter.name_en : playerCharacter.name_zh;
       const respondingName = language === "en" ? respondingCharacter.name_en : respondingCharacter.name_zh;
       const roleplayRules = language === "en"
-        ? "This is strict one-to-one character role-play. The USER is playing " + playerName + " and every user message is spoken by that character. You are " + respondingName + ", the only AI-controlled character. Reply only as yourself; never write, narrate or decide the user's character's words or actions. Treat both characters as real people sharing a lived world, even if they come from different stories or eras. Never mention books, novels, authors, fiction, adaptations or role-play."
+        ? "All replies must be in fluent English only. Never output Chinese characters, even if the user message or character profile contains Chinese. This is strict one-to-one character role-play. The USER is playing " + playerName + " and every user message is spoken by that character. You are " + respondingName + ", the only AI-controlled character. Reply only as yourself; never write, narrate or decide the user's character's words or actions. Treat both characters as real people sharing a lived world, even if they come from different stories or eras. Never mention books, novels, authors, fiction, adaptations or role-play."
         : "这是严格的一对一人物扮演。用户扮演" + playerName + "，用户每条消息都视为该人物说出的话。你扮演" + respondingName + "，这是唯一由AI控制的人物。只以自己的身份回应，绝不替用户扮演的人物写台词、叙述行动或替其做决定。即使两人来自不同作品或年代，也把他们视为生活在同一个真实世界中的人。禁止提及书籍、小说、作者、虚构、改编或角色扮演。";
       const out = await generate(context.env || {}, [
         { role: "system", content: [roleplayRules, prompts[1], "Speak naturally and directly to the user's character. Do not provide scene labels or meta commentary."].join("\\n\\n") },
@@ -108,7 +118,7 @@ export async function onRequestPost(context) {
         if (out.code === "MODEL_NOT_CONNECTED") return json({ error: language === "en" ? "The AI model is not connected." : "模型尚未接入", code: out.code, status: llmStatus(context.env || {}) }, 503);
         return json({ error: language === "en" ? "Character response failed. Please try again." : "角色对话生成失败，请重试", code: "MODEL_ERROR", modelError: out.reason || "Unknown MiniMax error" }, 502);
       }
-      return json({ reply: out.text, characterId: respondingCharacter.id, characterIds: [playerCharacter.id, respondingCharacter.id], novelId: null, chapterNo: null, mode, canonMode: false, model: out.model });
+      const reply = await enforceEnglish(context.env || {}, out.text, language);\n      if (reply === null) return json({ error: "The character returned mixed-language content. Please retry." }, 502);\n      return json({ reply, characterId: respondingCharacter.id, characterIds: [playerCharacter.id, respondingCharacter.id], novelId: null, chapterNo: null, mode, canonMode: false, model: out.model });
     }
 
     if (mode === "group") {
@@ -142,7 +152,7 @@ export async function onRequestPost(context) {
           if (out.code === "MODEL_NOT_CONNECTED") return json({ error: language === "en" ? "The AI model is not connected." : "模型尚未接入", code: out.code, status: llmStatus(context.env || {}) }, 503);
           return json({ error: language === "en" ? "Group dialogue failed. Please try again." : "多角色对话生成失败，请重试", code: "MODEL_ERROR", modelError: out.reason || "Unknown MiniMax error" }, 502);
         }
-        replies.push({ characterId: character.id, content: out.text });
+        const content = await enforceEnglish(context.env || {}, out.text, language);\n        if (content === null) return json({ error: "A character returned mixed-language content. Please retry." }, 502);\n        replies.push({ characterId: character.id, content });
       }
       return json({
         replies,
@@ -164,7 +174,7 @@ export async function onRequestPost(context) {
 
     if (out.ok) {
       return json({
-        reply: out.text,
+        reply: await enforceEnglish(context.env || {}, out.text, language),
         characterIds: canonicalCharacters.map(c => c.id),
         novelId: book?.novel_id || null,
         chapterNo,
