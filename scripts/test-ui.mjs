@@ -16,6 +16,7 @@ assert.deepEqual(duplicates, [], "static HTML ids must be unique");
 assert.ok(html.includes('id="sceneNovel"') && html.includes('id="sceneChapter"'), "character theatre has novel and chapter selectors");
 assert.ok(html.includes('id="seriesGameIndex"') && html.includes('id="blackjackGame"') && html.includes('id="golfGame"'), "mission control includes the full-series game index, blackjack and golf");
 assert.ok(!/\$\([^()\n]*\)\.forEach/.test(app), "all NodeList iteration uses the $ selector helper");
+assert.ok(!/\$\([^()\n]*\)\.forEach/.test(app), "all NodeList iteration uses the $ selector helper");
 assert.ok(app.includes("const SERIES_GAME_IDEAS =") && app.includes("function initFieldGames") && app.includes("function bjDeal") && app.includes("function golfHit"), "full-series game mapping and playable modules exist");
 assert.ok(!html.includes('id="canonDataStatus"') && !html.includes('id="canonDataCard"'), "internal canon metadata is not exposed to site visitors");
 assert.ok(!html.includes('id="import"'), "obsolete public TXT import UI is removed");
