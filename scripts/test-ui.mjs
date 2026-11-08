@@ -5,7 +5,7 @@ const html = readFileSync(new URL("../public/index.html", import.meta.url), "utf
 const app = readFileSync(new URL("../public/app.js", import.meta.url), "utf8");
 
 const mainSections = [...html.matchAll(/<section[^>]*id="([^"]+)"/gi)].map(m => m[1]);
-assert.deepEqual(mainSections, ["characters", "dossier", "mission", "atlas"], "exactly four main modules");
+assert.deepEqual(mainSections, ["characters", "mission", "dossier", "atlas"], "main modules follow the requested navigation order");
 assert.equal((html.match(/<section\b/g) || []).length, 4, "four opening main sections");
 assert.equal((html.match(/<\/section>/g) || []).length, 4, "four closing main sections");
 
@@ -14,14 +14,14 @@ const duplicates = [...new Set(ids.filter((id, i) => ids.indexOf(id) !== i))];
 assert.deepEqual(duplicates, [], "static HTML ids must be unique");
 
 assert.ok(html.includes('id="sceneNovel"') && html.includes('id="sceneChapter"'), "character theatre has novel and chapter selectors");
-assert.ok(html.includes('id="canonDataStatus"'), "canon data status card is present");
+assert.ok(!html.includes('id="canonDataStatus"') && !html.includes('id="canonDataCard"'), "internal canon metadata is not exposed to site visitors");
 assert.ok(!html.includes('id="import"'), "obsolete public TXT import UI is removed");
 assert.ok(html.includes("leaflet@1.9.4/dist/leaflet.css") && html.includes("leaflet@1.9.4/dist/leaflet.js"), "Leaflet map assets are loaded");
 
 for (const fn of [
   "async function initCharacters", "async function sendChat", "function initDossier",
   "function initMissions", "function initExperience", "function initBaccarat",
-  "function initLiterary", "async function initAtlas", "async function initCanonDataStatus"
+  "function initLiterary", "async function initAtlas", "function initFieldGames"
 ]) assert.ok(app.includes(fn), `required front-end module exists: ${fn}`);
 
 assert.ok(app.includes('fetch("/api/world")'), "world explorer reads canonical location API");
