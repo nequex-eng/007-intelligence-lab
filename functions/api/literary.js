@@ -28,9 +28,9 @@ export async function onRequestPost(context) {
       if (seen.has(key)) return false;
       seen.add(key); return true;
     }).slice(0, 12).map(item => ({
-      title: language === "en" ? (item.title_en || item.name_en || item.name || item.entity || item.id || "Canon record") : (item.title_zh || item.name_zh || item.name || item.entity || item.id || "原著记录"),
+      title: language === "en" ? (item.title_en || item.name_en || item.id || "Canon record") : (item.title_zh || item.name_zh || item.name || item.entity || item.id || "原著记录"),
       kind: language === "en" ? (item.canon_or_inference === "inference" ? "Inference" : item.canon_or_inference === "canon" ? "Canon fact" : item.kind_en || "Dossier") : (item.canon_or_inference === "inference" ? "推测" : item.canon_or_inference === "canon" ? "正典事实" : item.kind || "档案"),
-      source: [item.title_zh && item.novel_id ? item.title_zh : null, item.chapter ? "第" + item.chapter + "章" : null].filter(Boolean).join(" · ") || item.novel_id || (item.sources || []).join("；") || "索引记录",
+      source: language === "en" ? [item.title_en || item.novel_id || null, item.chapter ? "Chapter " + item.chapter : null].filter(Boolean).join(" · ") || "Canon index" : [item.title_zh && item.novel_id ? item.title_zh : null, item.chapter ? "第" + item.chapter + "章" : null].filter(Boolean).join(" · ") || item.novel_id || (item.sources || []).join("；") || "索引记录",
       detail: language === "en" ? (item.fact_en || item.description_en || item.summary_en || item.role_en || item.quote_en || "No English summary is available for this record.") : (item.fact || item.description || item.summary || item.role || item.quote || "该条目没有提供摘要字段。")
     }));
     const system = language === "en" ? [
@@ -47,7 +47,7 @@ export async function onRequestPost(context) {
     ].join("\n");
     const out = await generate(context.env || {}, [
       { role: "system", content: system },
-      { role: "user", content: "研究问题：" + question + "\n\n核验知识库检索结果：\n" + JSON.stringify(evidence) }
+      { role: "user", content: (language === "en" ? "Research question: " : "研究问题：") + question + "\n\n" + (language === "en" ? "Verified canon evidence: " : "核验知识库检索结果：") + JSON.stringify(evidence) }
     ]);
     if (out.ok) {
       let answer = out.text;
