@@ -23,25 +23,26 @@ function resolveCore(id) {
 export async function onRequestPost(context) {
   try {
     const body = await context.request.json();
+    const language = body.language === "en" ? "en" : "zh";
     const ids = Array.isArray(body.characterIds) && body.characterIds.length
       ? body.characterIds
       : (body.characterId ? [body.characterId] : []);
 
-    if (!ids.length) return json({ error: "请先选择人物", code: "CHARACTER_REQUIRED" }, 400);
-    if (ids.length > 3) return json({ error: "同场最多3人", code: "TOO_MANY_CHARACTERS" }, 400);
-    if (new Set(ids).size !== ids.length) return json({ error: "同一人物不能重复加入场景", code: "DUPLICATE_CHARACTER" }, 400);
+    if (!ids.length) return json({ error: language === "en" ? "Select a character first." : "请先选择人物", code: "CHARACTER_REQUIRED" }, 400);
+    if (ids.length > 3) return json({ error: language === "en" ? "A scene can include up to three characters." : "同场最多3人", code: "TOO_MANY_CHARACTERS" }, 400);
+    if (new Set(ids).size !== ids.length) return json({ error: language === "en" ? "The same character cannot be added twice." : "同一人物不能重复加入场景", code: "DUPLICATE_CHARACTER" }, 400);
 
     const language = body.language === "en" ? "en" : "zh";
     const mode = ["talk", "roleplay", "group"].includes(body.mode) ? body.mode : "talk";
     const novelId = mode === "roleplay" ? null : body.novelId;
-    if (mode === "talk" && !novelId) return json({ error: "必须选择小说时间点", code: "SCENE_REQUIRED" }, 400);
+    if (mode === "talk" && !novelId) return json({ error: language === "en" ? "Select a novel timeline." : "必须选择小说时间点", code: "SCENE_REQUIRED" }, 400);
     const book = novelId ? getNovel(novelId) : null;
-    if (mode === "talk" && !book) return json({ error: "未知小说时间点", code: "UNKNOWN_NOVEL" }, 400);
+    if (mode === "talk" && !book) return json({ error: language === "en" ? "Unknown novel timeline." : "未知小说时间点", code: "UNKNOWN_NOVEL" }, 400);
     const chapterValue = body.chapterNo;
     const chapterNo = mode === "roleplay" ? null : (chapterValue === null || chapterValue === undefined || String(chapterValue).trim() === "" ? null : String(chapterValue).trim());
-    if (mode === "talk" && chapterNo !== null && !book.chapters?.some(c => String(c.no).trim().toUpperCase() === chapterNo.toUpperCase())) return json({error:"所选章节不属于这部小说",code:"UNKNOWN_CHAPTER"},400);
-    if (mode === "roleplay" && ids.length !== 2) return json({error:"角色扮演需要选择两位人物",code:"TWO_CHARACTERS_REQUIRED"},400);
-    if (mode === "group" && ids.length !== 2) return json({error:"多人同场需要选择两位人物",code:"TWO_CHARACTERS_REQUIRED"},400);
+    if (mode === "talk" && chapterNo !== null && !book.chapters?.some(c => String(c.no).trim().toUpperCase() === chapterNo.toUpperCase())) return json({error:language === "en" ? "The selected chapter does not belong to this novel." : "所选章节不属于这部小说",code:"UNKNOWN_CHAPTER"},400);
+    if (mode === "roleplay" && ids.length !== 2) return json({error:language === "en" ? "Role-play requires two selected characters." : "角色扮演需要选择两位人物",code:"TWO_CHARACTERS_REQUIRED"},400);
+    if (mode === "group" && ids.length !== 2) return json({error:language === "en" ? "A group scene requires two selected characters." : "多人同场需要选择两位人物",code:"TWO_CHARACTERS_REQUIRED"},400);
 
     const incoming = Array.isArray(body.messages) ? body.messages : [];
     const history = incoming
@@ -50,12 +51,12 @@ export async function onRequestPost(context) {
       .map(m => ({ role: m.role, content: m.content.slice(0, 1200), characterId: typeof m.characterId === "string" ? m.characterId : null }));
 
     if (!history.length || history[history.length - 1].role !== "user") {
-      return json({ error: "请先说一句话", code: "MESSAGE_REQUIRED" }, 400);
+      return json({ error: language === "en" ? "Send a message first." : "请先说一句话", code: "MESSAGE_REQUIRED" }, 400);
     }
 
     const canonicalCharacters = ids.map(resolveCore);
     if (canonicalCharacters.some(c => !c)) {
-      return json({ error: "知识库中没有该人物", code: "UNKNOWN_CHARACTER" }, 404);
+      return json({ error: language === "en" ? "This character is not in the canon database." : "知识库中没有该人物", code: "UNKNOWN_CHARACTER" }, 404);
     }
 
     const states = mode === "roleplay" ? canonicalCharacters.map(c => ({ok:true,status:"free-roleplay"})) : canonicalCharacters.map(c => {
@@ -63,7 +64,7 @@ export async function onRequestPost(context) {
       return characterForScene(c.id, book.novel_id, chapterNo);
     });
     const unavailable = states.find(s => !s.ok);
-    if (unavailable) return json({error:"人物与所选时间点不匹配",code:unavailable.error},409);
+    if (unavailable) return json({error:language === "en" ? "This character is not available at the selected point in the timeline." : "人物与所选时间点不匹配",code:unavailable.error},409);
 
     const latestQuestion = history[history.length - 1].content;
     const roleplayPersona = (character) => {
@@ -104,8 +105,8 @@ export async function onRequestPost(context) {
         ...transcript
       ]);
       if (!out.ok) {
-        if (out.code === "MODEL_NOT_CONNECTED") return json({ error: "模型尚未接入", code: out.code, status: llmStatus(context.env || {}) }, 503);
-        return json({ error: "角色对话生成失败，请重试", code: "MODEL_ERROR", modelError: out.reason || "Unknown MiniMax error" }, 502);
+        if (out.code === "MODEL_NOT_CONNECTED") return json({ error: language === "en" ? "The AI model is not connected." : "模型尚未接入", code: out.code, status: llmStatus(context.env || {}) }, 503);
+        return json({ error: language === "en" ? "Character response failed. Please try again." : "角色对话生成失败，请重试", code: "MODEL_ERROR", modelError: out.reason || "Unknown MiniMax error" }, 502);
       }
       return json({ reply: out.text, characterId: respondingCharacter.id, characterIds: [playerCharacter.id, respondingCharacter.id], novelId: null, chapterNo: null, mode, canonMode: false, model: out.model });
     }
@@ -138,8 +139,8 @@ export async function onRequestPost(context) {
           transcript[transcript.length - 1]
         ]);
         if (!out.ok) {
-          if (out.code === "MODEL_NOT_CONNECTED") return json({ error: "模型尚未接入", code: out.code, status: llmStatus(context.env || {}) }, 503);
-          return json({ error: "多角色对话生成失败，请重试", code: "MODEL_ERROR", modelError: out.reason || "Unknown MiniMax error" }, 502);
+          if (out.code === "MODEL_NOT_CONNECTED") return json({ error: language === "en" ? "The AI model is not connected." : "模型尚未接入", code: out.code, status: llmStatus(context.env || {}) }, 503);
+          return json({ error: language === "en" ? "Group dialogue failed. Please try again." : "多角色对话生成失败，请重试", code: "MODEL_ERROR", modelError: out.reason || "Unknown MiniMax error" }, 502);
         }
         replies.push({ characterId: character.id, content: out.text });
       }
@@ -173,12 +174,12 @@ export async function onRequestPost(context) {
       });
     }
     if (out.code === "MODEL_NOT_CONNECTED") {
-      return json({ error: "模型尚未接入", code: out.code, status: llmStatus(context.env || {}) }, 503);
+      return json({ error: language === "en" ? "The AI model is not connected." : "模型尚未接入", code: out.code, status: llmStatus(context.env || {}) }, 503);
     }
-    return json({ error: "对方一时接不上话，请再说一次", code: "MODEL_ERROR", modelError: out.reason || "Unknown MiniMax error" }, 502);
+    return json({ error: language === "en" ? "The character could not respond. Please try again." : "对方一时接不上话，请再说一次", code: "MODEL_ERROR", modelError: out.reason || "Unknown MiniMax error" }, 502);
   } catch (e) {
     console.error("chat request failed", e?.message);
-    return json({ error: "请求有误，请再试一次" }, 400);
+    return json({ error: language === "en" ? "Invalid request. Please try again." : "请求有误，请再试一次" }, 400);
   }
 }
 
