@@ -24,7 +24,7 @@ export async function onRequestPost(ctx){
  const hasChineseOutput=x=>x&&[x.phase,x.scene,x.intel,x.feedback,...(x.options||[]).flatMap(o=>typeof o==="string"?[o]:[o.label,o.rationale])].some(hasChinese);
  if(lang==="en"&&hasChineseOutput(d)){const fix=await generate(env,[{role:"system",content:"Translate this JSON into fluent English. Preserve the exact structure, facts, choices, stats and meaning. Do not add or remove options. Output ONLY valid JSON and no Chinese characters."},{role:"user",content:out.text}]);if(fix.ok)d=parse(fix.text);}
  if(!d||typeof d.scene!=="string"||!Array.isArray(d.options)||(lang==="en"&&hasChineseOutput(d)))return json({error:lang==="en"?"The model returned content in the wrong language. Please retry.":"模型返回格式异常，请重新开始。",errorEn:"The model returned content in the wrong language. Please retry."},502);
- d.options=d.options.slice(0,3).map(x=>typeof x==="string"?{label:x,rationale:""}:{label:String(x.label||"继续观察"),rationale:String(x.rationale||"")});
+ d.options=d.options.slice(0,3).map(x=>typeof x==="string"?{label:x,rationale:""}:{label:String(x.label||(lang==="en"?"Observe and reassess":"继续观察")),rationale:String(x.rationale||"")});
  while(d.options.length<3)d.options.push({label:lang==="en"?"Observe and reassess":"继续观察并重新评估",rationale:""});
  d.stats={pressure:clamp(d.stats?.pressure),intel:clamp(d.stats?.intel),exposure:clamp(d.stats?.exposure)};
  d.completed=Boolean(d.completed)||history.filter(x=>x.role==="user").length>=7;
