@@ -32,7 +32,7 @@ export async function onRequestPost(context) {
     if (ids.length > 3) return json({ error: language === "en" ? "A scene can include up to three characters." : "同场最多3人", code: "TOO_MANY_CHARACTERS" }, 400);
     if (new Set(ids).size !== ids.length) return json({ error: language === "en" ? "The same character cannot be added twice." : "同一人物不能重复加入场景", code: "DUPLICATE_CHARACTER" }, 400);
 
-    const language = body.language === "en" ? "en" : "zh";
+    
     const mode = ["talk", "roleplay", "group"].includes(body.mode) ? body.mode : "talk";
     const novelId = mode === "roleplay" ? null : body.novelId;
     if (mode === "talk" && !novelId) return json({ error: language === "en" ? "Select a novel timeline." : "必须选择小说时间点", code: "SCENE_REQUIRED" }, 400);
