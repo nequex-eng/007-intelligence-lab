@@ -845,6 +845,34 @@ const EN_TEXT = new Map([
 ["吧台前，你对酒保说出那句标志性的话。酒保点头，开始摇酒。周围的人都在谈论今晚赌场的牌局，勒·希弗的名字被提起了三次。","At the bar, you give the bartender your preferred instruction. He nods and begins to shake the drink. Around you, everyone is discussing tonight’s game at the casino. Le Chiffre’s name has come up three times."],
 ["赌场大厅。百家乐牌桌旁，勒·希弗已经就座，面前堆着筹码。空气里有雪茄味和紧张。你走过去，拉开椅子坐下——今晚的主角到齐了。","The casino floor. Le Chiffre is already seated at the baccarat table, stacks of chips before him. The air smells of cigars and tension. You approach, pull out a chair and sit. The principal players are all here."],
 ["布莱兹俱乐部。皮椅、雪茄、报纸。在这里，没人高声说话，所有的交易都在低声中完成。你要找的人坐在角落那张桌子旁。","Blades Club. Leather chairs, cigars and newspapers. Nobody raises their voice here; every deal is done quietly. The person you are looking for sits at a table in the corner."],
+
+["选择一项训练科目，直接进入由大模型主持的互动训练。","Choose a training discipline to enter a live, model-driven exercise."],
+["特工训练 · AI 实战模拟","Field Training · AI Simulation"],
+["训练科目","Training discipline"],
+["潜入行动","Covert Infiltration"],
+["情报分析","Intelligence Analysis"],
+["审讯与交涉","Interrogation & Negotiation"],
+["危机处置","Crisis Response"],
+["监视与反监视","Surveillance & Counter-surveillance"],
+["开始训练","Start Training"],
+["重新开始","New Scenario"],
+["压力","Pressure"],
+["情报","Intelligence"],
+["暴露","Exposure"],
+["选择一项训练科目，直接进入由大模型主持的互动训练。","Choose a training discipline and begin a live AI exercise."],
+["你可以选择行动，也可以输入自己的指令。","Choose an action or enter your own command."],
+["任务控制中心","Mission Control"],
+["情报档案","Intelligence Archive"],
+["清空对话","Clear Conversation"],
+["地图初始化失败，请刷新重试。","Map failed to initialise. Refresh and try again."],
+["请检查模型连接后重试。","Check the model connection and try again."],
+["本次行动未能提交，重试即可。","Your action could not be submitted. Please try again."],
+["本次训练结束，可重新开始。","Training complete. You can start a new scenario."],
+["输入你自己的行动指令…","Enter your own action…"],
+["请选择场景并描述行动。","Choose a scene and describe your action."],
+["模型尚未接入","The AI model is not connected"],
+["模型生成失败，请重试。","The model could not generate a response. Please try again."],
+["模型返回格式异常，请重新开始。","The model returned an invalid response. Please start again."],
 ]);
 const originalText = new WeakMap();
 const originalAttributes = new WeakMap();
@@ -910,7 +938,7 @@ function applyLanguage() {
 }
 function initLanguage(){
   const b=document.getElementById("languageToggle");
-  if(b)b.addEventListener("click",()=>{LANGUAGE=LANGUAGE==="en"?"zh":"en";try{localStorage.setItem("007-language",LANGUAGE);}catch(_){}applyLanguage();if(CHARACTERS.length){renderCharGrid();if(selectedChar)selectChar(selectedChar);}if(expCurrentScene)showExpScene(expCurrentScene);if(typeof drawSurv==="function")drawSurv();if(typeof dedDraw==="function")dedDraw();if(typeof routeDraw==="function")routeDraw();});
+  if(b)b.addEventListener("click",()=>{LANGUAGE=LANGUAGE==="en"?"zh":"en";try{localStorage.setItem("007-language",LANGUAGE);}catch(_){}applyLanguage();if(CHARACTERS.length){renderCharGrid();if(selectedChar)selectChar(selectedChar);}if(expCurrentScene)showExpScene(expCurrentScene);if(typeof drawSurv==="function")drawSurv();if(typeof dedDraw==="function")dedDraw();if(typeof routeDraw==="function")routeDraw();if(typeof resetTrainingLanguage==="function")resetTrainingLanguage();});
   const observer=new MutationObserver(records=>records.forEach(r=>{if(r.type==="characterData")translateTextNode(r.target);else r.addedNodes.forEach(n=>{if(n.nodeType===3)translateTextNode(n);else if(n.nodeType===1){const w=document.createTreeWalker(n,NodeFilter.SHOW_TEXT);let t;while((t=w.nextNode()))translateTextNode(t);translateElementAttributes(n);}});}));
   observer.observe(document.body,{subtree:true,childList:true,characterData:true});
   applyLanguage();
@@ -1147,8 +1175,8 @@ return;
 if (r.status === 503) {
 const d = await r.json().catch(() => ({}));
 clearThinking();
-addChatMsg("sys", "模型尚未接入（" + (d.code || "MODEL_NOT_CONNECTED") + "）。正典角色模式不会使用无时间线约束的脚本回复，请配置模型后再试。");
-$("#modelLine").textContent = "模型状态：未接入；正典模式已停止生成，避免越界回答。";
+addChatMsg("sys", LANGUAGE==="en" ? "The AI model is not connected ("+(d.code||"MODEL_NOT_CONNECTED")+"). Canon role-play will not use an unconstrained scripted fallback. Configure the model and try again." : "模型尚未接入（" + (d.code || "MODEL_NOT_CONNECTED") + "）。正典角色模式不会使用无时间线约束的脚本回复，请配置模型后再试。");
+$("#modelLine").textContent = LANGUAGE==="en"?"Model not connected. Canon mode is paused to prevent out-of-scope replies.":"模型状态：未接入；正典模式已停止生成，避免越界回答。";
 return;
 }
 if (r.status === 409 || r.status === 400 || r.status === 404) {
@@ -1157,8 +1185,8 @@ const d = await r.json().catch(() => ({})); clearThinking(); addChatMsg("sys", d
 throw new Error("chat failed " + r.status);
 } catch (e) {
 clearThinking();
-addChatMsg("sys", "对话接口暂时不可用。正典角色模式不会回退到无时间线约束的脚本回复，请稍后重试。");
-$("#modelLine").textContent = "模型状态：接口不可用；已阻止无约束回退。";
+addChatMsg("sys", LANGUAGE==="en"?"The chat service is temporarily unavailable. Canon role-play will not fall back to an unconstrained script. Please try again later.":"对话接口暂时不可用。正典角色模式不会回退到无时间线约束的脚本回复，请稍后重试。");
+$("#modelLine").textContent = LANGUAGE==="en"?"Chat service unavailable. Unconstrained fallback has been blocked.":"模型状态：接口不可用；已阻止无约束回退。";
 }
 }
 
@@ -2013,19 +2041,24 @@ function initFieldGames(){const input=$("#trainingFreeAction");if(input)input.pl
 
 // ---- 状态与启动 ----
 async function initStatus() {
-try {
-const r = await fetch("/api/status");
-if (!r.ok) throw new Error("status " + r.status);
-const d = await r.json();
-const pill = $("#statusPill");
-if (d.llm && d.llm.available) { pill.textContent = "模型已接入：" + d.llm.provider; modelAvailable = true;}
-else { pill.textContent = "MiniMax未配置·人物对话暂停"; pill.classList.add("red"); modelAvailable = false;}
-$("#modelLine").textContent = d.llm && d.llm.available? "模型已接入：" + d.llm.provider: "MiniMax未配置：正典人物对话与文学分析暂停；档案、任务与世界探索仍可使用。";
-} catch (e) {
-$("#statusPill").textContent = "状态接口不可用";
-$("#statusPill").classList.add("red");
-$("#modelLine").textContent = "状态接口不可用，无法确认模型状态；正典人物对话不会使用无约束回退。";
-}
+ try {
+  const r=await fetch("/api/status");
+  if(!r.ok)throw new Error("status "+r.status);
+  const d=await r.json(),pill=$("#statusPill"),en=LANGUAGE==="en";
+  if(d.llm&&d.llm.available){
+   pill.textContent=(en?"Model connected: ":"模型已接入：")+d.llm.provider;modelAvailable=true;
+  }else{
+   pill.textContent=en?"MiniMax not configured · AI features paused":"MiniMax未配置·人物对话暂停";
+   pill.classList.add("red");modelAvailable=false;
+  }
+  $("#modelLine").textContent=d.llm&&d.llm.available
+   ?(en?"Model connected: ":"模型已接入：")+d.llm.provider
+   :(en?"MiniMax is not configured. Character conversations and AI literary analysis are paused; archives and the world explorer remain available.":"MiniMax未配置：正典人物对话与文学分析暂停；档案与世界探索仍可使用。");
+ }catch(e){
+  $("#statusPill").textContent=LANGUAGE==="en"?"Status service unavailable":"状态接口不可用";
+  $("#statusPill").classList.add("red");
+  $("#modelLine").textContent=LANGUAGE==="en"?"The status service is unavailable. AI character conversations will not use an unconstrained fallback.":"状态接口不可用，无法确认模型状态；正典人物对话不会使用无约束回退。";
+ }
 }
 
 let appStarted = false;
