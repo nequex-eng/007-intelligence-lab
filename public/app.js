@@ -1591,14 +1591,10 @@ renderMissionList();
 }
 
 function renderMissionResult(end) {
-const current = missionState;
-$("#missionPanel").innerHTML = `<h3>${esc(missionDef.title)} · 任务结果</h3>${stateBarHTML()}
-<div class="card" style="margin-top:6px"><h3>行动报告·${esc(end.grade)}</h3><p>${esc(end.text)}</p>
-<p><b>行动记录：</b></p><ul style="font-size:14px">${current.log.map((l) => `<li>${esc(l)}</li>`).join("")}</ul>
-<p><b>线索汇总（${current.clues.length}条）：</b></p>${current.clues.length? current.clues.map((c) => `<div class="log">${esc(c)}</div>`).join(""): "<p class='meta'>无线索发现。</p>"}
-<p class="meta">${missionDef.novelId ? "原著改编互动：玩家分支不等同于原著事件；原著结局与本次模拟结果分开呈现。" : "【非原著·原创】本任务为原创设计，结局为模拟结果，不是原著剧情。"}</p>
-<button class="btn small" id="missionAgain">再玩一次</button></div>`;
-$("#missionAgain").addEventListener("click", () => startMission(missionDef.id));
+const current=missionState,en=LANGUAGE==="en";
+const t=en?{result:"Mission result",report:"Field report",log:"Action log",clues:"Clue summary",unit:"clues",none:"No clues discovered.",canon:"Interactive adaptation: player-created branches are not original-novel events; the novel's ending and this simulation result are presented separately.",original:"NON-CANON · ORIGINAL: This mission is an original simulation, not a plot from the novels.",again:"Play again"}:{result:"任务结果",report:"行动报告",log:"行动记录",clues:"线索汇总",unit:"条",none:"无线索发现。",canon:"原著改编互动：玩家分支不等同于原著事件；原著结局与本次模拟结果分开呈现。",original:"【非原著·原创】本任务为原创设计，结局为模拟结果，不是原著剧情。",again:"再玩一次"};
+$("#missionPanel").innerHTML=`<h3>${esc(missionDef.title)} · ${t.result}</h3>${stateBarHTML()}<div class="card" style="margin-top:6px"><h3>${t.report} · ${esc(end.grade)}</h3><p>${esc(end.text)}</p><p><b>${t.log}:</b></p><ul style="font-size:14px">${current.log.map(l=>`<li>${esc(l)}</li>`).join("")}</ul><p><b>${t.clues} (${current.clues.length} ${t.unit}):</b></p>${current.clues.length?current.clues.map(c=>`<div class="log">${esc(c)}</div>`).join(""):`<p class='meta'>${t.none}</p>`}<p class="meta">${missionDef.novelId?t.canon:t.original}</p><button class="btn small" id="missionAgain">${t.again}</button></div>`;
+$("#missionAgain").addEventListener("click",()=>startMission(missionDef.id));
 }
 
 // 旧版同步 chooseMission 已移除：统一使用上方异步 AI 裁定版本。
@@ -1693,7 +1689,7 @@ function showExpScene(id) {
   <p class="meta">${LANGUAGE === "en" ? "Choose an approach or describe any action in your own words. Outcomes are generated dynamically and are not guaranteed." : "你可以选择行动，也可以自由输入任何行动。后果由模型根据情境动态判定，不保证成功。"}</p>
   ${scene.choices.map((choice, i) => `<button class="choice" data-expchoice="${i}">${esc(choice)}</button>`).join("")}
   <div id="expOut">${history.map(m => `<div class="log"><b>${m.role === "user" ? (LANGUAGE === "en" ? "You" : "你") : (LANGUAGE === "en" ? "Field report" : "现场反馈")}：</b>${esc(m.content)}</div>`).join("")}</div>
-  <div class="row" style="margin-top:10px"><div style="flex:3"><input id="expActionInput" maxlength="1000" placeholder="${LANGUAGE === "en" ? "Describe your own action…" : "描述你想采取的行动…"}"></div><button class="btn small" id="expActionSend" style="flex:0 0 auto">${LANGUAGE === "en" ? "Act" : "行动"}</button></div><div class="row" style="margin-top:8px"><button class="btn ghost small" id="expUndo">${LANGUAGE==="en"?"Undo last action":"撤回上一步"}</button><button class="btn ghost small" id="expClear">${LANGUAGE==="en"?"Clear this scene":"清空本场对话"}</button></div>
+  <div class="row" style="margin-top:10px"><div style="flex:3"><input id="expActionInput" maxlength="1000" placeholder="${LANGUAGE === "en" ? "Describe your own action…" : "描述你想采取的行动…"}"></div><button class="btn small" id="expActionSend" style="flex:0 0 auto">${LANGUAGE === "en" ? "Act" : "行动"}</button></div><div class="row" style="margin-top:8px"><button class="btn ghost small" id="expUndo">${LANGUAGE === "en" ? "Undo previous action" : "撤回上一步"}</button><button class="btn ghost small" id="expClear">${LANGUAGE==="en"?"Clear this scene":"清空本场对话"}</button></div>
   ${id === "casino" ? `<p class="meta">${LANGUAGE === "en" ? "The baccarat table below is also playable." : "下方百家乐桌也可以直接实战。"}</p>` : ""}`;
   $$("#expPanel [data-expchoice]").forEach(el => el.addEventListener("click", () => {
     const choice = scene.choices[Number(el.dataset.expchoice)];
@@ -2083,35 +2079,18 @@ async function initAtlas() {
   }
 }
 
-// ---- 正典知识库状态 ----
-async function initCanonDataStatus() {
-  const box = $("#canonDataStatus");
-  if (!box) return;
-  try {
-    const r = await fetch("/api/status");
-    if (!r.ok) throw new Error("知识库状态接口返回 " + r.status);
-    const d = await r.json();
-    const x = d.data || {};
-    const stats = [
-      ["原著", x.novels || 0], ["章节/故事单位", x.chapters || 0],
-      ["正典事实", x.canonFacts || 0], ["推测事实", x.inferenceFacts || 0],
-      ["核心人物", x.coreCharacters || 0], ["全部人物", x.characters || 0],
-      ["组织", x.organizations || 0], ["地点", x.locations || 0],
-      ["装备", x.equipment || 0]
-    ];
-    const gaps = Array.isArray(d.knownGaps) ? d.knownGaps : [];
-    const dataState = LANGUAGE === "en" ? (englishText(d.dataState) || "Status not specified") : (d.dataState || "unknown");
-    const dataSource = LANGUAGE === "en" ? (englishText(d.dataSource) || "Not specified") : (d.dataSource || "未提供");
-    const gapSummary = LANGUAGE === "en" ? (gaps.length ? "See the knowledge-base manifest for documented data gaps." : "No known gaps are listed.") : (gaps.length ? gaps.map(g => typeof g === "string" ? g : JSON.stringify(g)).join("；") : "知识库未列出缺口。");
-    const syncSummary = LANGUAGE === "en" ? "Knowledge data is synchronised from the source repository during local development and builds. Generated canon files are not manually edited or writable by site visitors." : "同步方式：本地开发/构建时从知识库主分支拉取；生成文件不手工编辑、不向网站用户开放正典写入。";
-    box.innerHTML = `<div class="grid g3">${stats.map(([label,value]) => `<div class="state"><span class="lbl">${esc(LANGUAGE === "en" ? (EN_TEXT.get(label) || label) : label)}</span><b>${Number(value).toLocaleString("en-US")}</b></div>`).join("")}</div>
-      <p class="meta" style="margin-top:10px">${LANGUAGE === "en" ? "Data status" : "数据状态"}: ${esc(dataState)} · ${LANGUAGE === "en" ? "Source" : "来源"}: ${esc(dataSource)} · ${LANGUAGE === "en" ? "Knowledge-base version" : "知识库版本"}: ${esc(d.dataGenerated || "Not specified")}</p>
-      <p class="meta">${LANGUAGE === "en" ? "Known gaps" : "已知缺口"}: ${esc(gapSummary)}</p>
-      <p class="meta">${syncSummary}</p>`;
-  } catch (e) {
-    box.innerHTML = `<div class="empty">知识库状态暂时不可用：${esc(e.message)}</div>`;
-  }
-}
+
+// Local, bilingual field games; all run without model requests.
+let cipherCode="",cipherTries=0,survN=0,dedN=0,routeN=0;
+function cipherNew(){let ds="0123456789".split("");cipherCode="";while(cipherCode.length<4)cipherCode+=ds.splice(Math.floor(Math.random()*ds.length),1)[0];cipherTries=0;$("#cipherGuess").value="";$("#cipherSubmit").disabled=false;$("#cipherStatus").textContent=LANGUAGE==="en"?"8 attempts left":"剩余8次";$("#cipherLog").textContent=LANGUAGE==="en"?"Enter four unique digits.":"请输入四个不重复数字。";}
+function cipherTry(){let g=$("#cipherGuess").value.trim();if(!/^\d{4}$/.test(g)||new Set(g).size!==4){$("#cipherLog").textContent=LANGUAGE==="en"?"Use four different digits.":"请输入四个不重复的数字。";return;}if(cipherTries>=8)return;cipherTries++;let x=[...g].filter((v,i)=>v===cipherCode[i]).length,y=[...g].filter((v,i)=>cipherCode.includes(v)&&v!==cipherCode[i]).length;$("#cipherLog").textContent=(LANGUAGE==="en"?`Attempt ${cipherTries}: ${x} exact, ${y} misplaced.`:`第${cipherTries}次：位置正确${x}位，数字正确但位置错误${y}位。`)+(x===4?(LANGUAGE==="en"?" Code cracked.":" 破解成功。"):cipherTries===8?(LANGUAGE==="en"?" Locked. Code: ":" 已锁定，密码：")+cipherCode:"");$("#cipherStatus").textContent=LANGUAGE==="en"?`${8-cipherTries} left`:`剩余${8-cipherTries}次`;if(x===4||cipherTries===8)$("#cipherSubmit").disabled=true;}
+const SG=[{zh:"你在酒店大堂换了三次座位。一名男子每次都在你落座后两分钟内出现在相同视线范围。",en:"You change seats three times in a hotel lobby. A man appears within sight two minutes after each move."},{zh:"你离开车站后绕行两个街区再折返。一辆车也连续改变方向并保持距离。",en:"You circle two blocks and double back. A car changes direction twice and keeps the same distance."}];
+function survDraw(){let c=SG[survN%SG.length],opts=[["他连续跟随你的移动，并保持相同观察距离。","He repeatedly mirrors your movements and keeps the same distance."],["他穿着昂贵西装。","He is wearing an expensive suit."],["他在看报纸。","He is reading a newspaper."],["他点了咖啡。","He ordered coffee."]];$("#survPrompt").textContent=LANGUAGE==="en"?c.en:c.zh;$("#survChoices").innerHTML=opts.map((o,i)=>`<button class="choice" type="button" data-sv="${i}">${o[LANGUAGE==="en"?1:0]}</button>`).join("");$("#survFeedback").textContent="";$("#survChoices button").forEach(b=>b.addEventListener("click",()=>{$("#survFeedback").textContent=Number(b.dataset.sv)===0?(LANGUAGE==="en"?"Correct: repeated reactions to your movements are the strongest signal.":"正确：反复响应你的移动是最有力的迹象。"):(LANGUAGE==="en"?"Not enough evidence. Focus on repeated reactions to your movements.":"证据不足，应关注对方是否反复响应你的移动。");$("#survChoices button").forEach(z=>z.disabled=true);}));}
+const DG=[{zh:["服务门由钥匙打开，没有撬痕。","窗边没有玻璃碎片。","事件前一张员工门禁卡报告遗失。"],en:["The service door was opened with a key; there are no pry marks.","No glass fragments were found near the window.","A staff access card was reported missing before the incident."]},{zh:["包裹送达时封条完整。","收件签名与登记样本不一致。","交接记录缺少一名见证人。"],en:["The package seal was intact on arrival.","The recipient's signature does not match the registered sample.","The handover record is missing a witness."]}];
+function dedDraw(){let c=DG[dedN%DG.length];$("#deducePrompt").innerHTML=c[LANGUAGE==="en"?"en":"zh"].map(x=>`<div class="log">${esc(x)}</div>`).join("");let o=LANGUAGE==="en"?["Someone used a valid key or access credential.","The intruder definitely entered through a window.","A staff member is definitely the culprit."]:["有人使用了有效钥匙或门禁凭证。","入侵者一定是从窗户进入。","员工一定就是主谋。"];$("#deduceChoices").innerHTML=o.map((x,i)=>`<button class="choice" type="button" data-dd="${i}">${x}</button>`).join("");$("#deduceFeedback").textContent="";$("#deduceChoices button").forEach(b=>b.addEventListener("click",()=>{$("#deduceFeedback").textContent=Number(b.dataset.dd)===0?(LANGUAGE==="en"?"Correct. You stayed within the evidence.":"正确，结论没有超出证据。"):(LANGUAGE==="en"?"Unsupported inference. Separate facts from assumptions.":"推断缺乏支持，请区分事实与假设。");$("#deduceChoices button").forEach(z=>z.disabled=true);}));}
+const RG=[{zh:"你携带胶片，必须在20分钟内离开港口区。主路有警察盘查，仓库区路线不熟。",en:"You carry a film canister and must leave the harbour within 20 minutes. The main road has a checkpoint; the warehouse route is unfamiliar."},{zh:"你在酒店被发现，必须带联络人撤离。电梯大厅有人守候，消防楼梯尚未确认是否畅通。",en:"You are spotted in a hotel with a contact. The lift lobby is watched; the fire stairs have not been checked."}];
+function routeDraw(){let c=RG[routeN%RG.length];$("#routePrompt").textContent=LANGUAGE==="en"?c.en:c.zh;let o=LANGUAGE==="en"?["Drive via the main road: fast, but exposed.","Reconnoitre the covered route before extracting.","Board an unknown vehicle immediately."]:["主路驾车：快，但暴露风险高。","先侦察有遮蔽的路线，再撤离。","立即登上身份和目的地未知的车辆。"];$("#routeChoices").innerHTML=o.map((x,i)=>`<button class="choice" type="button" data-rt="${i}">${x}</button>`).join("");$("#routeFeedback").textContent="";$("#routeChoices button").forEach(b=>b.addEventListener("click",()=>{$("#routeFeedback").textContent=Number(b.dataset.rt)===1?(LANGUAGE==="en"?"Sound judgement: verify uncertainty before committing.":"判断合理：先核实不确定因素再行动。"):(LANGUAGE==="en"?"Reassess exposure, cover and unknowns.":"重新评估暴露风险、遮蔽条件与未知因素。");$("#routeChoices button").forEach(z=>z.disabled=true);}));}
+function initFieldGames(){cipherNew();survDraw();dedDraw();routeDraw();$("#cipherSubmit").addEventListener("click",cipherTry);$("#cipherGuess").addEventListener("keydown",e=>{if(e.key==="Enter")cipherTry();});$("#cipherReset").addEventListener("click",cipherNew);$("#survNext").addEventListener("click",()=>{survN++;survDraw();});$("#deduceNext").addEventListener("click",()=>{dedN++;dedDraw();});$("#routeNext").addEventListener("click",()=>{routeN++;routeDraw();});}
 
 // ---- 状态与启动 ----
 async function initStatus() {
@@ -2139,8 +2118,8 @@ function startApp() {
   const tasks = [
     ["人物剧场", initCharacters], ["情报档案馆", initDossier],
     ["任务控制中心", initMissions], ["场景体验", initExperience],
-    ["百家乐", initBaccarat], ["文学研究", initLiterary],
-    ["世界探索", initAtlas], ["知识库状态", initCanonDataStatus],
+    ["百家乐", initBaccarat], ["特工挑战", initFieldGames], ["文学研究", initLiterary],
+    ["世界探索", initAtlas],
     ["模型状态", initStatus]
   ];
   for (const [name, init] of tasks) {
