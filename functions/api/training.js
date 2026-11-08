@@ -5,7 +5,7 @@ function parse(s){s=String(s||"").replace(/^\x60\x60\x60(?:json)?\s*/i,"").repla
 const clamp=n=>{const v=Number(n);return Number.isFinite(v)?Math.max(0,Math.min(100,Math.round(v))):50;};
 export async function onRequestPost(ctx){
  try{
- const b=await ctx.request.json(),lang=b.language==="en"?"en":"zh",mode=modes[b.mode]?b.mode:"infiltration",kind=b.action==="act"?"act":"start",env=ctx.env||{};
+ let lang="zh";\n const b=await ctx.request.json();lang=b.language==="en"?"en":"zh";const mode=modes[b.mode]?b.mode:"infiltration",kind=b.action==="act"?"act":"start",env=ctx.env||{};
  if(!llmStatus(env).available)return json({error:lang==="en"?"The AI model is not connected. Configure the MiniMax API key.":"模型尚未接入，请配置 MiniMax API Key。",errorEn:"The AI model is not connected. Configure the MiniMax API key.",code:"MODEL_NOT_CONNECTED"},503);
  const history=Array.isArray(b.history)?b.history.filter(x=>x&&["user","assistant"].includes(x.role)&&typeof x.content==="string").slice(-10).map(x=>({role:x.role,content:x.content.slice(0,2200)})):[];
  const action=typeof b.actionText==="string"?b.actionText.trim().slice(0,700):"";
@@ -27,6 +27,6 @@ export async function onRequestPost(ctx){
  d.completed=Boolean(d.completed)||history.filter(x=>x.role==="user").length>=7;
  d.phase=String(d.phase||title).slice(0,80);d.scene=d.scene.slice(0,3500);d.intel=String(d.intel||"").slice(0,1800);d.feedback=String(d.feedback||"").slice(0,1600);d.model=out.model;
  return json(d);
- }catch(e){console.error("training failed",e?.message);return json({error:"训练请求处理失败，请重试。"},400);}
+ }catch(e){console.error("training failed",e?.message);return json({error:lang==="en"?"The training request failed. Please try again.":"训练请求处理失败，请重试。",errorEn:"The training request failed. Please try again."},400);}
 }
 export async function onRequest(ctx){return ctx.request.method==="POST"?onRequestPost(ctx):json({error:"只接受POST"},405);}
