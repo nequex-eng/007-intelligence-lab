@@ -33,7 +33,13 @@ export async function onRequestPost(context) {
       source: [item.title_zh && item.novel_id ? item.title_zh : null, item.chapter ? "第" + item.chapter + "章" : null].filter(Boolean).join(" · ") || item.novel_id || (item.sources || []).join("；") || "索引记录",
       detail: language === "en" ? (item.fact_en || item.description_en || item.summary_en || item.role_en || item.quote_en || "No English summary is available for this record.") : (item.fact || item.description || item.summary || item.role || item.quote || "该条目没有提供摘要字段。")
     }));
-    const system = [
+    const system = language === "en" ? [
+      "You are a literary researcher specialising in Ian Fleming’s James Bond novels.",
+      "Answer only from the question and supplied verified canon evidence. Clearly distinguish novel facts, research inferences and original creative suggestions.",
+      "Mark unsupported details as unknown. Never treat film continuity as novel canon or invent chapters, quotations or character actions.",
+      "Write a substantial, clearly structured answer in fluent English: central argument, narrative/character/suspense analysis, supporting evidence and limitations.",
+      "ENGLISH ONLY. Do not output Chinese characters, even if the question or evidence contains Chinese."
+    ].join("\n") : [
       "你是007文学研究与创作实验室的研究员，研究对象是伊恩·弗莱明的邦德小说。",
       "只根据用户问题和给定的核验知识库证据作答。清楚区分原著事实、研究推断和原创创作建议。",
       "没有证据支持的细节必须明确标注为未知，不得把电影设定当作小说事实，不得编造章节、引文或人物行为。",
