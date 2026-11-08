@@ -24,7 +24,7 @@ assert.ok(html.includes("leaflet@1.9.4/dist/leaflet.css") && html.includes("leaf
 
 for (const fn of [
   "async function initCharacters", "async function sendChat", "function initDossier",
-  "function initMissions", "function initExperience", "function initBaccarat",
+  "function initExperience",
   "function initLiterary", "async function initAtlas", "function initFieldGames"
 ]) assert.ok(app.includes(fn), `required front-end module exists: ${fn}`);
 
@@ -44,13 +44,7 @@ assert.ok(app.includes('addChatMsg("me", input);'), "user messages render withou
 assert.ok(app.includes('m.role === "user" ? null'), "restored user messages render without a speaker heading");
 assert.ok(app.includes('$$("[data-lab]").forEach'), "all literary experiment buttons are bound");
 assert.ok(!app.includes('\n$("[data-lab]").forEach'), "single-element forEach initialization crash is fixed");
-assert.ok(app.includes("createShoe()"), "baccarat uses a shuffled physical deck");
-assert.ok(app.includes("bacPushes"), "baccarat tracks push outcomes and settles stakes correctly");
 assert.ok(app.includes("/api/literary"), "literary lab calls model-backed analysis endpoint");
-assert.ok(app.includes('$("#missionList").onclick'), "mission cards use delegated click handling");
-assert.ok(app.includes("function hasSavedMission(id)"), "mission cards detect locally saved progress");
-assert.ok(app.includes("function restoreMissionState(preferredId = null)"), "mission control can resume any saved mission");
-assert.ok(app.includes('"007-mission:last"'), "mission resume pointer is stored locally");
 assert.ok(!app.includes("离线演示中"), "offline model status does not promise scripted demo replies");
 assert.ok(app.includes("const MAP_COORDINATES = {"), "map coordinates are a separate verified registry");
 for (const id of ["dr-no", "goldfinger", "thunderball"]) assert.ok(app.includes(`id: "${id}"`), `canon mission exists: ${id}`);
@@ -58,3 +52,8 @@ assert.ok(app.includes("loadMissionCanonBrief(missionDef.novelId || null)"), "mi
 assert.ok(!app.includes("const LOCATIONS = ["), "legacy duplicate location catalog is removed");
 
 console.log("PASS: four-module UI structure, chapter controls, canon-backed world explorer, and browser script syntax");
+
+assert.ok(!html.includes("id=\"missionList\"") && !html.includes("id=\"missionPanel\""), "legacy five-mission selector and console are removed");
+assert.ok(!html.toLowerCase().includes("baccarat") && !html.includes("百家乐"), "baccarat is removed from the public UI");
+assert.ok(!app.includes("function initBaccarat") && !app.includes("function initMissions") && !app.includes("let bacChips"), "legacy mission and baccarat gameplay code is removed");
+assert.ok(app.includes("function resetTrainingLanguage"), "switching languages resets training to the selected language");
