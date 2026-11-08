@@ -24,7 +24,8 @@ export async function onRequestPost(ctx){
  const userFacing=x=>x?[x.phase,x.scene,x.intel,x.feedback,...(x.options||[]).flatMap(o=>typeof o==="string"?[o]:[o.label,o.rationale])].filter(v=>typeof v==="string"&&v.trim()):[];
  const hasChinese=s=>/[\u3400-\u9fff]/.test(String(s||""));
  const hasChineseOutput=x=>userFacing(x).some(hasChinese);
- const hasEnglishOnlyOutput=x=>userFacing(x).some(s=>/[A-Za-z]{3,}/.test(s)&&!hasChinese(s));
+ const isEnglishDominant=s=>{const zh=(String(s).match(/[\\u3400-\\u9fff]/g)||[]).length,latin=(String(s).match(/[A-Za-z]/g)||[]).length;return latin>Math.max(20,zh*0.65);};
+ const hasEnglishOnlyOutput=x=>userFacing(x).some(s=>!hasChinese(s)||isEnglishDominant(s));
  if(lang==="en"&&hasChineseOutput(d)){const fix=await generate(env,[{role:"system",content:"Translate this JSON into fluent English. Preserve the exact structure, facts, choices, stats and meaning. Do not add or remove options. Output ONLY valid JSON and no Chinese characters."},{role:"user",content:out.text}]);if(fix.ok)d=parse(fix.text);}
  if(lang==="zh"&&hasEnglishOnlyOutput(d)){const fix=await generate(env,[{role:"system",content:"将下面的训练简报JSON完整改写为自然、准确的简体中文。所有面向用户的字段必须使用简体中文，包括phase、scene、intel、feedback、每个option的label和rationale。专有名词可保留通行译名或必要缩写。必须原样保留JSON结构、事实、选项数量、数值和completed状态；不得添加或删减选项。只输出合法JSON，不要解释。"},{role:"user",content:out.text}]);if(fix.ok)d=parse(fix.text);}
  if(!d||typeof d.scene!=="string"||!Array.isArray(d.options)||(lang==="en"&&hasChineseOutput(d))||(lang==="zh"&&hasEnglishOnlyOutput(d)))return json({error:lang==="en"?"The model returned content in the wrong language. Please retry.":"模型返回格式或语言异常，请重新开始。",errorEn:"The model returned content in the wrong language. Please retry."},502);
