@@ -60,4 +60,6 @@ assert.ok(app.includes("function resetTrainingLanguage"), "switching languages r
 assert.ok(app.includes("language:LANGUAGE") && app.includes('fetch("/api/training"'), "training requests pass the selected language to the model endpoint");
 assert.ok(!app.toLowerCase().includes("baccarat") && !app.includes("百家乐"), "baccarat logic and copy are completely removed");
 const trainingApi = readFileSync(new URL("../functions/api/training.js", import.meta.url), "utf8");
+const chatApi = readFileSync(new URL("../functions/api/chat.js", import.meta.url), "utf8");
 assert.ok(trainingApi.includes("ENGLISH-ONLY OUTPUT") && trainingApi.includes("promptEn"), "English training prompts and model output are enforced server-side");
+assert.ok(chatApi.includes("function enforceEnglish") && chatApi.includes("All replies must be in fluent English only"), "all English character chat modes enforce English-only model output");
