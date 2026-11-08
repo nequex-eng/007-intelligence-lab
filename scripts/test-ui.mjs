@@ -41,7 +41,7 @@ assert.ok(app.includes("mode: chatMode"), "chat mode is sent to server");
 assert.ok(app.includes('$$("#chatModes .chipbtn")'), "all four chat mode controls are bound inside their container");
 assert.ok(!app.includes('$("#chatModes.chipbtn")'), "invalid chat mode selector is absent");
 assert.ok(app.includes('addChatMsg("me", input);'), "user messages render without a speaker heading");
-assert.ok(app.includes('m.role === "user" ? null'), "restored user messages render without a speaker heading");
+assert.ok(app.includes('addChatMsg(m.role === "user" ? "me" : "them"'), "restored user messages render without a speaker heading");
 assert.ok(app.includes('$$("[data-lab]").forEach'), "all literary experiment buttons are bound");
 assert.ok(!app.includes('\n$("[data-lab]").forEach'), "single-element forEach initialization crash is fixed");
 assert.ok(app.includes("/api/literary"), "literary lab calls model-backed analysis endpoint");
