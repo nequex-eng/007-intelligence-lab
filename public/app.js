@@ -999,7 +999,7 @@ $("#charGrid").innerHTML = list.length? list.map((c) =>
 <p class="meta">${LANGUAGE==="en"?"First appearance: ":"首次登场："}${esc(LANGUAGE==="en"?c.firstBookEn:c.firstBook)} (${c.firstYear})</p>
 <span class="tag gold">${LANGUAGE==="en"?"Knowledge cutoff: ":"知识截止："}${esc(LANGUAGE==="en"?c.cutoffEn:c.cutoff)}</span></div>`).join("")
 : `<div class="empty">没有匹配人物，换个关键词试试。</div>`;
-$$$("#charGrid [data-char]").forEach((el) => el.addEventListener("click", () => selectChar(el.dataset.char)));
+$$("#charGrid [data-char]").forEach((el) => el.addEventListener("click", () => selectChar(el.dataset.char)));
 }
 
 async function selectChar(id) {
@@ -1310,9 +1310,9 @@ async function renderDossierTab(tab) {
 function initDossier() {
   $("#dossierGo").addEventListener("click", () => runDossier($("#dossierQ").value));
   $("#dossierQ").addEventListener("keydown", (e) => { if (e.key === "Enter") runDossier($("#dossierQ").value); });
-  $$$("#dossier .chipbtn[data-q]").forEach((b) => b.addEventListener("click", () => { $("#dossierQ").value = b.dataset.q; runDossier(b.dataset.q); }));
-  $$$("#dossierTabs .chipbtn").forEach((b) => b.addEventListener("click", () => {
-    $$$("#dossierTabs .chipbtn").forEach((x) => x.classList.remove("active"));
+  $$("#dossier .chipbtn[data-q]").forEach((b) => b.addEventListener("click", () => { $("#dossierQ").value = b.dataset.q; runDossier(b.dataset.q); }));
+  $$("#dossierTabs .chipbtn").forEach((b) => b.addEventListener("click", () => {
+    $$("#dossierTabs .chipbtn").forEach((x) => x.classList.remove("active"));
     b.classList.add("active");
     renderDossierTab(b.dataset.tab);
   }));
@@ -1566,8 +1566,8 @@ panel.innerHTML = `<h3>${esc(missionDef.title)} · ${esc(missionDef.kind)}</h3>$
 ${stage.choices.map((ch,i)=>`<button type="button" class="choice" data-choice="${i}" ${missionBusy?"disabled":""}>${esc(ch.text)}<small>${esc(ch.hint)}</small></button>`).join("")}
 ${missionState.clues.length?`<p class="meta"><b>${LANGUAGE==="en"?"Evidence secured:":"已发现线索："}</b></p>`+missionState.clues.map(c=>`<div class="log">${esc(c)}</div>`).join(""):""}
 <div class="row" style="margin-top:10px"><button type="button" class="btn ghost small" id="missionQuit">${LANGUAGE==="en"?"Abandon mission":"放弃任务"}</button></div>`;
-$$$("#missionPanel [data-choice]").forEach((el) => el.addEventListener("click", () => chooseMission(+el.dataset.choice)));
-$$$("#missionPanel [data-stage-jump]").forEach((el) => el.addEventListener("click", (event) => {
+$$("#missionPanel [data-choice]").forEach((el) => el.addEventListener("click", () => chooseMission(+el.dataset.choice)));
+$$("#missionPanel [data-stage-jump]").forEach((el) => el.addEventListener("click", (event) => {
   event.preventDefault();
   event.stopPropagation();
   if (missionBusy || !missionDef || !missionState) return;
@@ -1675,7 +1675,7 @@ let expCurrentScene = "m-office";
 const expSessions = {};
 function initExperience() {
   $("#expScenes").innerHTML = EXP_SCENES.map((s) => `<button class="chipbtn" data-exp="${s.id}">${esc(s.title)}</button>`).join("");
-  $$$("#expScenes .chipbtn").forEach((b) => b.addEventListener("click", () => showExpScene(b.dataset.exp)));
+  $$("#expScenes .chipbtn").forEach((b) => b.addEventListener("click", () => showExpScene(b.dataset.exp)));
   showExpScene("m-office");
 }
 function showExpScene(id) {
@@ -1683,7 +1683,7 @@ function showExpScene(id) {
   if (!scene) return;
   expCurrentScene = id;
   if (!expSessions[id]) { try { expSessions[id] = JSON.parse(localStorage.getItem("007-field:" + id) || "[]"); if (!Array.isArray(expSessions[id])) expSessions[id] = []; } catch (_) { expSessions[id] = []; } }
-  $$$("#expScenes .chipbtn").forEach((x) => x.classList.toggle("active", x.dataset.exp === id));
+  $$("#expScenes .chipbtn").forEach((x) => x.classList.toggle("active", x.dataset.exp === id));
   const history = expSessions[id];
   $("#expPanel").innerHTML = `<h3>${esc(scene.title)}</h3><p>${esc(scene.text)}</p>
   <p class="meta">${LANGUAGE === "en" ? "Choose an approach or describe any action in your own words. Outcomes are generated dynamically and are not guaranteed." : "你可以选择行动，也可以自由输入任何行动。后果由模型根据情境动态判定，不保证成功。"}</p>
@@ -1691,7 +1691,7 @@ function showExpScene(id) {
   <div id="expOut">${history.map(m => `<div class="log"><b>${m.role === "user" ? (LANGUAGE === "en" ? "You" : "你") : (LANGUAGE === "en" ? "Field report" : "现场反馈")}：</b>${esc(m.content)}</div>`).join("")}</div>
   <div class="row" style="margin-top:10px"><div style="flex:3"><input id="expActionInput" maxlength="1000" placeholder="${LANGUAGE === "en" ? "Describe your own action…" : "描述你想采取的行动…"}"></div><button class="btn small" id="expActionSend" style="flex:0 0 auto">${LANGUAGE === "en" ? "Act" : "行动"}</button></div><div class="row" style="margin-top:8px"><button class="btn ghost small" id="expUndo">${LANGUAGE === "en" ? "Undo previous action" : "撤回上一步"}</button><button class="btn ghost small" id="expClear">${LANGUAGE === "en" ? "Clear this conversation" : "清空本场对话"}</button></div>
   ${id === "casino" ? `<p class="meta">${LANGUAGE === "en" ? "The baccarat table below is also playable." : "下方百家乐桌也可以直接实战。"}</p>` : ""}`;
-  $$$("#expPanel [data-expchoice]").forEach(el => el.addEventListener("click", () => {
+  $$("#expPanel [data-expchoice]").forEach(el => el.addEventListener("click", () => {
     const choice = scene.choices[Number(el.dataset.expchoice)];
     sendExperienceAction(choice);
     if (id === "casino" && Number(el.dataset.expchoice) === 2) document.getElementById("baccaratCard").scrollIntoView({ behavior: "smooth" });
@@ -1902,7 +1902,7 @@ box.innerHTML = answer + evidence;
 box.innerHTML = `<div class="empty">正典检索失败：${esc(e.message)}。</div>`;
 }
 });
-$$$("[data-lab]").forEach((b) => b.addEventListener("click", async () => {
+$$("[data-lab]").forEach((b) => b.addEventListener("click", async () => {
 try {
 if (b.dataset.lab === "compare") await ensureCanonBooks();
 $("#labOut").innerHTML = `<p style="font-size:15px">${esc(LAB_GEN[b.dataset.lab]())}</p><p class="meta">研究提纲/原创实验内容，不替代原著章节证据。</p>`;
@@ -1997,14 +1997,14 @@ function renderAtlas() {
     wrap.innerHTML = dots.length ? dots.map(d =>
       `<div class="mapdot" style="left:${d.xPct.toFixed(1)}%;top:${d.yPct.toFixed(1)}%" data-loc="${d.p.id}" title="${esc(locationName(d.p))}"></div><div class="maplbl" data-loc="${d.p.id}" style="left:${d.lbl.left.toFixed(0)}px;top:${d.lbl.top.toFixed(0)}px;transform:none">${esc(locationName(d.p))}</div>`
     ).join("") : `<div style="position:absolute;left:10px;right:10px;top:45%;text-align:center;font-size:13px;color:var(--muted)">${LANGUAGE === "en" ? "No verified real locations with coordinates match these filters. See the complete archive below." : "当前筛选没有可核验坐标的真实地点；请查看下方完整档案。"}</div>`;
-    $$$("#mapWrap .mapdot").forEach(el => el.addEventListener("click", () => showLocation(el.dataset.loc)));
+    $$("#mapWrap .mapdot").forEach(el => el.addEventListener("click", () => showLocation(el.dataset.loc)));
   }
   const mapped = list.filter(p => !p.fictional && MAP_COORDINATES[p.id]);
   const unlocated = list.length - mapped.length;
   $("#atlasGrid").innerHTML = mapped.map(p =>
     `<div class="card clickable" data-loc="${p.id}"><h3>${esc(locationName(p))} <span class="tag gold">${LANGUAGE === "en" ? "Real location" : "真实地点"}</span></h3><p class="meta">${esc(locationCountry(p))} · ${LANGUAGE === "en" ? "City-level map marker" : "城市级地图点"} · ${p.appearances.length} ${LANGUAGE === "en" ? "novels" : "部作品"}</p><p>${esc(p.appearances.map(locationAppearance).join(" · "))}</p></div>`
   ).join("") + `<div class="card"><h3>${LANGUAGE === "en" ? "Other locations in the archive" : "档案中的其他地点"}</h3><p>${LANGUAGE === "en" ? unlocated + " locations have no verified point coordinates or are fictional. They remain in the full directory of 170 locations below." : unlocated + "处地点没有可核验的单点坐标，或属于小说虚构地点。它们仍完整保留在下方170处地点目录中。"}</p></div>`;
-  $$$("#atlasGrid [data-loc]").forEach(el => el.addEventListener("click", () => showLocation(el.dataset.loc)));
+  $$("#atlasGrid [data-loc]").forEach(el => el.addEventListener("click", () => showLocation(el.dataset.loc)));
   renderCanonWorldDirectory();
 }
 
@@ -2035,7 +2035,7 @@ function renderCanonWorldDirectory() {
   box.innerHTML = list.map(p =>
     `<div class="card clickable" data-canon-loc="${p.id}"><h3>${esc(locationName(p))} <span class="tag ${p.fictional?"red":"gold"}">${p.fictional ? (LANGUAGE === "en" ? "Fictional location" : "小说虚构地点") : (LANGUAGE === "en" ? "Real location" : "真实地点")}</span></h3><p class="meta">${esc(locationCountry(p))} · ${p.appearances.length} ${LANGUAGE === "en" ? "novels" : "部作品"}</p><p>${esc(p.appearances.map(locationAppearance).join(" · "))}</p></div>`
   ).join("") || '<div class="empty">没有匹配地点。</div>';
-  $$$("#canonWorldDirectory [data-canon-loc]").forEach(el => el.addEventListener("click", () => showLocation(el.dataset.canonLoc)));
+  $$("#canonWorldDirectory [data-canon-loc]").forEach(el => el.addEventListener("click", () => showLocation(el.dataset.canonLoc)));
 }
 
 async function loadCanonWorldDirectory() {
