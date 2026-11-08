@@ -1530,7 +1530,7 @@ async function chooseMission(i) {
   missionState.log.push(stage.title+" · "+ch.text+" ["+label+"]: "+String(d.narrative||""));
   if(d.nextStage==="end"||missionState.risk>=95){const end={grade:d.grade||(LANGUAGE==="en"?"Mission concluded":"任务结束"),text:d.debrief||d.narrative||""};missionState.stage="end";missionState.completed=true;missionState.result=end;saveMissionState();renderMissionResult(end);}
   else{missionState.stage=missionDef.stages.some(x=>x.id===d.nextStage)?d.nextStage:ch.next;saveMissionState();renderMissionStage();}
- }catch(e){const p=$("#missionThinking");if(p)p.textContent=(LANGUAGE==="en"?"AI adjudication failed; no state was changed. ":"大模型裁定失败，任务状态未改变。")+e.message;missionBusy=false;$("#missionPanel [data-choice]").forEach(el=>el.disabled=false);return;}
+ }catch(e){const p=$("#missionThinking");if(p)p.textContent=(LANGUAGE==="en"?"AI adjudication failed; no state was changed. ":"大模型裁定失败，任务状态未改变。")+e.message;missionBusy=false;$($("#missionPanel [data-choice]") || [])(el=>el.disabled=false);return;}
  finally{missionBusy=false;}
 }
 function stateBarHTML() {
@@ -1712,6 +1712,22 @@ function showExpScene(id) {
     if (value) sendExperienceAction(value);
   });
   $("#expActionInput").addEventListener("keydown", e => { if (e.key === "Enter") $("#expActionSend").click(); });
+  $("#expUndo").addEventListener("click", () => {
+    const history = expSessions[expCurrentScene] || (expSessions[expCurrentScene] = []);
+    if (!history.length) return;
+    // Undo one complete exchange; if only a user action exists, remove that pending action.
+    if (history[history.length - 1]?.role === "assistant") history.pop();
+    if (history[history.length - 1]?.role === "user") history.pop();
+    try { localStorage.setItem("007-field:" + expCurrentScene, JSON.stringify(history)); } catch (_) {}
+    const out = $("#expOut");
+    if (out) out.innerHTML = history.map(m => `<div class="log"><b>${m.role === "user" ? (LANGUAGE === "en" ? "You" : "你") : (LANGUAGE === "en" ? "Field report" : "现场反馈")}：</b>${esc(m.content)}</div>`).join("");
+  });
+  $("#expClear").addEventListener("click", () => {
+    expSessions[expCurrentScene] = [];
+    try { localStorage.removeItem("007-field:" + expCurrentScene); } catch (_) {}
+    const out = $("#expOut");
+    if (out) out.innerHTML = "";
+  });
 }
 async function sendExperienceAction(action) {
   const scene = EXP_SCENES.find(x => x.id === expCurrentScene);
