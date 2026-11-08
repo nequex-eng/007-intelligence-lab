@@ -49,7 +49,17 @@ export async function onRequestPost(context) {
       { role: "system", content: system },
       { role: "user", content: "研究问题：" + question + "\n\n核验知识库检索结果：\n" + JSON.stringify(evidence) }
     ]);
-    if (out.ok) {\n      let answer = out.text;\n      if (language === "en" && /[\\u3400-\\u9fff]/.test(answer)) {\n        const translated = await generate(context.env || {}, [{ role: "system", content: "Translate the following literary analysis into fluent English. Preserve all facts, qualifications and citations. Do not add claims. Output English only, with no Chinese characters." }, { role: "user", content: answer }]);\n        if (translated.ok) answer = translated.text;\n      }\n      return json({ answer, model: out.model, evidence });\n    }
+    if (out.ok) {
+      let answer = out.text;
+      if (language === "en" && /[\u3400-\u9fff]/.test(answer)) {
+        const translated = await generate(context.env || {}, [
+          { role: "system", content: "Translate the following literary analysis into fluent English. Preserve all facts, qualifications and citations. Do not add claims. Output English only, with no Chinese characters." },
+          { role: "user", content: answer }
+        ]);
+        if (translated.ok) answer = translated.text;
+      }
+      return json({ answer, model: out.model, evidence });
+    }
     return json({
       error: out.code === "MODEL_NOT_CONNECTED"
         ? "MiniMax 尚未配置：已返回知识库检索证据；配置生产环境 MINIMAX_API_KEY 后即可生成文学分析。"
