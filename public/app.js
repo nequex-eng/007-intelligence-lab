@@ -910,7 +910,7 @@ function applyLanguage() {
 }
 function initLanguage(){
   const b=document.getElementById("languageToggle");
-  if(b)b.addEventListener("click",()=>{LANGUAGE=LANGUAGE==="en"?"zh":"en";try{localStorage.setItem("007-language",LANGUAGE);}catch(_){}applyLanguage();if(CHARACTERS.length){renderCharGrid();if(selectedChar)selectChar(selectedChar);}if(missionDef)loadMissionCanonBrief(missionDef.novelId||null);if(expCurrentScene)showExpScene(expCurrentScene);if(missionState?.completed&&missionState.result)renderMissionResult(missionState.result);});
+  if(b)b.addEventListener("click",()=>{LANGUAGE=LANGUAGE==="en"?"zh":"en";try{localStorage.setItem("007-language",LANGUAGE);}catch(_){}applyLanguage();if(CHARACTERS.length){renderCharGrid();if(selectedChar)selectChar(selectedChar);}if(missionDef)loadMissionCanonBrief(missionDef.novelId||null);if(expCurrentScene)showExpScene(expCurrentScene);if(missionState?.completed&&missionState.result)renderMissionResult(missionState.result);if(typeof renderSeriesGameIndex==="function")renderSeriesGameIndex();if(typeof drawSurv==="function")drawSurv();if(typeof dedDraw==="function")dedDraw();if(typeof routeDraw==="function")routeDraw();if(typeof bjShow==="function")bjShow(!bjActive);});
   const observer=new MutationObserver(records=>records.forEach(r=>{if(r.type==="characterData")translateTextNode(r.target);else r.addedNodes.forEach(n=>{if(n.nodeType===3)translateTextNode(n);else if(n.nodeType===1){const w=document.createTreeWalker(n,NodeFilter.SHOW_TEXT);let t;while((t=w.nextNode()))translateTextNode(t);translateElementAttributes(n);}});}));
   observer.observe(document.body,{subtree:true,childList:true,characterData:true});
   applyLanguage();
