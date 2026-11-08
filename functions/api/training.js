@@ -4,8 +4,8 @@ const modes={infiltration:["潜入行动","Covert Infiltration"],intelligence:["
 function parse(s){s=String(s||"").replace(/^\x60\x60\x60(?:json)?\s*/i,"").replace(/\s*\x60\x60\x60$/,"").trim();try{return JSON.parse(s)}catch(e){}const a=s.indexOf("{"),b=s.lastIndexOf("}");if(a>=0&&b>a){try{return JSON.parse(s.slice(a,b+1))}catch(e){}}return null;}
 const clamp=n=>{const v=Number(n);return Number.isFinite(v)?Math.max(0,Math.min(100,Math.round(v))):50;};
 export async function onRequestPost(ctx){
- try{
  let lang="zh";
+ try{
  const b=await ctx.request.json();lang=b.language==="en"?"en":"zh";const mode=modes[b.mode]?b.mode:"infiltration",kind=b.action==="act"?"act":"start",env=ctx.env||{};
  if(!llmStatus(env).available)return json({error:lang==="en"?"The AI model is not connected. Configure the MiniMax API key.":"模型尚未接入，请配置 MiniMax API Key。",errorEn:"The AI model is not connected. Configure the MiniMax API key.",code:"MODEL_NOT_CONNECTED"},503);
  const history=Array.isArray(b.history)?b.history.filter(x=>x&&["user","assistant"].includes(x.role)&&typeof x.content==="string").slice(-10).map(x=>({role:x.role,content:x.content.slice(0,2200)})):[];
