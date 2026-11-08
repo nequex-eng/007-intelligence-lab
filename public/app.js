@@ -907,7 +907,9 @@ function applyLanguage() {
   if (activeDossierTab) renderDossierTab(activeDossierTab);
   const activeDossierQuery = document.getElementById("dossierQ")?.value?.trim();
   if (activeDossierQuery) runDossier(activeDossierQuery);
-  const litAnswer = document.getElementById("litAnswer");\n  if (litAnswer) litAnswer.innerHTML = LANGUAGE === "en" ? '<div class="empty">Ask a question to analyse the novels in English.</div>' : '<div class="empty">尚未提问</div>';\n  const labOutput = document.getElementById("labOut");
+  const litAnswer = document.getElementById("litAnswer");
+  if (litAnswer) litAnswer.innerHTML = LANGUAGE === "en" ? '<div class="empty">Ask a question to analyse the novels in English.</div>' : '<div class="empty">尚未提问</div>';
+  const labOutput = document.getElementById("labOut");
   if (labOutput && labOutput.textContent.trim()) labOutput.innerHTML = LANGUAGE === "en" ? '<div class="empty">Choose a writing experiment above to generate an English draft.</div>' : '<div class="empty">点上方任一实验开始。</div>';
   if (Array.isArray(canonWorldLocations) && canonWorldLocations.length) {
     const countrySelect = document.getElementById("atlasCountry");
