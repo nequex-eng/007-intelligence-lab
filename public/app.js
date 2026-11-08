@@ -1478,24 +1478,24 @@ $("#litTopics").innerHTML = LIT_TOPICS.map((x) => `<details><summary>${esc(x.t)}
 $("#litAsk").addEventListener("click", async () => {
 const q = $("#litQ").value.trim();
 const box = $("#litAnswer");
-if (!q) { box.innerHTML = `<div class="empty">请先输入问题。</div>`; return; }
-box.innerHTML = `<div class="empty">正在核验14部原著索引……</div>`;
+if (!q) { box.innerHTML = `<div class="empty">${LANGUAGE==="en"?"Enter a question first.":"请先输入问题。"}</div>`; return; }
+box.innerHTML = `<div class="empty">${LANGUAGE==="en"?"Searching verified novel records…":"正在核验14部原著索引……"}</div>`;
 try {
 const r = await fetch("/api/literary", {
   method: "POST", headers: { "content-type": "application/json" },
-  body: JSON.stringify({ question: q })
+  body: JSON.stringify({ question: q, language: LANGUAGE })
 });
 const d = await r.json().catch(() => ({}));
 const results = d.evidence || [];
 const answer = d.answer
-  ? `<div class="card" style="margin:8px 0"><h3>MiniMax 文学分析</h3><p style="white-space:pre-wrap">${esc(d.answer)}</p><p class="meta">模型：${esc(d.model || "MiniMax")} · 结论仅在所列原著证据范围内成立。</p></div>`
+  ? `<div class="card" style="margin:8px 0"><h3>${LANGUAGE==="en"?"MiniMax Literary Analysis":"MiniMax 文学分析"}</h3><p style="white-space:pre-wrap">${esc(d.answer)}</p><p class="meta">${LANGUAGE==="en"?"Model: ":"模型："}${esc(d.model || "MiniMax")} · ${LANGUAGE==="en"?"Conclusions are limited to the supplied canon evidence.":"结论仅在所列原著证据范围内成立。"}</p></div>`
   : `<div class="empty">${esc(d.error || "模型暂不可用。以下先展示可检索到的原著证据；配置 MiniMax 后可生成完整文学分析。")}</div>`;
 const evidence = results.length
-  ? `<p class="meta">核验知识库证据：${results.length}条</p>` + results.map(x => `<div class="card" style="margin:8px 0"><h3>${esc(x.title || "原著记录")} <span class="tag gold">${esc(x.kind || "正典资料")}</span></h3><p class="meta">出处：${esc(x.source || "索引记录")}</p><p>${esc(x.detail || "")}</p></div>`).join("")
-  : `<div class="empty">知识库没有找到直接匹配的证据；分析会明确区分推断与原著事实。</div>`;
+  ? `<p class="meta">${LANGUAGE==="en"?"Verified canon evidence: ":"核验知识库证据："}${results.length}</p>` + results.map(x => `<div class="card" style="margin:8px 0"><h3>${esc(x.title || "原著记录")} <span class="tag gold">${esc(x.kind || "正典资料")}</span></h3><p class="meta">${LANGUAGE==="en"?"Source: ":"出处："}${esc(x.source || (LANGUAGE==="en"?"Canon index":"索引记录"))}</p><p>${esc(x.detail || "")}</p></div>`).join("")
+  : `<div class="empty">${LANGUAGE==="en"?"No directly matching evidence was found. Any analysis will distinguish inference from established canon.":"知识库没有找到直接匹配的证据；分析会明确区分推断与原著事实。"}</div>`;
 box.innerHTML = answer + evidence;
 } catch (e) {
-box.innerHTML = `<div class="empty">正典检索失败：${esc(e.message)}。</div>`;
+box.innerHTML = `<div class="empty">${LANGUAGE==="en"?"Canon search failed: ":"正典检索失败："}${esc(e.message)}</div>`;
 }
 });
 $$("[data-lab]").forEach((b) => b.addEventListener("click", async () => {
