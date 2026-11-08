@@ -198,10 +198,7 @@ body[data-language="en"] .label-zh,body[data-language="zh"] .label-en{display:no
 <!-- 任务控制中心：移至网站最底部，恢复经典本地玩法 -->
 <section class="mod" id="mission">
 <h2><span class="en">MISSION CONTROL</span><span class="label-zh">任务控制中心</span></h2>
-<p class="mod-desc">你扮演英国秘密情报机构行动人员。每个选择都会改变资金、风险、情报可信度、线索与人物关系，并决定后续分支。状态机是互动改编；原著事实另附章节出处，不把玩家选择伪装成弗莱明原著。</p>
-<div class="card" id="missionCanonBrief" style="margin:12px 0"><p class="meta">正在加载《皇家赌场》核验事实与章节索引…</p></div><div class="grid g2" id="missionList"></div>
-<div class="card" id="missionPanel" style="margin-top:14px"><h3>任务控制台</h3><p class="meta">先在上方选一个任务开始。</p><div class="empty">尚未开始任务</div></div>
-
+<p class="mod-desc">选择一项训练科目，直接进入由大模型主持的互动训练。</p>
 <div class="submod" id="fieldChallenges">
 <h3><span class="en">AI FIELD TRAINING</span><span class="label-zh">特工训练 · AI 实战模拟</span></h3>
 <p class="mod-desc"><span class="label-en">A model-driven field exercise. Briefings, characters, clues and consequences are generated in context. Choose an action or issue your own command.</span><span class="label-zh">由大模型实时主持的情境训练。任务简报、人物反应、线索与行动后果均根据上下文动态生成。你可以选择行动，也可以输入自己的指令。</span></p>
@@ -212,26 +209,9 @@ body[data-language="en"] .label-zh,body[data-language="zh"] .label-en{display:no
 <p class="meta"><span class="label-en">AI-generated fictional simulation, not operational advice. Progress lasts for this page session.</span><span class="label-zh">训练为大模型生成的虚构情境模拟，不构成现实行动建议。进度仅保留在当前页面会话中。</span></p></div></div>
 <div class="submod" id="experience">
 <h3><span class="en">FIELD OPERATIONS</span><span class="label-zh">实战体验 · 成为邦德</span></h3>
-<p class="mod-desc">从M办公室领任务，到Q部门领装备，再到酒店、餐厅、酒吧、赌场、俱乐部与豪华汽车。赌场部分是真正可玩的百家乐：有规则、有对手、有筹码输赢。</p>
+<p class="mod-desc">从M办公室领任务，到Q部门领装备，再到酒店、餐厅、酒吧、俱乐部与豪华汽车。每个场景都由模型根据你的行动动态推进。</p>
 <div class="chips" id="expScenes"></div>
 <div class="card" id="expPanel" style="margin-top:12px"><h3>场景</h3><p class="meta">点上方场景进入体验。</p><div class="empty">尚未选择场景</div></div>
-<div class="card" style="margin-top:12px" id="baccaratCard">
-<h3>赌场·百家乐 <span class="tag gold">可玩</span> <span class="tag">规则简化版</span></h3>
-<p class="meta">玩法：押闲家、庄家或和局。牌面点数按个位数计算，A为1点，10、J、Q、K为0点。补牌规则采用简化版：闲家0–5点补牌，6–7点停牌；庄家按简化规则补牌。和局赔8倍，庄赢赔0.95倍（抽水），闲赢赔1倍。对手：勒·希弗坐在对面，他会记住你的下注习惯。</p>
-<div class="statebar">
-<div class="state"><span class="lbl">你的筹码</span><b id="bacChips">1000</b></div>
-<div class="state"><span class="lbl">本局下注</span><b id="bacBet">—</b></div>
-<div class="state"><span class="lbl">战绩</span><b id="bacRecord">0胜0负</b></div>
-<div class="state"><span class="lbl">勒·希弗的评价</span><b id="bacRival" style="font-size:14px">观望中</b></div>
-</div>
-<div class="row">
-<div><label>下注金额</label><input id="bacAmount" type="number" value="100" min="10" max="1000" step="10"></div>
-<div><label>押注方向</label><select id="bacSide"><option value="player">闲家（赔1倍）</option><option value="banker">庄家（赔0.95倍）</option><option value="tie">和局（赔8倍）</option></select></div>
-<div style="flex:0 0 auto"><label>&nbsp;</label><button class="btn small" id="bacDeal">发牌</button></div>
-</div>
-<div id="bacTable" style="margin-top:12px"><div class="empty">尚未开局。筹码1000，用完可点“重新领筹码”恢复。</div></div>
-<div class="row" style="margin-top:10px"><button class="btn ghost small" id="bacReset">重新领筹码</button><span class="meta" id="bacNote"></span></div>
-</div>
 </div>
 </section>
 
