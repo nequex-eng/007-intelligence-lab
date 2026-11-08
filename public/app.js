@@ -1561,11 +1561,13 @@ const stage = missionDef.stages.find((s) => s.id === missionState.stage);
 panel.innerHTML = `<h3>${esc(missionDef.title)} · ${esc(missionDef.kind)}</h3>${missionStageNavHTML()}${stateBarHTML()}
 <h3 style="margin-top:6px">${esc(stage.title)}</h3><p>${esc(stage.text)}</p>
 <p class="meta">${LANGUAGE==="en"?"The AI game master evaluates each decision against the briefing, evidence, resources and prior actions. Outcomes are not predetermined.":"由大模型结合任务简报、证据、资源和此前行动裁定结果；成功并非预设。"}</p>
-${stage.choices.map((ch,i)=>`<button class="choice" data-choice="${i}" ${missionBusy?"disabled":""}>${esc(ch.text)}<small>${esc(ch.hint)}</small></button>`).join("")}
+${stage.choices.map((ch,i)=>`<button type="button" class="choice" data-choice="${i}" ${missionBusy?"disabled":""}>${esc(ch.text)}<small>${esc(ch.hint)}</small></button>`).join("")}
 ${missionState.clues.length?`<p class="meta"><b>${LANGUAGE==="en"?"Evidence secured:":"已发现线索："}</b></p>`+missionState.clues.map(c=>`<div class="log">${esc(c)}</div>`).join(""):""}
 <div class="row" style="margin-top:10px"><button class="btn ghost small" id="missionQuit">${LANGUAGE==="en"?"Abandon mission":"放弃任务"}</button></div>`;
 $$("#missionPanel [data-choice]").forEach((el) => el.addEventListener("click", () => chooseMission(+el.dataset.choice)));
-$$("#missionPanel [data-stage-jump]").forEach((el) => el.addEventListener("click", () => {
+$("#missionPanel [data-stage-jump]").forEach((el) => el.addEventListener("click", (event) => {
+  event.preventDefault();
+  event.stopPropagation();
   if (missionBusy || !missionDef || !missionState) return;
   const target = missionDef.stages.find((item) => item.id === el.dataset.stageJump);
   if (!target) return;
@@ -1573,7 +1575,9 @@ $$("#missionPanel [data-stage-jump]").forEach((el) => el.addEventListener("click
   saveMissionState();
   renderMissionStage();
 }));
-$("#missionQuit").addEventListener("click", () => {
+$("#missionQuit").addEventListener("click", (event) => {
+event.preventDefault();
+event.stopPropagation();
 if (missionDef) {
 localStorage.removeItem("007-mission:" + missionDef.id);
 if (localStorage.getItem("007-mission:last") === missionDef.id) localStorage.removeItem("007-mission:last");
@@ -1595,19 +1599,7 @@ $("#missionPanel").innerHTML = `<h3>${esc(missionDef.title)} · 任务结果</h3
 $("#missionAgain").addEventListener("click", () => startMission(missionDef.id));
 }
 
-function chooseMission(i) {
- const stage = missionDef.stages.find((s) => s.id === missionState.stage);
- const ch = stage.choices[i], result = resolveMissionChoice(ch);
- const detail = LANGUAGE === "en" ? (result.success ? "Check passed" : "Check failed") + " · roll " + result.roll + " / target " + result.chance + "%" : (result.success ? "检定成功" : "检定失败") + " · 掷骰 " + result.roll + " / 成功率 " + result.chance + "%";
- missionState.log.push(stage.title + "：" + ch.text + "（" + detail + "）");
- if (!result.success) missionState.log.push(LANGUAGE === "en" ? "Setback: exposure increased, intelligence confidence fell, and no clue was secured." : "行动受挫：暴露风险上升、情报可信度下降，本次未能取得线索。");
- if (ch.next === "end" || missionState.risk >= 95) {
- const end = missionDef.ending(missionState);
- missionState.stage = "end"; missionState.completed = true; missionState.result = end;
- saveMissionState(); renderMissionResult(end); return;
- }
- missionState.stage = ch.next; saveMissionState(); renderMissionStage();
-}
+// 旧版同步 chooseMission 已移除：统一使用上方异步 AI 裁定版本。
 
 let missionBriefRequest = 0;
 async function loadMissionCanonBrief(novelId = "casino-royale") {
