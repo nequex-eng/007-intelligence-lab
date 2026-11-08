@@ -5,7 +5,8 @@ function parse(s){s=String(s||"").replace(/^\x60\x60\x60(?:json)?\s*/i,"").repla
 const clamp=n=>{const v=Number(n);return Number.isFinite(v)?Math.max(0,Math.min(100,Math.round(v))):50;};
 export async function onRequestPost(ctx){
  try{
- let lang="zh";\n const b=await ctx.request.json();lang=b.language==="en"?"en":"zh";const mode=modes[b.mode]?b.mode:"infiltration",kind=b.action==="act"?"act":"start",env=ctx.env||{};
+ let lang="zh";
+ const b=await ctx.request.json();lang=b.language==="en"?"en":"zh";const mode=modes[b.mode]?b.mode:"infiltration",kind=b.action==="act"?"act":"start",env=ctx.env||{};
  if(!llmStatus(env).available)return json({error:lang==="en"?"The AI model is not connected. Configure the MiniMax API key.":"模型尚未接入，请配置 MiniMax API Key。",errorEn:"The AI model is not connected. Configure the MiniMax API key.",code:"MODEL_NOT_CONNECTED"},503);
  const history=Array.isArray(b.history)?b.history.filter(x=>x&&["user","assistant"].includes(x.role)&&typeof x.content==="string").slice(-10).map(x=>({role:x.role,content:x.content.slice(0,2200)})):[];
  const action=typeof b.actionText==="string"?b.actionText.trim().slice(0,700):"";
