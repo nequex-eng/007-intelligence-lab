@@ -2096,10 +2096,10 @@ const SERIES_GAME_IDEAS = [
 {zh:"皇家赌场",en:"Casino Royale",eventZh:"百家乐对决",eventEn:"The Baccarat Duel",modeZh:"百家乐对局",modeEn:"Baccarat table",target:"baccaratCard"},
 {zh:"生死关头",en:"Live and Let Die",eventZh:"Z号桌陷阱与逃脱",eventEn:"The Table Z Trap",modeZh:"密室脱困与路线选择",modeEn:"Escape and route planning",target:"routePrompt"},
 {zh:"月亮牌",en:"Moonraker",eventZh:"Blades牌局揭穿作弊",eventEn:"Cheating Exposed at Blades",modeZh:"牌局证据推理",modeEn:"Card-table evidence deduction",target:"deducePrompt"},
-{zh:"金刚钻",en:"Diamonds Are Forever",eventZh:"Tiara赌场二十一点与轮盘",eventEn:"Blackjack and Roulette at the Tiara",modeZh:"赌场观察与线索判断",modeEn:"Casino observation and deduction",target:"survPrompt"},
+{zh:"金刚钻",en:"Diamonds Are Forever",eventZh:"Tiara赌场二十一点与轮盘",eventEn:"Blackjack and Roulette at the Tiara",modeZh:"二十一点对局",modeEn:"Blackjack table",target:"blackjackGame"},
 {zh:"来自俄罗斯的爱情",en:"From Russia with Love",eventZh:"密码机与密电行动",eventEn:"Cipher and coded-message operations",modeZh:"密码破解",modeEn:"Codebreaking",target:"cipherGuess"},
 {zh:"诺博士",en:"Dr. No",eventZh:"死亡障碍赛",eventEn:"The Endurance Course",modeZh:"生存路线决策",modeEn:"Survival route decisions",target:"routePrompt"},
-{zh:"金手指",en:"Goldfinger",eventZh:"三明治高尔夫赌局与大满贯计划",eventEn:"The Sandwich Golf Match and Grand Slam Plan",modeZh:"对手观察与计划推理",modeEn:"Opponent reading and plan deduction",target:"deducePrompt"},
+{zh:"金手指",en:"Goldfinger",eventZh:"三明治高尔夫赌局与大满贯计划",eventEn:"The Sandwich Golf Match and Grand Slam Plan",modeZh:"高尔夫击球挑战",modeEn:"Golf shot challenge",target:"golfGame"},
 {zh:"只为你的双眼",en:"For Your Eyes Only",eventZh:"Lido沙丘追杀",eventEn:"The Chase on the Lido Dunes",modeZh:"追踪与撤离路线",modeEn:"Tracking and extraction route",target:"routePrompt"},
 {zh:"霹雳弹",en:"Thunderball",eventZh:"水下决战与拉戈之死",eventEn:"The Underwater Battle",modeZh:"水下行动风险判断",modeEn:"Underwater operation risk assessment",target:"routePrompt"},
 {zh:"爱我的间谍",en:"The Spy Who Loved Me",eventZh:"3号房夜袭",eventEn:"The Attack on Cabin 3",modeZh:"威胁识别与反跟踪",modeEn:"Threat detection and surveillance",target:"survPrompt"},
@@ -2114,7 +2114,22 @@ function renderSeriesGameIndex(){
  $("#seriesGameIndex [data-series-target]").forEach(b=>b.addEventListener("click",()=>{const target=document.getElementById(b.dataset.seriesTarget);if(target){target.scrollIntoView({behavior:"smooth",block:"center"});if(target.tagName==="INPUT")target.focus();}}));
 }
 
-function initFieldGames(){renderSeriesGameIndex();cipherNew();survDraw();dedDraw();routeDraw();$("#cipherSubmit").addEventListener("click",cipherTry);$("#cipherGuess").addEventListener("keydown",e=>{if(e.key==="Enter")cipherTry();});$("#cipherReset").addEventListener("click",cipherNew);$("#survNext").addEventListener("click",()=>{survN++;survDraw();});$("#deduceNext").addEventListener("click",()=>{dedN++;dedDraw();});$("#routeNext").addEventListener("click",()=>{routeN++;routeDraw();});}
+
+// Blackjack mini-game based on the Tiara casino event.
+let bjChips=500,bjBet=0,bjPlayer=[],bjDealer=[],bjActive=false,bjShoe=[];
+const bjDeck=()=>{let d=[];for(let s of ["♠","♥","♦","♣"])for(let r of ["A","2","3","4","5","6","7","8","9","10","J","Q","K"])d.push({r,s,v:r==="A"?11:["J","Q","K"].includes(r)?10:Number(r)});for(let i=d.length-1;i>0;i--){let j=Math.floor(Math.random()*(i+1));[d[i],d[j]]=[d[j],d[i]];}return d;};
+function bjTotal(h){let n=h.reduce((s,c)=>s+c.v,0),a=h.filter(c=>c.r==="A").length;while(n>21&&a-->0)n-=10;return n;}
+function bjShow(hide=true){$("#bjChips").textContent=bjChips;$("#bjStake").textContent=bjBet||"—";$("#bjTable").textContent=(LANGUAGE==="en"?"You: ":"你：")+bjPlayer.map(c=>c.r+c.s).join(" ")+" ("+bjTotal(bjPlayer)+") · "+(LANGUAGE==="en"?"Dealer: ":"庄家：")+(hide?bjDealer[0].r+bjDealer[0].s+" [hidden]":bjDealer.map(c=>c.r+c.s).join(" ")+" ("+bjTotal(bjDealer)+")");}
+function bjSettle(){bjActive=false;let p=bjTotal(bjPlayer),d=bjTotal(bjDealer),msg=p>21?(LANGUAGE==="en"?"Bust — you lose.":"爆牌，你输了。"):d>21||p>d?(LANGUAGE==="en"?"You win!":"你赢了！"):p===d?(LANGUAGE==="en"?"Push — stake returned.":"平局，退回下注。"):(LANGUAGE==="en"?"Dealer wins.":"庄家获胜。");if(p<=21&&(d>21||p>d))bjChips+=bjBet*2;else if(p===d&&p<=21)bjChips+=bjBet;$("#bjHit").disabled=$("#bjStand").disabled=true;bjShow(false);$("#bjTable").textContent+=" · "+msg;}
+function bjStand(){if(!bjActive)return;while(bjTotal(bjDealer)<17)bjDealer.push(bjShoe.pop());bjSettle();}
+function bjDeal(){if(bjActive)return;if(bjChips<10){$("#bjTable").textContent=LANGUAGE==="en"?"Reset chips to play.":"筹码不足，请重置。";return;}bjBet=Math.max(10,Math.min(bjChips,Number($("#bjBet").value)||50));bjChips-=bjBet;bjShoe=bjDeck();bjPlayer=[bjShoe.pop(),bjShoe.pop()];bjDealer=[bjShoe.pop(),bjShoe.pop()];bjActive=true;$("#bjHit").disabled=$("#bjStand").disabled=false;bjShow(true);if(bjTotal(bjPlayer)===21)bjStand();}
+function bjHit(){if(!bjActive)return;bjPlayer.push(bjShoe.pop());bjShow(true);if(bjTotal(bjPlayer)>=21)bjSettle();}
+let golfScore=0,golfTarget=180,golfWind=0,golfPlayed=false;
+function golfNew(){golfTarget=110+Math.floor(Math.random()*111);golfWind=Math.floor(Math.random()*25)-12;golfPlayed=false;$("#golfTarget").textContent=golfTarget+" m";$("#golfWind").textContent=(golfWind>0?"+":"")+golfWind+" m";$("#golfFeedback").textContent=LANGUAGE==="en"?"Choose your club and power.":"选择球杆与力度。";$("#golfSwing").disabled=false;}
+function golfHit(){if(golfPlayed)return;golfPlayed=true;let club=Number($("#golfClub").value),power=Number($("#golfPower").value),distance=Math.round(club*power/100+golfWind+(Math.random()*12-6)),diff=Math.abs(distance-golfTarget),points=Math.max(0,100-Math.round(diff*1.4));golfScore+=points;$("#golfScore").textContent=golfScore;$("#golfSwing").disabled=true;$("#golfFeedback").textContent=LANGUAGE==="en"?`Shot: ${distance} m. Target: ${golfTarget} m. ${points} points.`:`击球距离：${distance}米；目标：${golfTarget}米；本杆得分：${points}。`;}
+function initExtraGames(){$("#bjChips").textContent=bjChips;$("#bjDeal").addEventListener("click",bjDeal);$("#bjHit").addEventListener("click",bjHit);$("#bjStand").addEventListener("click",bjStand);$("#bjReset").addEventListener("click",()=>{bjChips=500;bjBet=0;bjActive=false;$("#bjHit").disabled=$("#bjStand").disabled=true;bjShow(false);});golfNew();$("#golfSwing").addEventListener("click",golfHit);$("#golfNext").addEventListener("click",golfNew);}
+
+function initFieldGames(){renderSeriesGameIndex();initExtraGames();cipherNew();survDraw();dedDraw();routeDraw();$("#cipherSubmit").addEventListener("click",cipherTry);$("#cipherGuess").addEventListener("keydown",e=>{if(e.key==="Enter")cipherTry();});$("#cipherReset").addEventListener("click",cipherNew);$("#survNext").addEventListener("click",()=>{survN++;survDraw();});$("#deduceNext").addEventListener("click",()=>{dedN++;dedDraw();});$("#routeNext").addEventListener("click",()=>{routeN++;routeDraw();});}
 
 // ---- 状态与启动 ----
 async function initStatus() {
