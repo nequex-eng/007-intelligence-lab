@@ -1530,7 +1530,7 @@ async function chooseMission(i) {
   missionState.log.push(stage.title+" · "+ch.text+" ["+label+"]: "+String(d.narrative||""));
   if(d.nextStage==="end"||missionState.risk>=95){const end={grade:d.grade||(LANGUAGE==="en"?"Mission concluded":"任务结束"),text:d.debrief||d.narrative||""};missionState.stage="end";missionState.completed=true;missionState.result=end;saveMissionState();renderMissionResult(end);}
   else{missionState.stage=missionDef.stages.some(x=>x.id===d.nextStage)?d.nextStage:ch.next;saveMissionState();renderMissionStage();}
- }catch(e){const p=$("#missionThinking");if(p)p.textContent=(LANGUAGE==="en"?"AI adjudication failed; no state was changed. ":"大模型裁定失败，任务状态未改变。")+e.message;missionBusy=false;$("#missionPanel [data-choice]").forEach(el => { el.disabled = false; });return;}
+ }catch(e){const p=$("#missionThinking");if(p)p.textContent=(LANGUAGE==="en"?"AI adjudication failed; no state was changed. ":"大模型裁定失败，任务状态未改变。")+e.message;missionBusy=false;$$("#missionPanel [data-choice]").forEach(el => { el.disabled = false; });return;}
  finally{missionBusy=false;}
 }
 function stateBarHTML() {
@@ -1564,8 +1564,8 @@ panel.innerHTML = `<h3>${esc(missionDef.title)} · ${esc(missionDef.kind)}</h3>$
 ${stage.choices.map((ch,i)=>`<button class="choice" data-choice="${i}" ${missionBusy?"disabled":""}>${esc(ch.text)}<small>${esc(ch.hint)}</small></button>`).join("")}
 ${missionState.clues.length?`<p class="meta"><b>${LANGUAGE==="en"?"Evidence secured:":"已发现线索："}</b></p>`+missionState.clues.map(c=>`<div class="log">${esc(c)}</div>`).join(""):""}
 <div class="row" style="margin-top:10px"><button class="btn ghost small" id="missionQuit">${LANGUAGE==="en"?"Abandon mission":"放弃任务"}</button></div>`;
-$("#missionPanel [data-choice]").forEach((el) => el.addEventListener("click", () => chooseMission(+el.dataset.choice)));
-$("#missionPanel [data-stage-jump]").forEach((el) => el.addEventListener("click", () => {
+$$("#missionPanel [data-choice]").forEach((el) => el.addEventListener("click", () => chooseMission(+el.dataset.choice)));
+$$("#missionPanel [data-stage-jump]").forEach((el) => el.addEventListener("click", () => {
   if (missionBusy || !missionDef || !missionState) return;
   const target = missionDef.stages.find((item) => item.id === el.dataset.stageJump);
   if (!target) return;
