@@ -860,6 +860,7 @@ const EN_TEXT = new Map([
 ["模型尚未接入","The AI model is not connected"],
 ["模型生成失败，请重试。","The model could not generate a response. Please try again."],
 ["模型返回格式异常，请重新开始。","The model returned an invalid response. Please start again."],
+["从M办公室领任务，到Q部门领装备，再到酒店、餐厅、酒吧、俱乐部与豪华汽车。每个场景都由模型根据你的行动动态推进。","Collect your assignment at M’s office and equipment from Q Branch, then explore hotels, restaurants, bars, clubs and luxury cars. Every scene evolves dynamically in response to your actions."],
 ]);
 const originalText = new WeakMap();
 const originalAttributes = new WeakMap();
