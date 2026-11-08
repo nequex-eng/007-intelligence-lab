@@ -15,7 +15,7 @@ assert.deepEqual(duplicates, [], "static HTML ids must be unique");
 
 assert.ok(html.includes('id="sceneNovel"') && html.includes('id="sceneChapter"'), "character theatre has novel and chapter selectors");
 assert.ok(html.includes('id="trainingMode"') && html.includes('id="trainingScene"') && html.includes('id="trainingChoices"'), "mission control includes the AI field training UI");
-assert.ok(!/\$\([^()\n]*\)\.forEach/.test(app), "all NodeList iteration uses the $ selector helper");
+assert.ok(!/(?<!\$)\$\([^()\n]*\)\.forEach/.test(app), "all NodeList iteration uses the $ selector helper");
 assert.ok(app.includes("async function startTraining") && app.includes("async function submitTrainingAction") && app.includes('fetch("/api/training"'), "field training is model-driven");
 assert.ok(!html.includes("id=\"seriesGameIndex\"") && !html.includes("id=\"blackjackGame\"") && !html.includes("id=\"golfGame\""), "legacy local game index and modules are removed");
 assert.ok(!html.includes('id="canonDataStatus"') && !html.includes('id="canonDataCard"'), "internal canon metadata is not exposed to site visitors");
