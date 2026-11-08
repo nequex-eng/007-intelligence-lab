@@ -72,7 +72,6 @@ const EN_TEXT = new Map([
 ["全部作品","All novels"],["全部国家","All countries"],["全部小说","All novels"],["按国家筛选","Filter by country"],["按小说筛选","Filter by novel"],["按年代筛选","Filter by decade"],
 ["真实地点","Real location"],["小说虚构地点","Fictional location"],["返回地点探索","Back to World Explorer"],["去情报档案检索此地点","Search this location in the archive"],
 ["正在检索14部核验原著……","Searching the 14 verified original novels…"],["检索","Search"],["分析","Analyse"],["正典知识库 · 数据源与核验状态","Canon Knowledge Base · Sources and Verification"],
-["这不是电子书站，也不是一个聊天框。进入伊恩·弗莱明笔下的007世界：查人物档案、翻情报档案、接M的任务、在赌场牌桌上读懂对手、研究弗莱明的写作方法，再沿着世界地图走完14本书的轨迹。","This is more than an ebook site or a chat window. Explore Ian Fleming’s 007 universe: investigate character files, search intelligence dossiers, take assignments from M, read your opponents at the baccarat table, study Fleming’s craft, and trace the world of all 14 books."],
 ["本站已接入14部原著的核验知识库；正典事实、推断与互动改编分别标注，资料缺口以状态卡为准。","The verified knowledge base covers all 14 novels. Canon facts, inferences and interactive adaptations are clearly distinguished; known gaps are listed in the status panel."],
 ["32位核心人物正典档案：身份、外貌、性格、习惯、语言风格、人际关系、时间线与知识边界。对话按小说时间点执行三层约束；电影设定与原著隔离。","32 core character dossiers covering identity, appearance, personality, habits, speech, relationships, timelines and knowledge boundaries. Role-play follows a three-layer canon constraint system; film continuity is kept separate."],
 ["跨全系列检索：小说、人物、地点、组织、武器装备、事件、反派计划、线索、关系、时间线。结果尽量给出书名与出处，原著事实与模型推断明确区分，推断必标。","Search across all novels, characters, locations, organisations, equipment, events, plots, clues, relationships and timelines. Results distinguish sourced canon from inference and identify their sources."],
@@ -193,7 +192,6 @@ const EN_TEXT = new Map([
 ["地点接口返回","Location API returned"],
 ["核验地点索引加载失败：","Failed to load verified location index: "],
 ["核验知识库 · 数据源与核验状态","Canon database · Sources and verification status"],
-["原著改编互动","Interactive adaptation of the novel"],["现场反馈","Field report"],["皇家赌场 · 1953","Casino Royale · 1953"],["M办公室·领任务","M’s Office · Mission Briefing"],["伦敦，秘密情报机构总部。M坐在办公桌后，钱彭妮在门外守着电话。你推门进去，M头也不抬：“坐下，007。”任务简报只有一页纸，剩下的全靠你自己。","London. Secret Service headquarters. M sits behind his desk while Moneypenny handles calls outside. You enter. Without looking up, he says, “Sit down, 007.” The briefing is one page. The rest is up to you."],["接下任务简报","Accept the briefing"],["追问任务细节","Ask for more details"],["请M再给24小时准备","Ask M for another 24 hours"],["Q部门·领装备","Q Branch · Equipment"],["地下实验室。Q站在工作台前，身后是一排拆开的器械。他把瓦尔特PPK手枪推到你面前，又递了一支改装过的钢笔：“讲解只说一遍。”","In the underground laboratory, Q stands at a workbench surrounded by dismantled gadgets. He slides a Walther PPK across the table, then hands you a modified fountain pen. “I’ll explain this once.”"],["领瓦尔特PPK手枪","Take the Walther PPK"],["领改装钢笔","Take the modified pen"],["问有没有新装备","Ask about new equipment"],["豪华酒店·入住","Luxury Hotel · Check-in"],["皇家莱索最好的酒店。你要了朝海的房间，行李只有一只小皮箱。前台递来钥匙，你顺手把一张钞票留在桌上——在这里，小费是最好的通行证。","The finest hotel in Royale-les-Eaux. You request a sea-facing room; your only luggage is a small leather case. The receptionist hands over the key. You leave a banknote on the counter—here, a tip is the best calling card."],["要朝海的房间","Request a sea-facing room"],["让前台留意可疑访客","Ask reception to watch for suspicious visitors"],["先去酒吧坐坐","Visit the bar first"],["高级餐厅·晚餐","Fine Dining · Dinner"],["餐厅里烛光摇曳。你点了牛排与红酒，对面的座位还空着——薇丝朋说她晚点到。侍者经过时，你注意到邻桌的男人也在看你。","Candlelight flickers across the dining room. You order steak and red wine. The seat opposite is still empty—Vesper said she would be late. As the waiter passes, you notice a man at the next table watching you."],["点牛排配红酒","Order steak and red wine"],["等薇丝朋到了再点菜","Wait for Vesper before ordering"],["留意邻桌的男人","Watch the man at the next table"],["鸡尾酒吧·马提尼","Cocktail Bar · Martini"],["吧台前，你对酒保说出那句标志性的话。酒保点头，开始摇酒。周围的人都在谈论今晚赌场的牌局，勒·希弗的名字被提起了三次。","At the bar, you give the bartender your familiar instruction. He nods and begins shaking the drink. Around you, patrons discuss tonight’s casino game. Le Chiffre’s name comes up three times."],["点一杯马提尼，摇匀不搅拌","Order a martini, shaken not stirred"],["点一杯香槟","Order champagne"],["请酒保讲讲今晚牌局","Ask the bartender about tonight’s game"],["赌场·牌桌","Casino · Baccarat Table"],["赌场大厅。百家乐牌桌旁，勒·希弗已经就座，面前堆着筹码。空气里有雪茄味和紧张。你走过去，拉开椅子坐下——今晚的主角到齐了。","The casino floor. Le Chiffre is already seated at the baccarat table, stacks of chips before him. The air smells of cigars and tension. You approach, pull out a chair and sit. The principal players are all here."],["坐下，直接开局","Sit down and play"],["先在旁边观战一轮","Watch one hand first"],["去百家乐桌实战一把","Play a hand of baccarat"],["私人俱乐部·社交","Private Club · Socialising"],["布莱兹俱乐部。皮椅、雪茄、报纸。在这里，没人高声说话，所有的交易都在低声中完成。你要找的人坐在角落那张桌子旁。","Blades Club. Leather chairs, cigars and newspapers. No one raises their voice here; every deal is done quietly. The person you are looking for sits at a table in the corner."],["和角落那位打个招呼","Greet the person in the corner"],["先读一会儿报纸","Read the newspaper first"],["点一支雪茄","Order a cigar"],["豪华汽车·出行","Luxury Car · On the Move"],["门口停着一辆深灰色轿车，线条利落。你坐进驾驶座，发动引擎。去机场的路上有三条，你选了最绕的那条——先确认有没有人跟踪。","A sleek, dark-grey saloon waits outside. You take the driver's seat and start the engine. There are three routes to the airport. You choose the longest one to check whether anyone is following."],["选最绕的路去机场","Take the longest route to the airport"],["直接走高速","Take the motorway directly"],["绕到码头换船","Head to the docks and switch to a boat"],["旅行与城市探索","Travel & City Exploration"],["从伦敦到皇家莱索，从伊斯坦布尔到牙买加，邦德的世界是一张不断展开的地图。每一座城市都有它的赌场、它的线人与它的危险。去世界地图看看14本书走过的地方。","From London to Royale-les-Eaux, from Istanbul to Jamaica, Bond’s world is an expanding map. Every city has its casinos, informants and dangers. Explore the places visited across the 14 novels on the world map."],["打开世界地图","Open the world map"],["回顾皇家赌场之行","Review the Royale adventure"],["计划下一站","Plan the next destination"],["当前任务","Current mission"],["时间","Time"],["资金","Funds"],["装备","Equipment"],["情报可信度","Intelligence confidence"],["风险等级","Risk level"],["已发现线索","Evidence secured"],["人物关系","Relationships"],["赌场·百家乐","Casino · Baccarat"],["你的筹码","Your chips"],["本局下注","Current bet"],["战绩","Record"],["勒·希弗的评价","Le Chiffre’s assessment"],["下注金额","Bet amount"],["押注方向","Bet on"],["闲家（赔1倍）","Player (pays 1:1)"],["庄家（赔0.95倍）","Banker (pays 0.95:1)"],["和局（赔8倍）","Tie (pays 8:1)"],["发牌","Deal"],["重新领筹码","Reset chips"],["尚未开局。筹码1000，用完可点“重新领筹码”恢复。","No hand dealt yet. Start with 1,000 chips; reset when you run out."],["从M办公室领任务，到Q部门领装备，再到酒店、餐厅、酒吧、赌场、俱乐部与豪华汽车。赌场部分是真正可玩的百家乐：有规则、有对手、有筹码输赢。","Collect your assignment at M’s office and equipment from Q Branch, then move through hotels, restaurants, bars, casinos, clubs and luxury cars. The baccarat table is fully playable, with rules, an opponent and chips at stake."],["玩法：押闲家、庄家或和局。牌面点数按个位数计算，A为1点，10、J、Q、K为0点。补牌规则采用简化版：闲家0–5点补牌，6–7点停牌；庄家按简化规则补牌。和局赔8倍，庄赢赔0.95倍（抽水），闲赢赔1倍。对手：勒·希弗坐在对面，他会记住你的下注习惯。","How to play: Bet on Player, Banker or Tie. Card values use the last digit; A counts as 1, while 10, J, Q and K count as 0. This is a simplified variant: Player draws on 0–5 and stands on 6–7; Banker follows simplified drawing rules. Tie pays 8:1, Banker 0.95:1 after commission, and Player 1:1. Le Chiffre will remember your betting habits."],
 ["原创任务","Original mission"],
 ["任务结果","Mission result"],
 ["行动报告","Mission report"],
@@ -291,7 +289,6 @@ const EN_TEXT = new Map([
 ["任务控制台","Mission control console"],
 ["先在上方选一个任务开始。","Choose a mission above to begin."],
 ["实战体验 · 成为邦德","Field experience · Become Bond"],
-["赌场·百家乐","Casino · Baccarat"],
 ["可玩","Playable"],
 ["规则简化版","Simplified rules"],
 ["你的筹码","Your chips"],
@@ -406,7 +403,6 @@ const EN_TEXT = new Map([
   ["第3阶段·假面舞会【非原著·原创】","Stage 3 · The Masked Ball [Original, Non-Canon]"],
   ["M在伦敦办公室交给你任务简报：勒·希弗挪用苏联情报机构公款炒作失败，今晚将在皇家赌场牌桌上翻本。你的资金由财政部提供，薇丝朋·琳德担任联络人。记住：输光他，就等于切断他的退路。","M briefs you at his London office. Le Chiffre has lost money embezzled from Soviet intelligence and plans to win it back at the Casino Royale table tonight. Your funds come from the Treasury, and Vesper Lynd is your liaison. Remember: bankrupt him, and you cut off his escape route."],
   ["你抵达法国海滨赌城皇家莱索。赌场灯火通明，勒·希弗已经坐在牌桌旁。薇丝朋在吧台等你，她带来一个消息：勒·希弗今晚的资金来源不明，有人说他身后站着苏联方面的人。","You arrive in the French seaside resort of Royale-les-Eaux. The casino is ablaze with light, and Le Chiffre is already at the table. Vesper is waiting at the bar with a warning: the source of his funds tonight is unknown, and some believe Soviet interests are backing him."],
-  ["百家乐牌桌。勒·希弗推上一大叠筹码，眼睛盯着你。你手里的资金有限，每一把都可能决定任务成败。","At the baccarat table, Le Chiffre pushes forward a towering stack of chips and fixes his eyes on you. Your funds are limited; every hand could decide the mission."],
   ["最后一把牌结束，勒·希弗输光了筹码。他离场时脸色惨白。回酒店的路上，你注意到有人跟上了你——任务还没有结束。","The final hand is over. Le Chiffre has lost his entire stake and leaves looking ashen. On your way back to the hotel, you notice someone following you. The mission is not over."],
   ["加勒比地区负责人斯特兰威斯与助手玛丽·特鲁布拉德失踪三周。官方称两人私奔，但每日18时30分与伦敦的无线电联络突然中断，档案也被取空。M派你前往牙买加调查，唯一线索指向蟹礁岛与岛主诺博士。","Strangways, the Secret Service chief in the Caribbean, and his assistant Mary Trueblood have been missing for three weeks. The official story is that they eloped, but their daily 6:30 p.m. radio check-ins with London abruptly stopped and their files were emptied. M sends you to Jamaica. The only lead points to Crab Key and its owner, Dr. No."],
   ["金斯顿的线索逐渐指向诺博士：斯特兰威斯的太阳光汽车被人使用，总督府档案可能遭到渗透，一名自称报社摄影记者的安娜贝尔·钟反复拍摄你的行踪。","The trail in Kingston increasingly points to Dr. No. Strangways’s Sunbeam has been used by someone else, Government House records may have been compromised, and Annabel Chung, claiming to be a newspaper photographer, keeps taking pictures of your movements."],
@@ -436,7 +432,6 @@ const EN_TEXT = new Map([
   ["皇家莱索最好的酒店。你要了朝海的房间，行李只有一只小皮箱。前台递来钥匙，你顺手把一张钞票留在桌上——在这里，小费是最好的通行证。","The finest hotel in Royale-les-Eaux. You request a room overlooking the sea; your luggage is a single small case. The receptionist hands you a key. You leave a banknote on the desk. Here, a tip is the best introduction."],
   ["餐厅里烛光摇曳。你点了牛排与红酒，对面的座位还空着——薇丝朋说她晚点到。侍者经过时，你注意到邻桌的男人也在看你。","Candlelight flickers across the dining room. You order steak and red wine. The seat opposite is still empty; Vesper said she would arrive later. As the waiter passes, you notice a man at the next table watching you."],
   ["吧台前，你对酒保说出那句标志性的话。酒保点头，开始摇酒。周围的人都在谈论今晚赌场的牌局，勒·希弗的名字被提起了三次。","At the bar, you give the bartender your famous instruction. He nods and begins to shake the drink. Around you, everyone is discussing tonight’s casino game. Le Chiffre’s name has come up three times."],
-  ["赌场大厅。百家乐牌桌旁，勒·希弗已经就座，面前堆着筹码。空气里有雪茄味和紧张。你走过去，拉开椅子坐下——今晚的主角到齐了。","The casino floor. Le Chiffre is already seated at the baccarat table, stacks of chips before him. The air carries cigar smoke and tension. You approach, pull out a chair and sit down. The evening’s principal players are in place."],
   ["布莱兹俱乐部。皮椅、雪茄、报纸。在这里，没人高声说话，所有的交易都在低声中完成。你要找的人坐在角落那张桌子旁。","Blades Club. Leather chairs, cigars and newspapers. Nobody raises their voice here; every deal is done quietly. The person you are looking for sits at the table in the corner."],
   ["从伦敦到皇家莱索，从伊斯坦布尔到牙买加，邦德的世界是一张不断展开的地图。每一座城市都有它的赌场、它的线人与它的危险。去世界地图看看14本书走过的地方。","From London to Royale-les-Eaux, from Istanbul to Jamaica, Bond’s world unfolds like a map. Every city has its casino, its contacts and its dangers. Open the world map to explore the locations featured across all 14 novels."],
   ["接下任务简报","Accept the briefing"],
@@ -456,7 +451,6 @@ const EN_TEXT = new Map([
   ["请酒保讲讲今晚牌局","Ask the bartender about tonight’s game"],
   ["坐下，直接开局","Sit down and play"],
   ["先在旁边观战一轮","Watch one round first"],
-  ["去百家乐桌实战一把","Play a hand of baccarat"],
   ["和角落那位打个招呼","Greet the man in the corner"],
   ["先读一会儿报纸","Read the newspaper for a while"],
   ["点一支雪茄","Order a cigar"],
@@ -661,7 +655,6 @@ const EN_TEXT = new Map([
   ["酒保擦着杯子：“勒·希弗今晚手气不好，先生。不过输急了的人最危险。”","The bartender polishes a glass. “Le Chiffre isn’t having a good night, sir. But a desperate loser is the most dangerous kind.”"],
   ["你坐下，推上筹码。勒·希弗抬眼看你：“邦德先生，欢迎。”","You sit and push forward your chips. Le Chiffre looks up. “Mr Bond. Welcome.”"],
   ["你站在人群后看了一轮：勒·希弗拿到好牌时会摸手帕。你记住了。","You watch a round from the crowd. Le Chiffre touches his handkerchief when he has a strong hand. You make a note of it."],
-  ["直接去下方百家乐小游戏实战，筹码与输赢都是真的。","Go to the baccarat table below and play for real chips and results."],
   ["那人抬头：“邦德先生。坐。有些话，只能在这里说。”","The man looks up. “Mr Bond. Sit down. Some things can only be said here.”"],
   ["报纸上的消息一半是真的，一半是放出来的。你分得清。","Half the news in the papers is true; the rest has been planted. You know how to tell the difference."],
   ["雪茄点燃，烟雾升起来。你想起M说过的话：俱乐部里没有偶遇。","The cigar is lit, and smoke curls upward. You remember M’s words: there are no chance encounters at the club."],
@@ -746,10 +739,8 @@ const EN_TEXT = new Map([
   ["尚未开始任务","No mission started"],
   ["任务已放弃。选一个任务重新开始。","Mission abandoned. Choose a mission to start again."],
   ["实战体验 · 成为邦德","Field experience · Become Bond"],
-  ["从M办公室领任务，到Q部门领装备，再到酒店、餐厅、酒吧、赌场、俱乐部与豪华汽车。赌场部分是真正可玩的百家乐：有规则、有对手、有筹码输赢。","Take assignments at M’s office, visit Q Branch, and move through hotels, restaurants, bars, casinos, clubs and luxury cars. The baccarat table is playable, with rules, an opponent and chips at stake."],
   ["场景","Scene"],
   ["点上方场景进入体验。","Choose a scene above to enter."],
-  ["赌场·百家乐","Casino · Baccarat"],
   ["可玩","Playable"],
   ["规则简化版","Simplified rules"],
   ["你的筹码","Your chips"],
@@ -805,7 +796,6 @@ const EN_TEXT = new Map([
 ["请酒保讲讲今晚牌局","Ask the bartender about tonight’s game"],
 ["坐下，直接开局","Sit down and play"],
 ["先在旁边观战一轮","Watch one round first"],
-["去百家乐桌实战一把","Play a hand of baccarat"],
 ["和角落那位打个招呼","Greet the person in the corner"],
 ["先读一会儿报纸","Read the newspaper first"],
 ["点一支雪茄","Light a cigar"],
@@ -843,7 +833,6 @@ const EN_TEXT = new Map([
 ["皇家莱索最好的酒店。你要了朝海的房间，行李只有一只小皮箱。前台递来钥匙，你顺手把一张钞票留在桌上——在这里，小费是最好的通行证。","The finest hotel in Royale-les-Eaux. You request a sea-view room. Your luggage is a single small case. The receptionist hands you a key; you leave a banknote on the desk. Here, a tip is the best passport."],
 ["餐厅里烛光摇曳。你点了牛排与红酒，对面的座位还空着——薇丝朋说她晚点到。侍者经过时，你注意到邻桌的男人也在看你。","Candlelight flickers across the dining room. You order steak and red wine. The seat opposite is empty; Vesper said she would arrive later. As the waiter passes, you notice a man at the next table watching you."],
 ["吧台前，你对酒保说出那句标志性的话。酒保点头，开始摇酒。周围的人都在谈论今晚赌场的牌局，勒·希弗的名字被提起了三次。","At the bar, you give the bartender your preferred instruction. He nods and begins to shake the drink. Around you, everyone is discussing tonight’s game at the casino. Le Chiffre’s name has come up three times."],
-["赌场大厅。百家乐牌桌旁，勒·希弗已经就座，面前堆着筹码。空气里有雪茄味和紧张。你走过去，拉开椅子坐下——今晚的主角到齐了。","The casino floor. Le Chiffre is already seated at the baccarat table, stacks of chips before him. The air smells of cigars and tension. You approach, pull out a chair and sit. The principal players are all here."],
 ["布莱兹俱乐部。皮椅、雪茄、报纸。在这里，没人高声说话，所有的交易都在低声中完成。你要找的人坐在角落那张桌子旁。","Blades Club. Leather chairs, cigars and newspapers. Nobody raises their voice here; every deal is done quietly. The person you are looking for sits at a table in the corner."],
 
 ["选择一项训练科目，直接进入由大模型主持的互动训练。","Choose a training discipline to enter a live, model-driven exercise."],
@@ -1347,7 +1336,6 @@ function initDossier() {
   renderDossierTab("books");
 }
 
-// ---- 成为邦德：场景体验 + 百家乐 ----
 const EXP_SCENES = [
 { id: "m-office", title: "M办公室·领任务", text: "伦敦，秘密情报机构总部。M坐在办公桌后，钱彭妮在门外守着电话。你推门进去，M头也不抬：“坐下，007。”任务简报只有一页纸，剩下的全靠你自己。", choices: ["接下任务简报", "追问任务细节", "请M再给24小时准备"], replies: ["M把简报推过来：“签个字。出了这扇门，任务就是你的了。”", "M抬起头：“细节都在纸上。纸上没有的，问我也没用。”", "M冷笑一声：“敌人不会等你准备好。明天早上出发。”"] },
 { id: "q-lab", title: "Q部门·领装备", text: "地下实验室。Q站在工作台前，身后是一排拆开的器械。他把瓦尔特PPK手枪推到你面前，又递过一支改装过的钢笔：“讲解只说一遍。”", choices: ["领瓦尔特PPK手枪", "领改装钢笔", "问有没有新装备"], replies: ["Q：“扳机我调过。别再拿它当撬棍，007。”", "Q：“按一下出墨水，按两下——算了，你还是别知道了。用完还回来。”", "Q：“有。但以你弄坏装备的速度，我建议你先学会爱惜旧的。”"] },
@@ -1433,7 +1421,6 @@ async function sendExperienceAction(action) {
   }
 }
 
-// 百家乐（简化规则，已在页面说明）
 // ---- 文学研究室 ----
 const LIT_TOPICS = [
 { t: "邦德人物塑造", d: "弗莱明用细节堆出邦德：衣着、饮食、牌技、配枪，每一处都服务于“专业人士”形象。邦德不是超人，他会受伤、会输牌、会动情，这正是他可信的原因。"},
