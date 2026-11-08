@@ -118,7 +118,9 @@ export async function onRequestPost(context) {
         if (out.code === "MODEL_NOT_CONNECTED") return json({ error: language === "en" ? "The AI model is not connected." : "模型尚未接入", code: out.code, status: llmStatus(context.env || {}) }, 503);
         return json({ error: language === "en" ? "Character response failed. Please try again." : "角色对话生成失败，请重试", code: "MODEL_ERROR", modelError: out.reason || "Unknown MiniMax error" }, 502);
       }
-      const reply = await enforceEnglish(context.env || {}, out.text, language);\n      if (reply === null) return json({ error: "The character returned mixed-language content. Please retry." }, 502);\n      return json({ reply, characterId: respondingCharacter.id, characterIds: [playerCharacter.id, respondingCharacter.id], novelId: null, chapterNo: null, mode, canonMode: false, model: out.model });
+      const reply = await enforceEnglish(context.env || {}, out.text, language);
+      if (reply === null) return json({ error: "The character returned mixed-language content. Please retry." }, 502);
+      return json({ reply, characterId: respondingCharacter.id, characterIds: [playerCharacter.id, respondingCharacter.id], novelId: null, chapterNo: null, mode, canonMode: false, model: out.model });
     }
 
     if (mode === "group") {
@@ -152,7 +154,9 @@ export async function onRequestPost(context) {
           if (out.code === "MODEL_NOT_CONNECTED") return json({ error: language === "en" ? "The AI model is not connected." : "模型尚未接入", code: out.code, status: llmStatus(context.env || {}) }, 503);
           return json({ error: language === "en" ? "Group dialogue failed. Please try again." : "多角色对话生成失败，请重试", code: "MODEL_ERROR", modelError: out.reason || "Unknown MiniMax error" }, 502);
         }
-        const content = await enforceEnglish(context.env || {}, out.text, language);\n        if (content === null) return json({ error: "A character returned mixed-language content. Please retry." }, 502);\n        replies.push({ characterId: character.id, content });
+        const content = await enforceEnglish(context.env || {}, out.text, language);
+        if (content === null) return json({ error: "A character returned mixed-language content. Please retry." }, 502);
+        replies.push({ characterId: character.id, content });
       }
       return json({
         replies,
@@ -173,8 +177,10 @@ export async function onRequestPost(context) {
     ]);
 
     if (out.ok) {
+      const reply = await enforceEnglish(context.env || {}, out.text, language);
+      if (reply === null) return json({ error: "The character returned mixed-language content. Please retry." }, 502);
       return json({
-        reply: await enforceEnglish(context.env || {}, out.text, language),
+        reply,
         characterIds: canonicalCharacters.map(c => c.id),
         novelId: book?.novel_id || null,
         chapterNo,
