@@ -999,7 +999,7 @@ $("#charGrid").innerHTML = list.length? list.map((c) =>
 <p class="meta">${LANGUAGE==="en"?"First appearance: ":"首次登场："}${esc(LANGUAGE==="en"?c.firstBookEn:c.firstBook)} (${c.firstYear})</p>
 <span class="tag gold">${LANGUAGE==="en"?"Knowledge cutoff: ":"知识截止："}${esc(LANGUAGE==="en"?c.cutoffEn:c.cutoff)}</span></div>`).join("")
 : `<div class="empty">没有匹配人物，换个关键词试试。</div>`;
-$$("#charGrid [data-char]").forEach((el) => el.addEventListener("click", () => selectChar(el.dataset.char)));
+$$$("#charGrid [data-char]").forEach((el) => el.addEventListener("click", () => selectChar(el.dataset.char)));
 }
 
 async function selectChar(id) {
@@ -1310,9 +1310,9 @@ async function renderDossierTab(tab) {
 function initDossier() {
   $("#dossierGo").addEventListener("click", () => runDossier($("#dossierQ").value));
   $("#dossierQ").addEventListener("keydown", (e) => { if (e.key === "Enter") runDossier($("#dossierQ").value); });
-  $$("#dossier .chipbtn[data-q]").forEach((b) => b.addEventListener("click", () => { $("#dossierQ").value = b.dataset.q; runDossier(b.dataset.q); }));
-  $$("#dossierTabs .chipbtn").forEach((b) => b.addEventListener("click", () => {
-    $$("#dossierTabs .chipbtn").forEach((x) => x.classList.remove("active"));
+  $$$("#dossier .chipbtn[data-q]").forEach((b) => b.addEventListener("click", () => { $("#dossierQ").value = b.dataset.q; runDossier(b.dataset.q); }));
+  $$$("#dossierTabs .chipbtn").forEach((b) => b.addEventListener("click", () => {
+    $$$("#dossierTabs .chipbtn").forEach((x) => x.classList.remove("active"));
     b.classList.add("active");
     renderDossierTab(b.dataset.tab);
   }));
@@ -1566,8 +1566,8 @@ panel.innerHTML = `<h3>${esc(missionDef.title)} · ${esc(missionDef.kind)}</h3>$
 ${stage.choices.map((ch,i)=>`<button type="button" class="choice" data-choice="${i}" ${missionBusy?"disabled":""}>${esc(ch.text)}<small>${esc(ch.hint)}</small></button>`).join("")}
 ${missionState.clues.length?`<p class="meta"><b>${LANGUAGE==="en"?"Evidence secured:":"已发现线索："}</b></p>`+missionState.clues.map(c=>`<div class="log">${esc(c)}</div>`).join(""):""}
 <div class="row" style="margin-top:10px"><button type="button" class="btn ghost small" id="missionQuit">${LANGUAGE==="en"?"Abandon mission":"放弃任务"}</button></div>`;
-$$("#missionPanel [data-choice]").forEach((el) => el.addEventListener("click", () => chooseMission(+el.dataset.choice)));
-$$("#missionPanel [data-stage-jump]").forEach((el) => el.addEventListener("click", (event) => {
+$$$("#missionPanel [data-choice]").forEach((el) => el.addEventListener("click", () => chooseMission(+el.dataset.choice)));
+$$$("#missionPanel [data-stage-jump]").forEach((el) => el.addEventListener("click", (event) => {
   event.preventDefault();
   event.stopPropagation();
   if (missionBusy || !missionDef || !missionState) return;
@@ -1675,7 +1675,7 @@ let expCurrentScene = "m-office";
 const expSessions = {};
 function initExperience() {
   $("#expScenes").innerHTML = EXP_SCENES.map((s) => `<button class="chipbtn" data-exp="${s.id}">${esc(s.title)}</button>`).join("");
-  $$("#expScenes .chipbtn").forEach((b) => b.addEventListener("click", () => showExpScene(b.dataset.exp)));
+  $$$("#expScenes .chipbtn").forEach((b) => b.addEventListener("click", () => showExpScene(b.dataset.exp)));
   showExpScene("m-office");
 }
 function showExpScene(id) {
@@ -1683,7 +1683,7 @@ function showExpScene(id) {
   if (!scene) return;
   expCurrentScene = id;
   if (!expSessions[id]) { try { expSessions[id] = JSON.parse(localStorage.getItem("007-field:" + id) || "[]"); if (!Array.isArray(expSessions[id])) expSessions[id] = []; } catch (_) { expSessions[id] = []; } }
-  $$("#expScenes .chipbtn").forEach((x) => x.classList.toggle("active", x.dataset.exp === id));
+  $$$("#expScenes .chipbtn").forEach((x) => x.classList.toggle("active", x.dataset.exp === id));
   const history = expSessions[id];
   $("#expPanel").innerHTML = `<h3>${esc(scene.title)}</h3><p>${esc(scene.text)}</p>
   <p class="meta">${LANGUAGE === "en" ? "Choose an approach or describe any action in your own words. Outcomes are generated dynamically and are not guaranteed." : "你可以选择行动，也可以自由输入任何行动。后果由模型根据情境动态判定，不保证成功。"}</p>
@@ -1691,7 +1691,7 @@ function showExpScene(id) {
   <div id="expOut">${history.map(m => `<div class="log"><b>${m.role === "user" ? (LANGUAGE === "en" ? "You" : "你") : (LANGUAGE === "en" ? "Field report" : "现场反馈")}：</b>${esc(m.content)}</div>`).join("")}</div>
   <div class="row" style="margin-top:10px"><div style="flex:3"><input id="expActionInput" maxlength="1000" placeholder="${LANGUAGE === "en" ? "Describe your own action…" : "描述你想采取的行动…"}"></div><button class="btn small" id="expActionSend" style="flex:0 0 auto">${LANGUAGE === "en" ? "Act" : "行动"}</button></div><div class="row" style="margin-top:8px"><button class="btn ghost small" id="expUndo">${LANGUAGE === "en" ? "Undo previous action" : "撤回上一步"}</button><button class="btn ghost small" id="expClear">${LANGUAGE === "en" ? "Clear this conversation" : "清空本场对话"}</button></div>
   ${id === "casino" ? `<p class="meta">${LANGUAGE === "en" ? "The baccarat table below is also playable." : "下方百家乐桌也可以直接实战。"}</p>` : ""}`;
-  $$("#expPanel [data-expchoice]").forEach(el => el.addEventListener("click", () => {
+  $$$("#expPanel [data-expchoice]").forEach(el => el.addEventListener("click", () => {
     const choice = scene.choices[Number(el.dataset.expchoice)];
     sendExperienceAction(choice);
     if (id === "casino" && Number(el.dataset.expchoice) === 2) document.getElementById("baccaratCard").scrollIntoView({ behavior: "smooth" });
@@ -1902,7 +1902,7 @@ box.innerHTML = answer + evidence;
 box.innerHTML = `<div class="empty">正典检索失败：${esc(e.message)}。</div>`;
 }
 });
-$$("[data-lab]").forEach((b) => b.addEventListener("click", async () => {
+$$$("[data-lab]").forEach((b) => b.addEventListener("click", async () => {
 try {
 if (b.dataset.lab === "compare") await ensureCanonBooks();
 $("#labOut").innerHTML = `<p style="font-size:15px">${esc(LAB_GEN[b.dataset.lab]())}</p><p class="meta">研究提纲/原创实验内容，不替代原著章节证据。</p>`;
@@ -1997,14 +1997,14 @@ function renderAtlas() {
     wrap.innerHTML = dots.length ? dots.map(d =>
       `<div class="mapdot" style="left:${d.xPct.toFixed(1)}%;top:${d.yPct.toFixed(1)}%" data-loc="${d.p.id}" title="${esc(locationName(d.p))}"></div><div class="maplbl" data-loc="${d.p.id}" style="left:${d.lbl.left.toFixed(0)}px;top:${d.lbl.top.toFixed(0)}px;transform:none">${esc(locationName(d.p))}</div>`
     ).join("") : `<div style="position:absolute;left:10px;right:10px;top:45%;text-align:center;font-size:13px;color:var(--muted)">${LANGUAGE === "en" ? "No verified real locations with coordinates match these filters. See the complete archive below." : "当前筛选没有可核验坐标的真实地点；请查看下方完整档案。"}</div>`;
-    $$("#mapWrap .mapdot").forEach(el => el.addEventListener("click", () => showLocation(el.dataset.loc)));
+    $$$("#mapWrap .mapdot").forEach(el => el.addEventListener("click", () => showLocation(el.dataset.loc)));
   }
   const mapped = list.filter(p => !p.fictional && MAP_COORDINATES[p.id]);
   const unlocated = list.length - mapped.length;
   $("#atlasGrid").innerHTML = mapped.map(p =>
     `<div class="card clickable" data-loc="${p.id}"><h3>${esc(locationName(p))} <span class="tag gold">${LANGUAGE === "en" ? "Real location" : "真实地点"}</span></h3><p class="meta">${esc(locationCountry(p))} · ${LANGUAGE === "en" ? "City-level map marker" : "城市级地图点"} · ${p.appearances.length} ${LANGUAGE === "en" ? "novels" : "部作品"}</p><p>${esc(p.appearances.map(locationAppearance).join(" · "))}</p></div>`
   ).join("") + `<div class="card"><h3>${LANGUAGE === "en" ? "Other locations in the archive" : "档案中的其他地点"}</h3><p>${LANGUAGE === "en" ? unlocated + " locations have no verified point coordinates or are fictional. They remain in the full directory of 170 locations below." : unlocated + "处地点没有可核验的单点坐标，或属于小说虚构地点。它们仍完整保留在下方170处地点目录中。"}</p></div>`;
-  $$("#atlasGrid [data-loc]").forEach(el => el.addEventListener("click", () => showLocation(el.dataset.loc)));
+  $$$("#atlasGrid [data-loc]").forEach(el => el.addEventListener("click", () => showLocation(el.dataset.loc)));
   renderCanonWorldDirectory();
 }
 
@@ -2035,7 +2035,7 @@ function renderCanonWorldDirectory() {
   box.innerHTML = list.map(p =>
     `<div class="card clickable" data-canon-loc="${p.id}"><h3>${esc(locationName(p))} <span class="tag ${p.fictional?"red":"gold"}">${p.fictional ? (LANGUAGE === "en" ? "Fictional location" : "小说虚构地点") : (LANGUAGE === "en" ? "Real location" : "真实地点")}</span></h3><p class="meta">${esc(locationCountry(p))} · ${p.appearances.length} ${LANGUAGE === "en" ? "novels" : "部作品"}</p><p>${esc(p.appearances.map(locationAppearance).join(" · "))}</p></div>`
   ).join("") || '<div class="empty">没有匹配地点。</div>';
-  $$("#canonWorldDirectory [data-canon-loc]").forEach(el => el.addEventListener("click", () => showLocation(el.dataset.canonLoc)));
+  $$$("#canonWorldDirectory [data-canon-loc]").forEach(el => el.addEventListener("click", () => showLocation(el.dataset.canonLoc)));
 }
 
 async function loadCanonWorldDirectory() {
@@ -2085,11 +2085,11 @@ let cipherCode="",cipherTries=0,survN=0,dedN=0,routeN=0;
 function cipherNew(){let ds="0123456789".split("");cipherCode="";while(cipherCode.length<4)cipherCode+=ds.splice(Math.floor(Math.random()*ds.length),1)[0];cipherTries=0;$("#cipherGuess").value="";$("#cipherSubmit").disabled=false;$("#cipherStatus").textContent=LANGUAGE==="en"?"8 attempts left":"剩余8次";$("#cipherLog").textContent=LANGUAGE==="en"?"Enter four unique digits.":"请输入四个不重复数字。";}
 function cipherTry(){let g=$("#cipherGuess").value.trim();if(!/^\d{4}$/.test(g)||new Set(g).size!==4){$("#cipherLog").textContent=LANGUAGE==="en"?"Use four different digits.":"请输入四个不重复的数字。";return;}if(cipherTries>=8)return;cipherTries++;let x=[...g].filter((v,i)=>v===cipherCode[i]).length,y=[...g].filter((v,i)=>cipherCode.includes(v)&&v!==cipherCode[i]).length;$("#cipherLog").textContent=(LANGUAGE==="en"?`Attempt ${cipherTries}: ${x} exact, ${y} misplaced.`:`第${cipherTries}次：位置正确${x}位，数字正确但位置错误${y}位。`)+(x===4?(LANGUAGE==="en"?" Code cracked.":" 破解成功。"):cipherTries===8?(LANGUAGE==="en"?" Locked. Code: ":" 已锁定，密码：")+cipherCode:"");$("#cipherStatus").textContent=LANGUAGE==="en"?`${8-cipherTries} left`:`剩余${8-cipherTries}次`;if(x===4||cipherTries===8)$("#cipherSubmit").disabled=true;}
 const SG=[{zh:"你在酒店大堂换了三次座位。一名男子每次都在你落座后两分钟内出现在相同视线范围。",en:"You change seats three times in a hotel lobby. A man appears within sight two minutes after each move."},{zh:"你离开车站后绕行两个街区再折返。一辆车也连续改变方向并保持距离。",en:"You circle two blocks and double back. A car changes direction twice and keeps the same distance."}];
-function survDraw(){let c=SG[survN%SG.length],opts=[["他连续跟随你的移动，并保持相同观察距离。","He repeatedly mirrors your movements and keeps the same distance."],["他穿着昂贵西装。","He is wearing an expensive suit."],["他在看报纸。","He is reading a newspaper."],["他点了咖啡。","He ordered coffee."]];$("#survPrompt").textContent=LANGUAGE==="en"?c.en:c.zh;$("#survChoices").innerHTML=opts.map((o,i)=>`<button class="choice" type="button" data-sv="${i}">${o[LANGUAGE==="en"?1:0]}</button>`).join("");$("#survFeedback").textContent="";$("#survChoices button").forEach(b=>b.addEventListener("click",()=>{$("#survFeedback").textContent=Number(b.dataset.sv)===0?(LANGUAGE==="en"?"Correct: repeated reactions to your movements are the strongest signal.":"正确：反复响应你的移动是最有力的迹象。"):(LANGUAGE==="en"?"Not enough evidence. Focus on repeated reactions to your movements.":"证据不足，应关注对方是否反复响应你的移动。");$("#survChoices button").forEach(z=>z.disabled=true);}));}
+function survDraw(){let c=SG[survN%SG.length],opts=[["他连续跟随你的移动，并保持相同观察距离。","He repeatedly mirrors your movements and keeps the same distance."],["他穿着昂贵西装。","He is wearing an expensive suit."],["他在看报纸。","He is reading a newspaper."],["他点了咖啡。","He ordered coffee."]];$("#survPrompt").textContent=LANGUAGE==="en"?c.en:c.zh;$("#survChoices").innerHTML=opts.map((o,i)=>`<button class="choice" type="button" data-sv="${i}">${o[LANGUAGE==="en"?1:0]}</button>`).join("");$("#survFeedback").textContent="";$$("#survChoices button").forEach(b=>b.addEventListener("click",()=>{$("#survFeedback").textContent=Number(b.dataset.sv)===0?(LANGUAGE==="en"?"Correct: repeated reactions to your movements are the strongest signal.":"正确：反复响应你的移动是最有力的迹象。"):(LANGUAGE==="en"?"Not enough evidence. Focus on repeated reactions to your movements.":"证据不足，应关注对方是否反复响应你的移动。");$$("#survChoices button").forEach(z=>z.disabled=true);}));}
 const DG=[{zh:["服务门由钥匙打开，没有撬痕。","窗边没有玻璃碎片。","事件前一张员工门禁卡报告遗失。"],en:["The service door was opened with a key; there are no pry marks.","No glass fragments were found near the window.","A staff access card was reported missing before the incident."]},{zh:["包裹送达时封条完整。","收件签名与登记样本不一致。","交接记录缺少一名见证人。"],en:["The package seal was intact on arrival.","The recipient's signature does not match the registered sample.","The handover record is missing a witness."]}];
-function dedDraw(){let c=DG[dedN%DG.length];$("#deducePrompt").innerHTML=c[LANGUAGE==="en"?"en":"zh"].map(x=>`<div class="log">${esc(x)}</div>`).join("");let o=dedN%2===0?(LANGUAGE==="en"?["Someone used a valid key or access credential.","The intruder definitely entered through a window.","A staff member is definitely the culprit."]:["有人使用了有效钥匙或门禁凭证。","入侵者一定是从窗户进入。","员工一定就是主谋。"]):(LANGUAGE==="en"?["The handover record is irregular, but the evidence does not identify who is responsible.","The courier definitely opened the package.","The recipient is definitely a spy."]:["交接记录存在异常，但证据不足以确定责任人。","信使一定拆开了包裹。","收件人一定是间谍。"]);$("#deduceChoices").innerHTML=o.map((x,i)=>`<button class="choice" type="button" data-dd="${i}">${x}</button>`).join("");$("#deduceFeedback").textContent="";$("#deduceChoices button").forEach(b=>b.addEventListener("click",()=>{$("#deduceFeedback").textContent=Number(b.dataset.dd)===0?(LANGUAGE==="en"?"Correct. You stayed within the evidence.":"正确，结论没有超出证据。"):(LANGUAGE==="en"?"Unsupported inference. Separate facts from assumptions.":"推断缺乏支持，请区分事实与假设。");$("#deduceChoices button").forEach(z=>z.disabled=true);}));}
+function dedDraw(){let c=DG[dedN%DG.length];$("#deducePrompt").innerHTML=c[LANGUAGE==="en"?"en":"zh"].map(x=>`<div class="log">${esc(x)}</div>`).join("");let o=dedN%2===0?(LANGUAGE==="en"?["Someone used a valid key or access credential.","The intruder definitely entered through a window.","A staff member is definitely the culprit."]:["有人使用了有效钥匙或门禁凭证。","入侵者一定是从窗户进入。","员工一定就是主谋。"]):(LANGUAGE==="en"?["The handover record is irregular, but the evidence does not identify who is responsible.","The courier definitely opened the package.","The recipient is definitely a spy."]:["交接记录存在异常，但证据不足以确定责任人。","信使一定拆开了包裹。","收件人一定是间谍。"]);$("#deduceChoices").innerHTML=o.map((x,i)=>`<button class="choice" type="button" data-dd="${i}">${x}</button>`).join("");$("#deduceFeedback").textContent="";$$("#deduceChoices button").forEach(b=>b.addEventListener("click",()=>{$("#deduceFeedback").textContent=Number(b.dataset.dd)===0?(LANGUAGE==="en"?"Correct. You stayed within the evidence.":"正确，结论没有超出证据。"):(LANGUAGE==="en"?"Unsupported inference. Separate facts from assumptions.":"推断缺乏支持，请区分事实与假设。");$$("#deduceChoices button").forEach(z=>z.disabled=true);}));}
 const RG=[{zh:"你携带胶片，必须在20分钟内离开港口区。主路有警察盘查，仓库区路线不熟。",en:"You carry a film canister and must leave the harbour within 20 minutes. The main road has a checkpoint; the warehouse route is unfamiliar."},{zh:"你在酒店被发现，必须带联络人撤离。电梯大厅有人守候，消防楼梯尚未确认是否畅通。",en:"You are spotted in a hotel with a contact. The lift lobby is watched; the fire stairs have not been checked."}];
-function routeDraw(){let c=RG[routeN%RG.length];$("#routePrompt").textContent=LANGUAGE==="en"?c.en:c.zh;let o=LANGUAGE==="en"?["Drive via the main road: fast, but exposed.","Reconnoitre the covered route before extracting.","Board an unknown vehicle immediately."]:["主路驾车：快，但暴露风险高。","先侦察有遮蔽的路线，再撤离。","立即登上身份和目的地未知的车辆。"];$("#routeChoices").innerHTML=o.map((x,i)=>`<button class="choice" type="button" data-rt="${i}">${x}</button>`).join("");$("#routeFeedback").textContent="";$("#routeChoices button").forEach(b=>b.addEventListener("click",()=>{$("#routeFeedback").textContent=Number(b.dataset.rt)===1?(LANGUAGE==="en"?"Sound judgement: verify uncertainty before committing.":"判断合理：先核实不确定因素再行动。"):(LANGUAGE==="en"?"Reassess exposure, cover and unknowns.":"重新评估暴露风险、遮蔽条件与未知因素。");$("#routeChoices button").forEach(z=>z.disabled=true);}));}
+function routeDraw(){let c=RG[routeN%RG.length];$("#routePrompt").textContent=LANGUAGE==="en"?c.en:c.zh;let o=LANGUAGE==="en"?["Drive via the main road: fast, but exposed.","Reconnoitre the covered route before extracting.","Board an unknown vehicle immediately."]:["主路驾车：快，但暴露风险高。","先侦察有遮蔽的路线，再撤离。","立即登上身份和目的地未知的车辆。"];$("#routeChoices").innerHTML=o.map((x,i)=>`<button class="choice" type="button" data-rt="${i}">${x}</button>`).join("");$("#routeFeedback").textContent="";$$("#routeChoices button").forEach(b=>b.addEventListener("click",()=>{$("#routeFeedback").textContent=Number(b.dataset.rt)===1?(LANGUAGE==="en"?"Sound judgement: verify uncertainty before committing.":"判断合理：先核实不确定因素再行动。"):(LANGUAGE==="en"?"Reassess exposure, cover and unknowns.":"重新评估暴露风险、遮蔽条件与未知因素。");$$("#routeChoices button").forEach(z=>z.disabled=true);}));}
 
 // Novel-specific game hooks mapped to reusable playable skill modules.
 const SERIES_GAME_IDEAS = [
@@ -2111,7 +2111,7 @@ const SERIES_GAME_IDEAS = [
 function renderSeriesGameIndex(){
  const box=$("#seriesGameIndex");if(!box)return;
  box.innerHTML=SERIES_GAME_IDEAS.map(x=>`<div class="card"><h3>${LANGUAGE==="en"?x.en:x.zh}</h3><p><b>${LANGUAGE==="en"?x.eventEn:x.eventZh}</b></p><p class="meta">${LANGUAGE==="en"?x.modeEn:x.modeZh}</p><button class="btn ghost small" type="button" data-series-target="${x.target}">${LANGUAGE==="en"?"Open playable module":"进入对应玩法"}</button></div>`).join("");
- $("#seriesGameIndex [data-series-target]").forEach(b=>b.addEventListener("click",()=>{const target=document.getElementById(b.dataset.seriesTarget);if(target){target.scrollIntoView({behavior:"smooth",block:"center"});if(target.tagName==="INPUT")target.focus();}}));
+ $$("#seriesGameIndex [data-series-target]").forEach(b=>b.addEventListener("click",()=>{const target=document.getElementById(b.dataset.seriesTarget);if(target){target.scrollIntoView({behavior:"smooth",block:"center"});if(target.tagName==="INPUT")target.focus();}}));
 }
 
 
