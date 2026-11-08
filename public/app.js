@@ -1399,7 +1399,7 @@ async function sendExperienceAction(action) {
   const scene = EXP_SCENES.find(x => x.id === expCurrentScene);
   const history = expSessions[expCurrentScene] || (expSessions[expCurrentScene] = []);
   history.push({ role: "user", content: action });
-  try { localStorage.setItem("007-field:" + expCurrentScene, JSON.stringify(history.slice(-60))); } catch (_) {}
+  try { localStorage.setItem("007-field:" + LANGUAGE + ":" + expCurrentScene, JSON.stringify(history.slice(-60))); } catch (_) {}
   const out = $("#expOut"), send = $("#expActionSend");
   if (out) out.innerHTML = history.map(m => `<div class="log"><b>${m.role === "user" ? (LANGUAGE === "en" ? "You" : "你") : (LANGUAGE === "en" ? "Field report" : "现场反馈")}：</b>${esc(m.content)}</div>`).join("") + `<div class="log" id="expThinking">${LANGUAGE === "en" ? "The situation is developing…" : "局势正在发展……"}</div>`;
   if (send) send.disabled = true;
@@ -1409,11 +1409,11 @@ async function sendExperienceAction(action) {
     const data = await response.json();
     const reply = response.ok ? data.reply : (data.error || (LANGUAGE === "en" ? "The simulation is unavailable." : "模拟暂时不可用。"));
     history.push({ role: "assistant", content: reply });
-    try { localStorage.setItem("007-field:" + expCurrentScene, JSON.stringify(history.slice(-60))); } catch (_) {}
+    try { localStorage.setItem("007-field:" + LANGUAGE + ":" + expCurrentScene, JSON.stringify(history.slice(-60))); } catch (_) {}
     if (out) out.innerHTML = history.map(m => `<div class="log"><b>${m.role === "user" ? (LANGUAGE === "en" ? "You" : "你") : (LANGUAGE === "en" ? "Field report" : "现场反馈")}：</b>${esc(m.content)}</div>`).join("");
   } catch (error) {
     history.push({ role: "assistant", content: LANGUAGE === "en" ? "Connection error. Please try again." : "连接失败，请重试。" });
-    try { localStorage.setItem("007-field:" + expCurrentScene, JSON.stringify(history.slice(-60))); } catch (_) {}
+    try { localStorage.setItem("007-field:" + LANGUAGE + ":" + expCurrentScene, JSON.stringify(history.slice(-60))); } catch (_) {}
     if (out) out.innerHTML = history.map(m => `<div class="log"><b>${m.role === "user" ? (LANGUAGE === "en" ? "You" : "你") : (LANGUAGE === "en" ? "Field report" : "现场反馈")}：</b>${esc(m.content)}</div>`).join("");
   } finally {
     if (send) send.disabled = false;
