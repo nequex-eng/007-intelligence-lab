@@ -61,7 +61,7 @@ const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&l
 
 const englishText = (...values) => values.find(v => typeof v === "string" && v.trim() && !/[\u3400-\u9fff]/.test(v)) || "";
 let CHARACTERS = [];
-let LANGUAGE = (() => { try { return localStorage.getItem("007-language")==="en" ? "en" : "zh"; } catch (_) { return "zh"; } })();
+let LANGUAGE = (() => { try { return localStorage.getItem("007-language")==="zh" ? "zh" : "en"; } catch (_) { return "en"; } })();
 const EN_TEXT = new Map([
 ["情报档案","Intelligence Archive"],["人物剧场","Character Theatre"],["任务控制中心","Mission Control"],["世界探索","World Explorer"],
 ["接受第一个任务","Accept Your First Mission"],["见一见邦德","Meet Bond"],["打开情报档案","Open Intelligence Archive"],["状态检测中…","Checking system…"],
